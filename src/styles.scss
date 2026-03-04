@@ -1,0 +1,87 @@
+@use './styles/sabr-tokens';
+@import url('@nebular/theme/styles/prebuilt/default.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --color-brand-navy: #041631;
+  --color-brand-accent: #fbbd08;
+  --color-bg-light: var(--sabr-bg);
+  --gutter-xs: 16px;
+  --gutter-sm: 20px;
+  --gutter-md: 24px;
+  --gutter-lg: 32px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--sabr-font-body-size);
+  line-height: var(--sabr-font-body-line);
+  font-weight: var(--sabr-font-body-weight);
+  color: var(--sabr-text);
+  background: var(--color-bg-light);
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: var(--sabr-text);
+}
+
+.sabr-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.sabr-card {
+  border-radius: var(--sabr-radius-card);
+  border: 1px solid var(--sabr-border);
+  background: var(--sabr-surface);
+  box-shadow: var(--sabr-shadow-soft);
+}
+
+.sabr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--sabr-radius-control);
+  padding: 4px 12px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+}
+
+.sabr-badge-success {
+  background: color-mix(in srgb, var(--sabr-success) 14%, white);
+  color: var(--sabr-success);
+}
+
+.sabr-badge-warning {
+  background: color-mix(in srgb, var(--sabr-warning) 16%, white);
+  color: var(--sabr-warning);
+}
+
+.sabr-badge-danger {
+  background: color-mix(in srgb, var(--sabr-danger) 14%, white);
+  color: var(--sabr-danger);
+}
+
+.sabr-badge-muted {
+  background: #eef1f5;
+  color: #5d6878;
+}

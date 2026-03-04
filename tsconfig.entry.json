@@ -1,0 +1,11 @@
+/* Shared TS config for browser entrypoints (client/admin).
+   Keep this file free of broad "include" globs so each build can compile only
+   from its configured entry file(s) and their imports. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "exclude": ["src/**/*.spec.ts"]
+}
+

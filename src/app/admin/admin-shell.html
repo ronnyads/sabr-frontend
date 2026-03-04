@@ -1,0 +1,18 @@
+<nb-layout windowMode class="sabr-layout-host">
+  <nb-layout-column>
+    <app-sabr-shell-layout
+      [appTitle]="'SABR'"
+      [appSubtitle]="'Admin Console'"
+      [topbarTitle]="'Admin'"
+      [tenantBadgeText]="tenantBadgeText"
+      [menuItems]="menuItems"
+      [userName]="currentUserName"
+      [userSubtitle]="currentUserRole"
+      [profileName]="currentUserName"
+      [profileSubtitle]="currentUserRole"
+      (logout)="logout()"
+    >
+      <router-outlet></router-outlet>
+    </app-sabr-shell-layout>
+  </nb-layout-column>
+</nb-layout>

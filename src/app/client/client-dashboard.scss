@@ -1,0 +1,28 @@
+.client-dashboard-card {
+  margin-top: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-pill {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.description {
+  margin: 0 0 16px;
+  color: #4b5563;
+}
+
+.actions {
+  display: flex;
+}

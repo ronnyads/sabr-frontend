@@ -1,0 +1,133 @@
+<section class="sabr-page my-products-page">
+  <app-page-header
+    [title]="'Meus Produtos'"
+    [subtitle]="'Configure o modo de precificacao para cada draft.'"
+  ></app-page-header>
+
+  <app-search-toolbar
+    [placeholder]="'Buscar por SKU ou nome...'"
+    [value]="searchControl.value"
+    (searchChange)="onToolbarSearchChange($event)"
+    (clear)="clearToolbar()"
+  ></app-search-toolbar>
+
+  <div class="sabr-card panel">
+    <div class="conflict-card sabr-card" *ngIf="hasConcurrencyConflict || hasPreconditionRequired">
+      <p *ngIf="hasConcurrencyConflict">Foi detectado conflito de concorrencia em uma alteracao recente.</p>
+      <p *ngIf="hasPreconditionRequired">
+        A atualizacao exige precondicao de versao. Recarregue o draft e tente novamente.
+      </p>
+      <button nbButton status="warning" size="small" (click)="reloadAfterConflict()">Recarregar e tentar novamente</button>
+    </div>
+
+    <app-ui-state
+      [loading]="loading"
+      [errorMessage]="errorMessage"
+      [empty]="empty"
+      emptyTitle="Nenhum draft encontrado"
+      emptyDescription="Adicione produtos no Catalogo para comecar."
+      (retry)="retry()"
+    ></app-ui-state>
+
+    <section class="rows" *ngIf="!loading && !errorMessage && rows.length > 0">
+      <article class="row-card" *ngFor="let row of rows; trackBy: rowById">
+        <div class="row-main">
+          <div class="thumb">
+            <img *ngIf="resolveImageUrl(row.thumbnailUrl); else noImage" [src]="resolveImageUrl(row.thumbnailUrl) || ''" [alt]="row.productName" />
+            <ng-template #noImage>
+              <span>Sem imagem</span>
+            </ng-template>
+          </div>
+
+          <div class="row-info">
+            <small>{{ row.productSku }}</small>
+            <h4>{{ row.productName }}</h4>
+            <div class="marketplace-badges">
+              <span class="channel-label">ML</span>
+              <span class="status-badge" [ngClass]="mlBadgeClass(row.mlOverallStatus)">
+                {{ row.mlOverallStatus || 'None' }}
+              </span>
+              <small>{{ row.mlPublishedCount }} publicadas / {{ row.mlDraftCount }} draft / {{ row.mlErrorCount }} erro</small>
+              <span class="variant-readiness" [class.missing]="!row.hasProductVariant">
+                {{ row.hasProductVariant ? 'Variante pronta' : 'Catalogo incompleto: SKU sem variante' }}
+              </span>
+              <span class="variant-readiness">
+                Estoque: {{ row.availableStock ?? '-' }}
+              </span>
+              <span class="variant-readiness" *ngIf="row.stockSource === 'AutoBestVariant'">
+                Auto
+              </span>
+            </div>
+            <div class="prices">
+              <span>Catalogo: {{ formatMoney(row.catalogPriceCentsSnapshot) }}</span>
+              <strong>Preco final estimado: {{ formatMoney(row.finalPriceCentsSnapshot) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="field">
+            <label>Modo de preco</label>
+            <nb-select [(ngModel)]="row.editPricingMode" (selectedChange)="onRowChanged(row)">
+              <nb-option [value]="pricingMode.CatalogPrice">Preco de Catalogo</nb-option>
+              <nb-option [value]="pricingMode.MarkupPercent">Markup (%)</nb-option>
+              <nb-option [value]="pricingMode.FixedPrice">Preco Fixo</nb-option>
+            </nb-select>
+          </div>
+
+          <div class="field" *ngIf="row.editPricingMode === pricingMode.MarkupPercent">
+            <label>Markup (%)</label>
+            <input
+              nbInput
+              type="number"
+              min="0"
+              max="500"
+              step="0.01"
+              [(ngModel)]="row.editMarkupPercent"
+              (ngModelChange)="onRowChanged(row)"
+            />
+          </div>
+
+          <div class="field" *ngIf="row.editPricingMode === pricingMode.FixedPrice">
+            <label>Preco fixo (cents)</label>
+            <input
+              nbInput
+              type="number"
+              min="0"
+              step="1"
+              [(ngModel)]="row.editFixedPriceCents"
+              (ngModelChange)="onRowChanged(row)"
+            />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button
+            nbButton
+            status="success"
+            size="small"
+            [disabled]="!row.hasProductVariant"
+            [title]="row.hasProductVariant ? 'Publicar no Mercado Livre' : 'Catalogo incompleto: SKU sem variante cadastrada.'"
+            (click)="openPublishWizard(row)"
+          >
+            Publicar
+          </button>
+          <button nbButton status="primary" size="small" [disabled]="row.isSaving || !row.isDirty" (click)="save(row)">
+            {{ row.isSaving ? 'Salvando...' : 'Salvar' }}
+          </button>
+          <button nbButton status="danger" size="small" [disabled]="row.isRemoving" (click)="remove(row)">
+            {{ row.isRemoving ? 'Removendo...' : 'Remover' }}
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <div class="pager" *ngIf="!loading && !errorMessage && total > 0">
+      <span>{{ skip + 1 }}-{{ skip + rows.length }} de {{ total }}</span>
+      <div class="pager-actions">
+        <button nbButton size="small" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <button nbButton size="small" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </div>
+</section>

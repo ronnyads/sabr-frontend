@@ -1,0 +1,59 @@
+<section class="sabr-page client-catalog-page">
+  <app-page-header
+    [title]="'Catalogo'"
+    [subtitle]="'Produtos liberados para o seu plano ativo.'"
+  ></app-page-header>
+
+  <app-search-toolbar
+    [placeholder]="'Buscar por SKU ou nome...'"
+    [value]="searchControl.value"
+    (searchChange)="onToolbarSearchChange($event)"
+    (clear)="clearToolbar()"
+  ></app-search-toolbar>
+
+  <div class="sabr-card panel">
+    <app-ui-state
+      [loading]="loading"
+      [errorMessage]="errorMessage"
+      [empty]="empty"
+      emptyTitle="Nenhum produto encontrado"
+      emptyDescription="Nao ha produtos no catalogo para esse filtro."
+      (retry)="retry()"
+    ></app-ui-state>
+
+    <section class="grid" *ngIf="!loading && !errorMessage && products.length > 0">
+      <article class="product-card" *ngFor="let product of products; trackBy: productBySku">
+        <div class="thumb">
+          <img *ngIf="resolveImageUrl(product.thumbnailUrl); else noImage" [src]="resolveImageUrl(product.thumbnailUrl) || ''" [alt]="product.name" />
+          <ng-template #noImage>
+            <span>Sem imagem</span>
+          </ng-template>
+        </div>
+        <div class="product-content">
+          <small class="sku">{{ product.sku }}</small>
+          <h4>{{ product.name }}</h4>
+          <p class="price">{{ formatMoney(product.catalogPriceCents) }}</p>
+        </div>
+        <button
+          nbButton
+          status="primary"
+          size="small"
+          [disabled]="isAdding(product.sku) || isAdded(product.sku)"
+          (click)="addToMyProducts(product)"
+        >
+          <ng-container *ngIf="!isAdding(product.sku) && !isAdded(product.sku)">Adicionar</ng-container>
+          <ng-container *ngIf="isAdding(product.sku)">Adicionando...</ng-container>
+          <ng-container *ngIf="isAdded(product.sku)">Adicionado</ng-container>
+        </button>
+      </article>
+    </section>
+
+    <div class="pager" *ngIf="!loading && !errorMessage && total > 0">
+      <span>{{ skip + 1 }}-{{ skip + products.length }} de {{ total }}</span>
+      <div class="pager-actions">
+        <button nbButton size="small" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <button nbButton size="small" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,30 @@
+<section class="search-toolbar sabr-card">
+  <div class="search-line">
+    <label class="search-field">
+      <nb-icon icon="search-outline"></nb-icon>
+      <input
+        type="text"
+        [placeholder]="placeholder"
+        [(ngModel)]="searchValue"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onSearchChanged($event)"
+      />
+    </label>
+
+    <button type="button" class="clear-btn" (click)="onClear()">Limpar</button>
+  </div>
+
+  <div class="filters" *ngIf="filters.length > 0">
+    <div class="filter-pill" *ngFor="let filter of filters; trackBy: trackByFilterId">
+      <span>{{ filter.label }}</span>
+      <select
+        [value]="filter.value"
+        (change)="onFilterChanged(filter.id, $event)"
+      >
+        <option *ngFor="let option of filter.options; trackBy: trackByOptionValue" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+</section>

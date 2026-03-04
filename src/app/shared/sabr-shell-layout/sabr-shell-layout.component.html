@@ -1,0 +1,33 @@
+<div class="sabr-shell">
+  <div class="sabr-overlay" *ngIf="mobile && drawerOpen" (click)="closeDrawer()"></div>
+
+  <app-sabr-sidebar
+    [title]="appTitle"
+    [subtitle]="appSubtitle"
+    [menuItems]="menuItems"
+    [open]="sidebarOpen"
+    [mobile]="mobile"
+    [profileName]="profileName"
+    [profileSubtitle]="profileSubtitle"
+    (closeDrawer)="closeDrawer()"
+    (navigate)="closeDrawer()"
+  ></app-sabr-sidebar>
+
+  <div class="sabr-main">
+    <app-sabr-topbar
+      [title]="topbarTitle"
+      [tenantBadgeText]="tenantBadgeText"
+      [userName]="userName"
+      [userSubtitle]="userSubtitle"
+      [mobile]="mobile"
+      (menuToggle)="toggleDrawer()"
+      (logout)="logout.emit()"
+    ></app-sabr-topbar>
+
+    <div class="sabr-content">
+      <div class="sabr-content-inner">
+        <ng-content></ng-content>
+      </div>
+    </div>
+  </div>
+</div>

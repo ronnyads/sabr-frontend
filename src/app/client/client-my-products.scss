@@ -1,0 +1,190 @@
+.my-products-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
+  padding: 18px;
+}
+
+.conflict-card {
+  margin-bottom: 14px;
+  border: 1px solid #fdba74;
+  background: #fff7ed;
+  padding: 14px;
+}
+
+.conflict-card p {
+  margin: 0 0 10px;
+  color: #9a3412;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row-card {
+  border: 1px solid var(--sabr-border);
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row-main {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.thumb {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  background: #f0f4fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb span {
+  color: var(--sabr-text-muted);
+  font-size: 0.75rem;
+}
+
+.row-info small {
+  color: var(--sabr-text-muted);
+}
+
+.row-info h4 {
+  margin: 4px 0;
+  color: var(--sabr-text);
+}
+
+.prices {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #334155;
+}
+
+.prices strong {
+  color: #115fca;
+}
+
+.marketplace-badges {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.variant-readiness {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #166534;
+  background: #dcfce7;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.variant-readiness.missing {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.channel-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.status-badge {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+.badge-none {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.badge-draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #4d5770;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.pager {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.pager-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .row-main {
+    grid-template-columns: 1fr;
+  }
+
+  .thumb {
+    width: 100%;
+    height: 160px;
+  }
+}

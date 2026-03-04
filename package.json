@@ -1,0 +1,69 @@
+{
+  "name": "sabr-frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "start:client": "ng serve --configuration development",
+    "start:client:stack": "powershell -ExecutionPolicy Bypass -File ../scripts/dev-client.ps1",
+    "start:admin": "ng serve --configuration admin-development",
+    "check:api": "powershell -ExecutionPolicy Bypass -File ../scripts/check-api.ps1",
+    "build": "ng build",
+    "build:client": "ng build --configuration production",
+    "build:admin": "ng build --configuration admin-production",
+    "build:client:dev:deploy": "ng build --configuration client-dev-deploy",
+    "build:client:prod:deploy": "ng build --configuration client-prod-deploy",
+    "build:admin:dev:deploy": "ng build --configuration admin-dev-deploy",
+    "build:admin:prod:deploy": "ng build --configuration admin-prod-deploy",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@11.8.0",
+  "dependencies": {
+    "@angular/animations": "^20.0.0",
+    "@angular/cdk": "^20.0.0",
+    "@angular/common": "^20.0.0",
+    "@angular/compiler": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/forms": "^20.0.0",
+    "@angular/platform-browser": "^20.0.0",
+    "@angular/router": "^20.0.0",
+    "@nebular/eva-icons": "16.0.0",
+    "@nebular/theme": "16.0.0",
+    "@sentry/browser": "^10.7.0",
+    "eva-icons": "^1.1.3",
+    "rxjs": "~7.8.1",
+    "tslib": "^2.6.2",
+    "web-vitals": "^5.1.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^20.0.0",
+    "@angular/cli": "^20.0.0",
+    "@angular/compiler-cli": "^20.0.0",
+    "@schematics/angular": "^20.0.0",
+    "@types/jasmine": "^6.0.0",
+    "jasmine-core": "~5.1.2",
+    "jsdom": "^27.1.0",
+    "karma": "~6.4.3",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.1",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.8.2",
+    "vitest": "^4.0.8"
+  }
+}

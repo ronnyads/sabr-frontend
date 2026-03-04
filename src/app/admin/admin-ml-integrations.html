@@ -1,0 +1,78 @@
+<section class="sabr-page admin-ml-page">
+  <ng-template #headerActions>
+    <button nbButton status="basic" size="small" (click)="loadStatus()">Atualizar</button>
+  </ng-template>
+
+  <app-page-header
+    [title]="'Integracoes - Mercado Livre'"
+    [subtitle]="'Leitura por tenant/client selecionado.'"
+    [actionsTemplate]="headerActions"
+  ></app-page-header>
+
+  <div class="sabr-card panel">
+    <app-ui-state
+      [loading]="loading"
+      [errorMessage]="errorMessage"
+      [empty]="empty"
+      emptyTitle="Sem dados de integracao"
+      emptyDescription="Nenhuma conexao Mercado Livre encontrada para este client."
+      (retry)="loadStatus()"
+    ></app-ui-state>
+
+    <div class="status-grid" *ngIf="status">
+      <div class="status-item">
+        <small>Tenant</small>
+        <strong>{{ tenantId }}</strong>
+      </div>
+      <div class="status-item">
+        <small>ClientId</small>
+        <strong>{{ clientId }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Conectado</small>
+        <strong>{{ status.connected ? 'Sim' : 'Nao' }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Sellers conectados</small>
+        <strong>{{ status.connections.length }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Mappings</small>
+        <strong>{{ status.mappingsCount }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Pedidos importados</small>
+        <strong>{{ status.ordersCount }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Itens sem mapping</small>
+        <strong>{{ status.unmappedItemsCount }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Ultimo sync</small>
+        <strong>{{ status.lastSyncAt ? (status.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</strong>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="status && status.connections.length > 0">
+      <table class="sabr-table">
+        <thead>
+          <tr>
+            <th>SellerId</th>
+            <th>Nickname</th>
+            <th>Token expira em</th>
+            <th>Ultimo sync</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let connection of status.connections">
+            <td>{{ connection.sellerId }}</td>
+            <td>{{ connection.nickname || '-' }}</td>
+            <td>{{ connection.tokenExpiresAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ connection.lastSyncAt ? (connection.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

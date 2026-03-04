@@ -1,0 +1,145 @@
+.sabr-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  display: flex;
+  height: 100vh;
+  width: 240px;
+  flex-direction: column;
+  gap: 20px;
+  border-right: 1px solid var(--sabr-border);
+  background: var(--sabr-surface);
+  padding: 20px 16px;
+  transition: transform 180ms ease;
+}
+
+.sabr-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+}
+
+.sabr-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--sabr-primary);
+  color: #fff;
+}
+
+.sabr-logo-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sabr-logo-text strong {
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.sabr-logo-text span {
+  color: var(--sabr-text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.close-btn {
+  margin-left: auto;
+}
+
+.sabr-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sabr-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  border-radius: var(--sabr-radius-control);
+  color: #4d5b73;
+  text-decoration: none;
+  padding: 0 14px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.sabr-nav a:hover {
+  background: #f2f5fb;
+}
+
+.sabr-nav a.active {
+  background: var(--sabr-primary-weak);
+  color: var(--sabr-primary);
+  font-weight: 700;
+}
+
+.sabr-nav a.disabled {
+  color: #97a2b3;
+  pointer-events: none;
+}
+
+.sabr-profile {
+  margin-top: auto;
+  border-top: 1px solid var(--sabr-border);
+  padding: 14px 8px 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sabr-primary-weak);
+  color: var(--sabr-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta strong {
+  font-size: 0.84rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta span {
+  color: var(--sabr-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1023px) {
+  .sabr-sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--sabr-shadow-soft);
+  }
+
+  .sabr-sidebar.sabr-sidebar-open {
+    transform: translateX(0);
+  }
+}

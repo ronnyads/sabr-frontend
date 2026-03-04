@@ -1,0 +1,57 @@
+.admin-ml-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
+  padding: 18px;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.status-item {
+  background: #f8fafc;
+  border: 1px solid var(--sabr-border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-item small {
+  color: var(--sabr-text-muted);
+}
+
+.status-item strong {
+  color: #1e293b;
+}
+
+.table-wrapper {
+  margin-top: 14px;
+  overflow: auto;
+}
+
+.sabr-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sabr-table th,
+.sabr-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--sabr-border);
+  text-align: left;
+}
+
+.sabr-table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #475569;
+}

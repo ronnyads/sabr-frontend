@@ -1,0 +1,25 @@
+<nb-card class="client-dashboard-card">
+  <nb-card-header>
+    <div class="header">
+      <h3>Bem-vindo, {{ userName }}</h3>
+      <span class="status-pill">{{ statusLabel }}</span>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <p class="description">
+      Aqui voce acompanha o andamento do seu cadastro, documentos e integracoes.
+    </p>
+
+    <p class="description" *ngIf="accessMessage">{{ accessMessage }}</p>
+    <p class="description" *ngIf="bannerMessage">{{ bannerMessage }}</p>
+    <p class="description" *ngIf="docsUiState === 'DOCS_REJECTED'">
+      Reenvie documentos ou informacoes corrigidas para continuar.
+    </p>
+
+    <div class="actions" *ngIf="showCompleteProfileCta || showDocumentsCta">
+      <button nbButton status="primary" (click)="goToCta()">
+        {{ ctaLabel }}
+      </button>
+    </div>
+  </nb-card-body>
+</nb-card>

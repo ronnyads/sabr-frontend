@@ -1,0 +1,47 @@
+<nb-card class="admin-page-card">
+  <nb-card-header class="page-header">
+    <div>
+      <h3>Assinatura de Planos do Cliente</h3>
+      <p>Tenant: <strong>{{ tenantId }}</strong> | Cliente: <strong>{{ clientId }}</strong></p>
+    </div>
+    <button nbButton status="primary" size="small" [disabled]="saving || loading" (click)="save()">Salvar</button>
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="info-banner">
+      Sem plano ativo e valido, o cliente nao vera produtos no catalogo.
+    </div>
+
+    <app-ui-state
+      [loading]="loading"
+      [empty]="empty"
+      [errorMessage]="errorMessage"
+      emptyTitle="Nenhum plano ativo disponivel"
+      emptyDescription="Ative planos no tenant para vincular ao cliente."
+      (retry)="retry()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage && plans.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Selecionar</th>
+            <th>Plano</th>
+            <th>Ciclo</th>
+            <th>Valido ate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let plan of plans; trackBy: trackPlan">
+            <td>
+              <input type="checkbox" [checked]="isSelected(plan.id)" (change)="togglePlan(plan.id, $event)" />
+            </td>
+            <td>{{ plan.name }}</td>
+            <td>{{ billingPeriodLabel(plan.billingPeriod) }}</td>
+            <td>{{ validUntil(plan.id) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </nb-card-body>
+</nb-card>

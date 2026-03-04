@@ -1,0 +1,135 @@
+<section class="sabr-page admin-plans-page">
+  <ng-template #headerActions>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Novo Plano</button>
+  </ng-template>
+
+  <app-page-header
+    [title]="'Planos'"
+    [subtitle]="'Gerencie ciclos e catalogos vinculados por tenant.'"
+    [badgeText]="'Tenant: ' + tenantId"
+    [actionsTemplate]="headerActions"
+  ></app-page-header>
+
+  <app-search-toolbar
+    [placeholder]="'Buscar por nome'"
+    [value]="searchControl.value"
+    [filters]="toolbarFilters"
+    (searchChange)="onToolbarSearchChange($event)"
+    (filterChange)="onToolbarFilterChange($event)"
+    (clear)="clearToolbar()"
+  ></app-search-toolbar>
+
+  <div class="sabr-card panel" *ngIf="formOpen">
+    <form [formGroup]="form" class="editor-grid">
+      <div class="field">
+        <label>Nome</label>
+        <input nbInput formControlName="name" />
+      </div>
+
+      <div class="field">
+        <label>Ciclo de cobranca</label>
+        <select nbInput formControlName="billingPeriod">
+          <option *ngFor="let option of billingPeriodOptions" [value]="option">
+            {{ billingPeriodLabel(option) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="field checkbox-field">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive" />
+          Ativo
+        </label>
+      </div>
+    </form>
+
+    <p class="error" *ngIf="formError">{{ formError }}</p>
+
+    <div class="editor-actions">
+      <button nbButton status="basic" size="small" [disabled]="saving" (click)="cancelForm()">Cancelar</button>
+      <button nbButton status="primary" size="small" [disabled]="saving" (click)="savePlan()">
+        {{ editingPlanId ? 'Salvar' : 'Criar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="sabr-card panel links-editor" *ngIf="linksOpen">
+    <div class="links-header">
+      <h4>
+        Vincular Catalogos
+        <span *ngIf="linksPlan">- {{ linksPlan.name }}</span>
+      </h4>
+      <button nbButton size="tiny" status="basic" (click)="closeLinks()">Fechar</button>
+    </div>
+
+    <div class="loading" *ngIf="linksLoading">
+      <nb-spinner size="small"></nb-spinner>
+      <span>Carregando vinculos...</span>
+    </div>
+
+    <p class="error" *ngIf="!linksLoading && linksError">{{ linksError }}</p>
+
+    <ng-container *ngIf="!linksLoading && linksPlan && !linksError">
+      <div class="picker-list">
+        <label *ngFor="let catalog of availableCatalogs; trackBy: trackAvailableCatalog">
+          <input type="checkbox" [checked]="isCatalogSelected(catalog.id)" (change)="toggleCatalog(catalog.id, $event)" />
+          <span>{{ catalog.name }}</span>
+        </label>
+      </div>
+
+      <div class="editor-actions">
+        <button nbButton status="primary" size="small" [disabled]="linksSaving" (click)="saveCatalogLinks()">Salvar Vinculos</button>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="sabr-card panel">
+    <app-ui-state
+      [loading]="loading"
+      [empty]="empty"
+      [errorMessage]="errorMessage"
+      emptyTitle="Nenhum plano encontrado"
+      emptyDescription="Crie planos para liberar catalogos por tenant."
+      (retry)="retry()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage && plans.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Ciclo</th>
+            <th>Catalogos</th>
+            <th>Status</th>
+            <th class="actions-col">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let plan of plans; trackBy: trackPlan">
+            <td>{{ plan.name }}</td>
+            <td>{{ billingPeriodLabel(plan.billingPeriod) }}</td>
+            <td>{{ plan.catalogCount }}</td>
+            <td>
+              <span class="sabr-badge" [class.sabr-badge-success]="plan.isActive" [class.sabr-badge-muted]="!plan.isActive">
+                {{ plan.isActive ? 'Ativo' : 'Inativo' }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <app-row-actions-menu
+                [ariaLabel]="'Acoes do plano'"
+                [actions]="planActionsById[plan.id] || []"
+                (actionClick)="onPlanAction(plan, $event)"
+              ></app-row-actions-menu>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button nbButton size="tiny" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <span>{{ skip + 1 }}-{{ skip + plans.length }} de {{ total }}</span>
+        <button nbButton size="tiny" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </div>
+</section>

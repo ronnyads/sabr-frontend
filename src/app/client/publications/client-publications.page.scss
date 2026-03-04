@@ -1,0 +1,54 @@
+.publications-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
+  padding: 18px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #4d5770;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.filters .actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.filters .search {
+  grid-column: span 2;
+}
+
+.pager {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.pager-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .filters .search {
+    grid-column: span 1;
+  }
+}

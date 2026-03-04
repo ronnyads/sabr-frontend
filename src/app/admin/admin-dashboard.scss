@@ -1,0 +1,48 @@
+.dashboard-card {
+  margin-top: 24px;
+}
+
+.dashboard-card h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.dashboard-card p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.placeholder {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.tile {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tile .label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.tile .value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+@media (max-width: 900px) {
+  .placeholder {
+    grid-template-columns: 1fr;
+  }
+}

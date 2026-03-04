@@ -1,0 +1,44 @@
+.admin-page-card {
+  border-radius: 0.9rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page-header h3 {
+  margin: 0;
+}
+
+.page-header p {
+  margin: 0.35rem 0 0;
+  color: #5b6b8b;
+}
+
+.info-banner {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  background: #fff5de;
+  color: #734f00;
+  border: 1px solid #f7d992;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.65rem 0.55rem;
+  border-bottom: 1px solid #e6eaf2;
+  text-align: left;
+}

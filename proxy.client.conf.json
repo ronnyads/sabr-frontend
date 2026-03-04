@@ -1,0 +1,14 @@
+{
+  "/api": {
+    "target": "http://127.0.0.1:5250",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "warn"
+  },
+  "/product-images": {
+    "target": "http://127.0.0.1:5250",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "warn"
+  }
+}

@@ -1,0 +1,36 @@
+<header class="sabr-topbar">
+  <div class="left">
+    <button
+      *ngIf="mobile"
+      nbButton
+      size="small"
+      status="basic"
+      type="button"
+      class="menu-toggle"
+      aria-label="Abrir menu"
+      (click)="menuToggle.emit()"
+    >
+      <nb-icon icon="menu-outline"></nb-icon>
+    </button>
+
+    <div class="title-block" *ngIf="title">
+      <span class="title">{{ title }}</span>
+    </div>
+
+    <div class="tenant-pill" *ngIf="tenantBadgeText">
+      <nb-icon icon="pin-outline"></nb-icon>
+      <span>{{ tenantBadgeText }}</span>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="user-meta">
+      <strong>{{ userName }}</strong>
+      <span>{{ userSubtitle }}</span>
+    </div>
+
+    <button nbButton size="small" status="basic" type="button" aria-label="Sair" (click)="logout.emit()">
+      Sair
+    </button>
+  </div>
+</header>

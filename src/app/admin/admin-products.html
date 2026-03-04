@@ -1,0 +1,391 @@
+<nb-card class="admin-page-card">
+  <nb-card-header class="page-header">
+    <div>
+      <h3>Produtos</h3>
+      <p>SKU master global com dados para marketplace, ANATEL, imagens e vinculos de catalogo.</p>
+    </div>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Novo Produto</button>
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="toolbar">
+      <input nbInput fullWidth placeholder="Buscar por SKU, nome, marca ou categoria" [formControl]="searchControl" />
+      <select nbInput [formControl]="activeFilterControl" aria-label="Filtro de status">
+        <option value="all">Todos</option>
+        <option value="active">Ativos</option>
+        <option value="inactive">Inativos</option>
+      </select>
+    </div>
+
+    <div class="editor" *ngIf="formOpen">
+      <nb-tabset fullWidth>
+        <nb-tab tabTitle="Basico">
+          <form [formGroup]="form" class="editor-grid">
+            <div class="field">
+              <label>SKU</label>
+              <input nbInput formControlName="sku" (input)="form.controls.sku.setValue(form.controls.sku.value.toUpperCase(), { emitEvent: false })" />
+            </div>
+
+            <div class="field">
+              <label>Nome</label>
+              <input nbInput formControlName="name" />
+            </div>
+
+            <div class="field">
+              <label>Marca</label>
+              <input nbInput formControlName="brand" />
+            </div>
+
+            <div class="field">
+              <label>Categoria</label>
+              <select nbInput formControlName="categoryId">
+                <option *ngIf="categoriesLoading" value="">Carregando categorias...</option>
+                <option *ngFor="let option of categoryOptions" [value]="option.slug" [disabled]="!option.isActive">
+                  {{ option.path }} <span *ngIf="!option.isActive">(inativa)</span>
+                </option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>NCM (8 digitos)</label>
+              <input nbInput formControlName="ncm" maxlength="8" />
+            </div>
+
+            <div class="field">
+              <label>Produto Ativo</label>
+              <nb-checkbox formControlName="isActive">Ativo</nb-checkbox>
+            </div>
+
+            <div class="field field-full">
+              <label>Descricao</label>
+              <textarea nbInput rows="4" formControlName="description"></textarea>
+            </div>
+          </form>
+        </nb-tab>
+
+        <nb-tab tabTitle="Precos">
+          <form [formGroup]="form" class="editor-grid">
+            <div class="field">
+              <label>Custo (R$)</label>
+              <input nbInput formControlName="costPriceBrl" />
+            </div>
+
+            <div class="field">
+              <label>Preco Catalogo (R$)</label>
+              <input nbInput formControlName="catalogPriceBrl" />
+            </div>
+          </form>
+        </nb-tab>
+
+        <nb-tab tabTitle="Dimensoes">
+          <form [formGroup]="form" class="editor-grid">
+            <div class="field">
+              <label>Largura (cm)</label>
+              <input nbInput type="number" min="0" step="0.001" formControlName="widthCm" />
+            </div>
+            <div class="field">
+              <label>Altura (cm)</label>
+              <input nbInput type="number" min="0" step="0.001" formControlName="heightCm" />
+            </div>
+            <div class="field">
+              <label>Comprimento (cm)</label>
+              <input nbInput type="number" min="0" step="0.001" formControlName="lengthCm" />
+            </div>
+            <div class="field">
+              <label>Peso (kg)</label>
+              <input nbInput type="number" min="0" step="0.001" formControlName="weightKg" />
+            </div>
+          </form>
+        </nb-tab>
+
+        <nb-tab tabTitle="Extra">
+          <form [formGroup]="form" class="editor-grid">
+            <div class="field">
+              <label>EAN/GTIN</label>
+              <input nbInput formControlName="ean" />
+            </div>
+
+            <div class="field">
+              <label>Requires ANATEL</label>
+              <nb-checkbox formControlName="requiresAnatel">Exige homologacao ANATEL</nb-checkbox>
+            </div>
+
+            <div class="field">
+              <label>Numero Homologacao ANATEL</label>
+              <input nbInput formControlName="anatelHomologationNumber" />
+            </div>
+
+            <div class="field">
+              <label>Documento ANATEL (Guid)</label>
+              <input nbInput formControlName="anatelDocumentId" />
+            </div>
+
+            <div class="field field-full">
+              <label>Thumbnail URL</label>
+              <input nbInput formControlName="thumbnailUrl" />
+            </div>
+          </form>
+        </nb-tab>
+
+        <nb-tab tabTitle="Imagens">
+          <div class="images-panel">
+            <p class="helper" *ngIf="!canUploadImages">Salve o produto antes de enviar imagens.</p>
+            <div class="upload-row">
+              <input
+                type="file"
+                [disabled]="!canUploadImages || uploadInProgress"
+                accept=".svg,.png,.jpg,.jpeg,image/svg+xml,image/png,image/jpeg"
+                (change)="onFileSelected($event)"
+              />
+              <span *ngIf="selectedUploadName">{{ selectedUploadName }}</span>
+            </div>
+            <p class="error" *ngIf="imageError">{{ imageError }}</p>
+
+            <div class="images-list" *ngIf="currentImages.length > 0">
+              <div class="image-item" *ngFor="let image of currentImages; trackBy: imageTrackBy">
+                <img [src]="resolveImageUrl(image.url) || ''" [alt]="image.productSku" />
+                <div class="meta">
+                  <span>{{ image.mimeType }}</span>
+                  <span>{{ image.sizeBytes }} bytes</span>
+                  <span class="primary" *ngIf="image.isPrimary">Principal</span>
+                </div>
+                <div class="actions">
+                  <button nbButton size="tiny" status="basic" [disabled]="image.isPrimary" (click)="markPrimary(image)">Principal</button>
+                  <button nbButton size="tiny" status="danger" (click)="removeImage(image)">Remover</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nb-tab>
+
+        <nb-tab tabTitle="Variacoes">
+          <div class="variants-panel">
+            <p class="helper" *ngIf="!canManageVariants">Salve o produto antes de gerenciar variacoes.</p>
+
+            <div class="variants-create" *ngIf="canManageVariants" [formGroup]="variantCreateForm">
+              <div class="field">
+                <label>Variant SKU</label>
+                <input
+                  nbInput
+                  formControlName="variantSku"
+                  (input)="variantCreateForm.controls.variantSku.setValue(variantCreateForm.controls.variantSku.value.toUpperCase(), { emitEvent: false })"
+                />
+              </div>
+
+              <div class="field">
+                <label>Nome</label>
+                <input nbInput formControlName="name" />
+              </div>
+
+              <div class="field">
+                <label>Custo (R$)</label>
+                <input nbInput formControlName="costPriceBrl" />
+              </div>
+
+              <div class="field">
+                <label>Preco Catalogo (R$)</label>
+                <input nbInput formControlName="catalogPriceBrl" />
+              </div>
+
+              <div class="field">
+                <label>Estoque Fisico</label>
+                <input nbInput type="number" min="0" step="1" formControlName="physicalStock" />
+              </div>
+
+              <div class="field">
+                <label>Estoque Reservado</label>
+                <input nbInput type="number" min="0" step="1" formControlName="reservedStock" />
+              </div>
+
+              <div class="field">
+                <label>Ativa</label>
+                <nb-checkbox formControlName="isActive">Variacao ativa</nb-checkbox>
+              </div>
+
+              <div class="field variants-create-action">
+                <button nbButton status="primary" size="small" [disabled]="variantCreateSaving" (click)="createVariant()">
+                  {{ variantCreateSaving ? 'Criando...' : 'Criar variacao' }}
+                </button>
+              </div>
+            </div>
+
+            <p class="error" *ngIf="variantError">{{ variantError }}</p>
+            <p class="helper" *ngIf="variantsLoading">Carregando variacoes...</p>
+            <p class="helper" *ngIf="canManageVariants && !variantsLoading && variantRows.length === 0">
+              Nenhuma variacao cadastrada para este produto.
+            </p>
+
+            <div class="variants-list" *ngIf="canManageVariants && !variantsLoading && variantRows.length > 0">
+              <div class="variant-row" *ngFor="let row of variantRows; trackBy: variantTrackBy">
+                <div class="variant-header">
+                  <strong>{{ row.variantSku }}</strong>
+                  <span class="variant-status" [class.variant-status-inactive]="!row.isActive">
+                    {{ row.isActive ? 'Ativa' : 'Inativa' }}
+                  </span>
+                </div>
+
+                <div class="variant-grid">
+                  <div class="field">
+                    <label>Nome</label>
+                    <input nbInput [(ngModel)]="row.editName" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onVariantChanged(row)" />
+                  </div>
+
+                  <div class="field">
+                    <label>Custo (R$)</label>
+                    <input nbInput [(ngModel)]="row.editCostPriceBrl" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onVariantChanged(row)" />
+                  </div>
+
+                  <div class="field">
+                    <label>Preco Catalogo (R$)</label>
+                    <input
+                      nbInput
+                      [(ngModel)]="row.editCatalogPriceBrl"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="onVariantChanged(row)"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label>Estoque Fisico</label>
+                    <input
+                      nbInput
+                      type="number"
+                      min="0"
+                      step="1"
+                      [(ngModel)]="row.editPhysicalStock"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="onVariantChanged(row)"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label>Estoque Reservado</label>
+                    <input
+                      nbInput
+                      type="number"
+                      min="0"
+                      step="1"
+                      [(ngModel)]="row.editReservedStock"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="onVariantChanged(row)"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label>Ativa</label>
+                    <nb-checkbox
+                      [(ngModel)]="row.editIsActive"
+                      [ngModelOptions]="{ standalone: true }"
+                      (checkedChange)="onVariantChanged(row)"
+                    >
+                      Ativa
+                    </nb-checkbox>
+                  </div>
+
+                  <div class="field">
+                    <label>Disponivel</label>
+                    <input nbInput [value]="row.availableStock" readonly />
+                  </div>
+                </div>
+
+                <div class="variant-actions">
+                  <button nbButton size="tiny" status="primary" [disabled]="row.isSaving || !row.isDirty" (click)="saveVariant(row)">
+                    {{ row.isSaving ? 'Salvando...' : 'Salvar' }}
+                  </button>
+                  <button
+                    nbButton
+                    size="tiny"
+                    status="danger"
+                    [disabled]="row.isDeactivating || !row.isActive"
+                    (click)="deactivateVariant(row)"
+                  >
+                    {{ row.isDeactivating ? 'Inativando...' : 'Inativar' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nb-tab>
+
+        <nb-tab tabTitle="Catalogos">
+          <div class="catalog-panel">
+            <p class="helper" *ngIf="tenantMissingForCatalogTab">Selecione um tenant em Clientes para vincular catalogos.</p>
+            <p class="helper" *ngIf="catalogsLoading">Carregando catalogos...</p>
+
+            <div class="picker-list" *ngIf="!tenantMissingForCatalogTab && !catalogsLoading">
+              <label *ngFor="let catalog of catalogs">
+                <input
+                  type="checkbox"
+                  [checked]="isCatalogSelected(catalog.id)"
+                  (change)="toggleCatalog(catalog.id, $event)"
+                />
+                <span>{{ catalog.name }}</span>
+              </label>
+            </div>
+          </div>
+        </nb-tab>
+      </nb-tabset>
+
+      <p class="error" *ngIf="activeWithoutCatalogs">Produto ativo requer pelo menos um catalogo vinculado.</p>
+      <p class="error" *ngIf="formError">{{ formError }}</p>
+
+      <div class="editor-actions">
+        <button nbButton status="basic" size="small" [disabled]="saving" (click)="cancelForm()">Cancelar</button>
+        <button nbButton status="primary" size="small" [disabled]="saving || activeWithoutCatalogs" (click)="save()">
+          {{ editingSku ? 'Salvar' : 'Criar' }}
+        </button>
+      </div>
+    </div>
+
+    <app-ui-state
+      [loading]="loading"
+      [empty]="empty"
+      [errorMessage]="errorMessage"
+      emptyTitle="Nenhum produto encontrado"
+      emptyDescription="Cadastre o primeiro SKU global para iniciar o catalogo."
+      (retry)="retry()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage && products.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Nome</th>
+            <th>Marca</th>
+            <th>Catalogo</th>
+            <th>Status</th>
+            <th>Atualizado</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of products; trackBy: productTrackBy">
+            <td>{{ product.sku }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.brand }}</td>
+            <td>{{ formatMoney(product.catalogPriceCents) }}</td>
+            <td>
+              <span class="badge" [class.badge-active]="product.isActive" [class.badge-inactive]="!product.isActive">
+                {{ product.isActive ? 'Ativo' : 'Inativo' }}
+              </span>
+            </td>
+            <td>{{ product.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions">
+              <button nbButton size="tiny" status="basic" (click)="openEdit(product)">Editar</button>
+              <button nbButton size="tiny" status="danger" [disabled]="!product.isActive" (click)="deactivate(product)">
+                Inativar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button nbButton size="tiny" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <span>{{ skip + 1 }}-{{ skip + products.length }} de {{ total }}</span>
+        <button nbButton size="tiny" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

@@ -1,0 +1,147 @@
+<nb-card class="admin-page-card">
+  <nb-card-header class="page-header">
+    <div>
+      <h3>Categorias</h3>
+      <p>Gerencie a arvore de categorias usada no SKU master global.</p>
+    </div>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Nova Categoria</button>
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="toolbar">
+      <input nbInput fullWidth placeholder="Buscar por nome ou slug" [formControl]="searchControl" />
+      <select nbInput [formControl]="activeFilterControl" aria-label="Filtro de status">
+        <option value="all">Todos</option>
+        <option value="active">Ativos</option>
+        <option value="inactive">Inativos</option>
+      </select>
+    </div>
+
+    <div class="editor" *ngIf="formOpen">
+      <form [formGroup]="form" class="editor-grid">
+        <div class="field">
+          <label>Nome</label>
+          <input nbInput formControlName="name" (input)="onNameInput()" />
+        </div>
+
+        <div class="field">
+          <label>Slug</label>
+          <input nbInput formControlName="slug" (input)="onSlugInput()" placeholder="ex.: eletro-domesticos" />
+          <small class="field-help">URL amigavel em kebab-case. Ex.: eletro-domesticos</small>
+          <small class="field-error" *ngIf="form.controls.slug.touched && form.controls.slug.invalid">
+            Slug invalido. Use letras, numeros e hifen.
+          </small>
+        </div>
+
+        <div class="field">
+          <label>Categoria Pai</label>
+          <select nbInput formControlName="parentId">
+            <option value="">(Raiz)</option>
+            <option *ngFor="let node of categoryTree" [value]="node.id" [disabled]="editingCategoryId === node.id">
+              {{ node.path }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Icone</label>
+          <div class="icon-select-row">
+            <input
+              nbInput
+              class="icon-search"
+              placeholder="Buscar icone (ex.: tv, casa, energia...)"
+              [formControl]="iconSearchControl"
+              (input)="onIconSearchInput()"
+            />
+            <select nbInput formControlName="icon">
+              <option value="">Sem icone</option>
+              <option *ngFor="let option of filteredIconOptions; trackBy: trackByIconOption" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <span
+              class="icon-preview"
+              [class.icon-preview-unknown]="isUnknownIconSelected"
+              [attr.title]="isUnknownIconSelected ? 'Icone legado fora da whitelist' : 'Preview do icone'"
+            >
+              <nb-icon [icon]="selectedIconPreview"></nb-icon>
+            </span>
+          </div>
+          <small class="field-help" *ngIf="isUnknownIconSelected">Icone legado desconhecido, usando fallback visual.</small>
+        </div>
+
+        <div class="field checkbox-field">
+          <label>
+            <input type="checkbox" formControlName="isActive" />
+            Ativa
+          </label>
+        </div>
+
+        <div class="field field-full">
+          <label>Descricao</label>
+          <textarea nbInput rows="3" formControlName="description"></textarea>
+        </div>
+      </form>
+
+      <p class="error" *ngIf="formError">{{ formError }}</p>
+
+      <div class="editor-actions">
+        <button nbButton status="basic" size="small" [disabled]="saving" (click)="cancelForm()">Cancelar</button>
+        <button nbButton status="primary" size="small" [disabled]="saving" (click)="saveCategory()">
+          {{ editingCategoryId ? 'Salvar' : 'Criar' }}
+        </button>
+      </div>
+    </div>
+
+    <app-ui-state
+      [loading]="loading"
+      [empty]="empty"
+      [errorMessage]="errorMessage"
+      emptyTitle="Nenhuma categoria encontrada"
+      emptyDescription="Crie categorias para classificar produtos e variacoes."
+      (retry)="retry()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage && categories.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Slug</th>
+            <th>Pai</th>
+            <th>Status</th>
+            <th>Atualizado</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let category of categories; trackBy: trackByCategory">
+            <td>{{ category.name }}</td>
+            <td>{{ category.slug }}</td>
+            <td class="parent-cell" [attr.title]="resolveParentHint(category)">
+              {{ resolveParentLabel(category) }}
+            </td>
+            <td>
+              <span class="badge" [class.badge-active]="category.isActive" [class.badge-inactive]="!category.isActive">
+                {{ category.isActive ? 'Ativa' : 'Inativa' }}
+              </span>
+            </td>
+            <td>{{ category.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions">
+              <button nbButton size="tiny" status="basic" (click)="openEdit(category)">Editar</button>
+              <button nbButton size="tiny" status="danger" [disabled]="!category.isActive" (click)="deactivate(category)">
+                Inativar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button nbButton size="tiny" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <span>{{ skip + 1 }}-{{ skip + categories.length }} de {{ total }}</span>
+        <button nbButton size="tiny" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

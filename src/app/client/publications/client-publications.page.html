@@ -1,0 +1,101 @@
+<section class="sabr-page publications-page">
+  <ng-template #headerActions>
+    <button nbButton status="primary" size="small" (click)="openNewDraft()">Nova publicacao</button>
+  </ng-template>
+
+  <app-page-header
+    [title]="'Publicacoes'"
+    [subtitle]="'Acompanhe drafts e anuncios publicados no Mercado Livre.'"
+    [actionsTemplate]="headerActions"
+  ></app-page-header>
+
+  <div class="sabr-card panel filters">
+    <label>
+      Seller
+      <select [(ngModel)]="selectedSellerId">
+        <option value="">Todos</option>
+        <option *ngFor="let seller of sellers" [value]="seller">{{ seller }}</option>
+      </select>
+    </label>
+
+    <label>
+      Status
+      <select [(ngModel)]="statusFilter">
+        <option value="">Todos</option>
+        <option value="Draft">Draft</option>
+        <option value="Publishing">Publishing</option>
+        <option value="Published">Published</option>
+        <option value="Error">Error</option>
+      </select>
+    </label>
+
+    <label class="search">
+      Buscar
+      <input nbInput fullWidth [(ngModel)]="search" placeholder="SKU, itemId, draftId" />
+    </label>
+
+    <div class="actions">
+      <button nbButton status="basic" size="small" (click)="clearFilters()">Limpar</button>
+      <button nbButton status="info" size="small" (click)="applyFilters()">Aplicar</button>
+    </div>
+  </div>
+
+  <div class="sabr-card panel">
+    <app-ui-state
+      [loading]="loading"
+      [errorMessage]="errorMessage"
+      [empty]="empty"
+      emptyTitle="Nenhuma publicacao encontrada"
+      emptyDescription="Crie um draft em Meus Produtos para comecar."
+      (retry)="applyFilters()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage && items.length > 0">
+      <table class="sabr-table">
+        <thead>
+          <tr>
+            <th>Draft</th>
+            <th>Seller</th>
+            <th>SKU</th>
+            <th>Status</th>
+            <th>Item ML</th>
+            <th>Preco</th>
+            <th>Atualizado</th>
+            <th class="actions-col">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of items; trackBy: trackByDraft">
+            <td>{{ item.draftId }}</td>
+            <td>{{ item.sellerId }}</td>
+            <td>{{ item.sabrVariantSku }}</td>
+            <td>{{ item.status }}</td>
+            <td>{{ item.publishedItemId || '-' }}</td>
+            <td>{{ item.price ?? 0 | currency: 'BRL' }}</td>
+            <td>{{ item.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions-col">
+              <button nbButton size="tiny" status="basic" (click)="edit(item)">Editar</button>
+              <button
+                nbButton
+                size="tiny"
+                status="primary"
+                [disabled]="!item.publishedPermalink"
+                (click)="openPublished(item)"
+              >
+                Abrir ML
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pager" *ngIf="!loading && !errorMessage && total > 0">
+      <span>{{ skip + 1 }}-{{ skip + items.length }} de {{ total }}</span>
+      <div class="pager-actions">
+        <button nbButton size="small" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <button nbButton size="small" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,46 @@
+<aside class="sabr-sidebar" [class.sabr-sidebar-open]="open">
+  <div class="sabr-sidebar-header">
+    <div class="sabr-logo-mark">
+      <nb-icon icon="flash-outline"></nb-icon>
+    </div>
+    <div class="sabr-logo-text">
+      <strong>{{ title }}</strong>
+      <span>{{ subtitle }}</span>
+    </div>
+    <button
+      *ngIf="mobile"
+      nbButton
+      size="tiny"
+      status="basic"
+      class="close-btn"
+      type="button"
+      aria-label="Fechar menu"
+      (click)="closeDrawer.emit()"
+    >
+      <nb-icon icon="close-outline"></nb-icon>
+    </button>
+  </div>
+
+  <nav class="sabr-nav">
+    <a
+      *ngFor="let item of menuItems"
+      [routerLink]="item.disabled ? null : item.link"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: !!item.exact }"
+      [attr.aria-disabled]="item.disabled ? true : null"
+      [class.disabled]="item.disabled"
+      (click)="onNavigate(item.disabled)"
+    >
+      <nb-icon [icon]="item.icon || 'grid-outline'"></nb-icon>
+      <span>{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <div class="sabr-profile" *ngIf="profileName">
+    <div class="avatar">{{ profileName[0] || 'U' }}</div>
+    <div class="meta">
+      <strong>{{ profileName }}</strong>
+      <span>{{ profileSubtitle }}</span>
+    </div>
+  </div>
+</aside>

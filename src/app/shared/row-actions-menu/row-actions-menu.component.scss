@@ -1,0 +1,65 @@
+.row-actions-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.menu-trigger {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--sabr-border);
+  background: #fff;
+  color: #637084;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.menu-trigger:hover {
+  background: #f5f8ff;
+  color: var(--sabr-primary);
+}
+
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 15;
+  min-width: 180px;
+  border-radius: 12px;
+  border: 1px solid var(--sabr-border);
+  background: #fff;
+  box-shadow: var(--sabr-shadow-soft);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-panel button {
+  min-height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #344056;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-panel button:hover:not(:disabled) {
+  background: #f4f7ff;
+}
+
+.menu-panel button.danger {
+  color: var(--sabr-danger);
+}
+
+.menu-panel button:disabled {
+  color: #9fa9b8;
+  cursor: not-allowed;
+}

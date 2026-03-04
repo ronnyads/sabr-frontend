@@ -1,0 +1,17 @@
+<nb-layout windowMode class="sabr-layout-host">
+  <nb-layout-column>
+    <app-sabr-shell-layout
+      [appTitle]="'SABR'"
+      [appSubtitle]="'Portal'"
+      [topbarTitle]="'Portal do Cliente'"
+      [menuItems]="menuItems"
+      [userName]="currentUserName"
+      [userSubtitle]="profileSubtitle"
+      [profileName]="currentUserName"
+      [profileSubtitle]="statusLabel"
+      (logout)="logout()"
+    >
+      <router-outlet></router-outlet>
+    </app-sabr-shell-layout>
+  </nb-layout-column>
+</nb-layout>

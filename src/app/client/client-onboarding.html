@@ -1,0 +1,352 @@
+<nb-layout windowMode class="sabr-layout-host onboarding-layout-host">
+  <nb-layout-column>
+<div class="onboarding-shell">
+  <!-- Sidebar (desktop only) -->
+  <aside class="sidebar desktop-only">
+    <div class="brand">
+      <img src="/assets/logo-seu-armazem-drop.svg" alt="Seu Armazém Drop" class="brand-logo" />
+    </div>
+    <div class="sidebar-meta">
+      <span class="status-pill">{{ statusLabel }}</span>
+      <div class="user-row">
+        <span class="user-name">{{ currentUser?.name || 'Cliente' }}</span>
+        <button nbButton status="basic" size="tiny" (click)="logout()">Sair</button>
+      </div>
+    </div>
+    <div class="profile-snippet">
+      <div class="profile-name">{{ currentUser?.name || 'Cliente' }}</div>
+    </div>
+    <nav class="stepper">
+      <div
+        class="step"
+        *ngFor="let step of steps; let i = index"
+        [class.active]="i === currentStep"
+        [class.done]="i < currentStep"
+        (click)="goToStep(i)"
+      >
+        <div class="circle">{{ i + 1 }}</div>
+        <div class="label">
+          {{
+            i === 0
+              ? 'Segurança da Conta'
+              : i === 1
+              ? 'Perfil da Empresa'
+              : i === 2
+              ? 'Dados de Contato'
+              : 'Verificação'
+          }}
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="content-header">
+      <div class="header-text">
+        <h1>Onboarding Corporativo</h1>
+        <p class="subhead">Complete o perfil da sua empresa para iniciar sua operação de dropshipping.</p>
+        <span class="status-pill">{{ statusLabel }}</span>
+      </div>
+    </header>
+
+    <!-- Stepper / progress (mobile-first) -->
+    <div class="mobile-progress">
+      <div class="progress-top">
+        <span>Passo {{ currentStep + 1 }} de {{ steps.length }}</span>
+        <span class="progress-label">
+          {{
+            currentStep === 0
+              ? 'Segurança'
+              : currentStep === 1
+              ? 'Empresa'
+              : currentStep === 2
+              ? 'Contato & Endereço'
+              : 'Responsável'
+          }}
+        </span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+      <div class="stepper-horizontal">
+        <button
+          *ngFor="let step of steps; let i = index"
+          type="button"
+          class="step-dot"
+          [class.active]="i === currentStep"
+          [class.done]="i < currentStep"
+          (click)="goToStep(i)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Card da etapa -->
+    <section class="card">
+      <p class="submit-summary" *ngIf="submitErrorSummary">{{ submitErrorSummary }}</p>
+      <p class="field-error" *ngIf="profileError">{{ profileError }}</p>
+      <p class="success" *ngIf="profileMessage">{{ profileMessage }}</p>
+      <!-- Passo 1: Segurança -->
+      <form [formGroup]="passwordForm" *ngIf="currentStep === 0 && mustChangePassword" class="section-block">
+        <div class="section-title">
+          <h2>Configurações de Segurança</h2>
+        </div>
+        <div class="grid two">
+          <div>
+            <label class="input-label">Senha atual</label>
+            <input class="premium-input" type="password" placeholder="********" nbInput fullWidth formControlName="currentPassword" />
+          </div>
+          <div>
+            <div class="label-row">
+              <label class="input-label">Crie uma nova senha</label>
+              <span class="badge-required">OBRIGATÓRIO</span>
+            </div>
+            <input class="premium-input" type="password" placeholder="Sua nova senha" nbInput fullWidth formControlName="newPassword" />
+            <div class="strength">
+              <span class="bar strong"></span>
+              <span class="bar strong"></span>
+              <span class="bar strong"></span>
+              <span class="bar weak"></span>
+              <span class="bar weak"></span>
+            </div>
+          </div>
+        </div>
+        <div class="actions end">
+          <button nbButton status="primary" size="small" type="button" (click)="savePassword()">
+            {{ loadingPassword ? 'Salvando...' : 'Salvar senha' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Passo 2: Empresa -->
+      <form [formGroup]="profileForm" *ngIf="currentStep === 1" class="section-block">
+        <div class="section-title">
+          <h2>Perfil da Empresa</h2>
+        </div>
+        <div class="grid three">
+          <div>
+            <div class="label-row">
+              <label class="input-label">Tipo de pessoa</label>
+              <span class="badge-required">OBRIGATÓRIO</span>
+            </div>
+            <nb-select fullWidth formControlName="personType" class="premium-select">
+              <nb-option *ngFor="let option of personTypeOptions" [value]="option.value">
+                {{ option.label }}
+              </nb-option>
+            </nb-select>
+          </div>
+          <div>
+            <label class="input-label">{{ isCpf ? 'CPF' : 'CNPJ' }}</label>
+            <input
+              class="premium-input"
+              nbInput
+              fullWidth
+              formControlName="document"
+              [placeholder]="isCpf ? 'Ex: 123.456.789-09' : 'Ex: 12.345.678/0001-90'"
+            />
+            <small class="field-error" *ngIf="(profileForm.get('document')?.touched || submitAttempted) && profileForm.get('document')?.hasError('cpf')">
+              CPF inválido.
+            </small>
+            <small class="field-error" *ngIf="(profileForm.get('document')?.touched || submitAttempted) && profileForm.get('document')?.hasError('cnpj')">
+              CNPJ inválido.
+            </small>
+          </div>
+          <div>
+            <label class="input-label">{{ isCpf ? 'Nome completo' : 'Razão social' }}</label>
+            <input class="premium-input" nbInput fullWidth formControlName="legalName" placeholder="Ex: Armazém Solutions LTDA" />
+          </div>
+          <div *ngIf="isCnpj">
+            <label class="input-label">Nome fantasia</label>
+            <input class="premium-input" nbInput fullWidth formControlName="tradeName" placeholder="Ex: Seu Armazém Drop" />
+          </div>
+          <div *ngIf="isCnpj">
+            <label class="input-label">Inscrição estadual</label>
+            <input
+              class="premium-input"
+              nbInput
+              fullWidth
+              formControlName="stateRegistration"
+              (blur)="onStateRegistrationBlur()"
+              placeholder="Ex: 110.042.490.114"
+            />
+            <small class="hint">Digite os dígitos ou marque IE isento.</small>
+            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('required')">
+              IE obrigatória para PJ.
+            </small>
+            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('ieInvalid')">
+              IE inválida para UF {{ profileForm.get('state')?.value || '' }}. Use ISENTO se não possuir IE. A UF usada na validação vem do endereço (passo "Contato & Endereço").
+            </small>
+          </div>
+          <div *ngIf="isCnpj" class="checkbox-row">
+            <nb-checkbox formControlName="isStateRegistrationExempt">IE isento</nb-checkbox>
+          </div>
+        </div>
+      </form>
+
+      <!-- Passo 3: Contato + Endereço -->
+      <form [formGroup]="profileForm" *ngIf="currentStep === 2" class="section-block">
+        <div class="section-title">
+          <h2>Contato</h2>
+        </div>
+        <div class="grid three">
+          <div>
+            <label class="input-label">Email</label>
+            <input class="premium-input" nbInput fullWidth formControlName="email" placeholder="seu@email.com" />
+          </div>
+          <div>
+            <label class="input-label">WhatsApp</label>
+            <input
+              class="premium-input"
+              nbInput
+              fullWidth
+              formControlName="whatsapp"
+              inputmode="tel"
+              maxlength="20"
+              (input)="handleWhatsappInput()"
+              placeholder="Ex: (11) 99696-5678"
+            />
+            <small class="field-error" *ngIf="(profileForm.get('whatsapp')?.touched || submitAttempted) && profileForm.get('whatsapp')?.invalid">
+              WhatsApp inválido.
+            </small>
+          </div>
+          <div *ngIf="isCpf">
+            <label class="input-label">Data de nascimento</label>
+            <input class="premium-input" nbInput fullWidth type="date" formControlName="birthDate" placeholder="dd/mm/aaaa" />
+          </div>
+        </div>
+
+        <div class="section-title spaced">
+          <h2>Endereço</h2>
+        </div>
+        <div class="grid four">
+          <div>
+            <label class="input-label">CEP</label>
+            <input class="premium-input" nbInput fullWidth formControlName="zipCode" placeholder="Ex: 01311-000" />
+            <small class="field-error" *ngIf="cepError">{{ cepError }}</small>
+            <small class="hint" *ngIf="loadingCep">Consultando CEP...</small>
+          </div>
+          <div>
+            <label class="input-label">Rua</label>
+            <input class="premium-input" nbInput fullWidth formControlName="street" placeholder="Ex: Av. Paulista" />
+          </div>
+          <div>
+            <label class="input-label">Número</label>
+            <input class="premium-input" nbInput fullWidth formControlName="number" placeholder="Ex: 1000" />
+          </div>
+          <div>
+            <label class="input-label">Bairro</label>
+            <input class="premium-input" nbInput fullWidth formControlName="district" placeholder="Ex: Bela Vista" />
+          </div>
+          <div>
+            <label class="input-label">Cidade</label>
+            <input class="premium-input" nbInput fullWidth formControlName="city" placeholder="Ex: São Paulo" />
+          </div>
+          <div>
+            <label class="input-label">UF</label>
+            <input class="premium-input" nbInput fullWidth formControlName="state" maxlength="2" placeholder="Ex: SP" />
+            <small class="field-error" *ngIf="(profileForm.get('state')?.touched || submitAttempted) && profileForm.get('state')?.invalid">
+              UF inválida.
+            </small>
+          </div>
+          <div>
+            <label class="input-label">Complemento</label>
+            <input class="premium-input" nbInput fullWidth formControlName="complement" placeholder="Ex: Conj. 101" />
+          </div>
+        </div>
+      </form>
+
+      <!-- Passo 4: Responsável + Documentos -->
+      <form [formGroup]="profileForm" *ngIf="currentStep === 3" class="section-block">
+        <div class="section-title">
+          <h2>Responsável</h2>
+        </div>
+        <div class="grid three">
+          <div>
+            <label class="input-label">Nome do responsável</label>
+            <input class="premium-input" nbInput fullWidth formControlName="responsibleName" placeholder="Ex: João da Silva" />
+          </div>
+          <div>
+            <label class="input-label">Documento do responsável</label>
+            <input
+              class="premium-input"
+              nbInput
+              fullWidth
+              formControlName="responsibleDocument"
+              placeholder="Ex: 123.456.789-09"
+              inputmode="tel"
+              maxlength="20"
+              (input)="handleResponsibleDocumentInput()"
+            />
+            <small class="field-error" *ngIf="(profileForm.get('responsibleDocument')?.touched || submitAttempted) && profileForm.get('responsibleDocument')?.hasError('cpf')">
+              CPF do responsável inválido.
+            </small>
+          </div>
+        </div>
+
+        <div class="secure-banner">
+          <nb-icon class="secure-icon" icon="checkmark-circle-2-outline"></nb-icon>
+          <span>Sessão segura</span>
+        </div>
+      </form>
+      <!-- Checklist fixo de documentos -->
+      <section class="section-block" *ngIf="currentStep === 3">
+        <div class="section-title">
+          <h2>Verificacao de documentos</h2>
+        </div>
+        <small class="hint">Selecionar arquivo nao envia automaticamente. Clique em Enviar em cada documento.</small>
+        <div class="documents-checklist">
+          <div class="document-item" *ngFor="let required of requiredDocuments">
+            <div class="document-header">
+              <strong>{{ required.label }}</strong>
+              <span class="status-pill">{{ documentStatusLabel(required.type) }}</span>
+            </div>
+            <div class="document-actions">
+              <input
+                class="premium-input file-input"
+                type="file"
+                accept=".pdf,image/*"
+                (change)="onSelectDocumentFile(required.type, $event)"
+              />
+              <button class="btn primary" type="button" (click)="uploadDocumentByType(required.type)">
+                {{ isUploading(required.type) ? 'Enviando...' : 'Enviar' }}
+              </button>
+            </div>
+            <small class="hint" *ngIf="selectedFileNamesByType[required.type]">
+              {{ selectedFileNamesByType[required.type] }}
+            </small>
+          </div>
+        </div>
+
+        <p class="field-error" *ngIf="documentMessage && documentIsError">{{ documentMessage }}</p>
+        <p class="success" *ngIf="documentMessage && !documentIsError">{{ documentMessage }}</p>
+      </section>
+    </section>
+
+    <!-- Rodapé sticky CTA -->
+    <div class="cta-footer">
+      <button nbButton status="primary" fullWidth (click)="nextStep()" [disabled]="loadingProfile || submittingDocuments">
+        {{
+          currentStep === 0
+            ? 'Continuar'
+            : currentStep === steps.length - 1
+            ? (loadingProfile || submittingDocuments ? 'Processando...' : 'Enviar para aprovacao')
+            : 'Continuar'
+        }}
+      </button>
+      <div class="cta-secondary">
+        <button nbButton status="basic" ghost size="small" (click)="prevStep()" [disabled]="currentStep === 0">
+          Voltar
+        </button>
+        <a class="link" routerLink="/login">Salvar depois / Voltar ao login</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="brand-footer">
+  <span>SABR 3.0 · Desenvolvido por 3Cliques</span>
+</footer>
+  </nb-layout-column>
+</nb-layout>
+

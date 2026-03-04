@@ -1,0 +1,140 @@
+<section class="sabr-page admin-catalogs-page">
+  <ng-template #headerActions>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Novo Catalogo</button>
+  </ng-template>
+
+  <app-page-header
+    [title]="'Catalogos'"
+    [subtitle]="'Gerencie catalogos e seus vinculos por tenant.'"
+    [badgeText]="'Tenant: ' + tenantId"
+    [actionsTemplate]="headerActions"
+  ></app-page-header>
+
+  <app-search-toolbar
+    [placeholder]="'Buscar por nome ou descricao'"
+    [value]="searchControl.value"
+    [filters]="toolbarFilters"
+    (searchChange)="onToolbarSearchChange($event)"
+    (filterChange)="onToolbarFilterChange($event)"
+    (clear)="clearToolbar()"
+  ></app-search-toolbar>
+
+  <div class="sabr-card panel" *ngIf="formOpen">
+    <form [formGroup]="form" class="editor-grid">
+      <div class="field">
+        <label>Nome</label>
+        <input nbInput formControlName="name" />
+      </div>
+
+      <div class="field">
+        <label>Descricao</label>
+        <input nbInput formControlName="description" />
+      </div>
+
+      <div class="field checkbox-field">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive" />
+          Ativo
+        </label>
+      </div>
+    </form>
+
+    <p class="error" *ngIf="formError">{{ formError }}</p>
+
+    <div class="editor-actions">
+      <button nbButton status="basic" size="small" [disabled]="saving" (click)="cancelForm()">Cancelar</button>
+      <button nbButton status="primary" size="small" [disabled]="saving" (click)="saveCatalog()">
+        {{ editingCatalogId ? 'Salvar' : 'Criar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="sabr-card panel links-editor" *ngIf="linksMode">
+    <div class="links-header">
+      <h4>
+        {{ linksMode === 'products' ? 'Vincular Produtos' : 'Vincular Planos' }}
+        <span *ngIf="linksCatalog">- {{ linksCatalog.name }}</span>
+      </h4>
+      <button nbButton size="tiny" status="basic" (click)="closeLinks()">Fechar</button>
+    </div>
+
+    <div class="loading" *ngIf="linksLoading">
+      <nb-spinner size="small"></nb-spinner>
+      <span>Carregando vinculos...</span>
+    </div>
+
+    <p class="error" *ngIf="!linksLoading && linksError">{{ linksError }}</p>
+
+    <ng-container *ngIf="!linksLoading && linksCatalog && !linksError">
+      <div class="picker-list" *ngIf="linksMode === 'products'">
+        <label *ngFor="let product of availableProducts; trackBy: trackAvailableProduct">
+          <input type="checkbox" [checked]="isProductSelected(product.sku)" (change)="toggleProductSku(product.sku, $event)" />
+          <span>{{ product.sku }} - {{ product.name }}</span>
+        </label>
+      </div>
+
+      <div class="picker-list" *ngIf="linksMode === 'plans'">
+        <label *ngFor="let plan of availablePlans; trackBy: trackAvailablePlan">
+          <input type="checkbox" [checked]="isPlanSelected(plan.id)" (change)="togglePlanId(plan.id, $event)" />
+          <span>{{ plan.name }}</span>
+        </label>
+      </div>
+
+      <div class="editor-actions">
+        <button nbButton status="primary" size="small" [disabled]="linksSaving" (click)="saveLinks()">Salvar Vinculos</button>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="sabr-card panel">
+    <app-ui-state
+      [loading]="loading"
+      [empty]="empty"
+      [errorMessage]="errorMessage"
+      emptyTitle="Nenhum catalogo encontrado"
+      emptyDescription="Crie catalogos para organizar SKUs por tenant."
+      (retry)="retry()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage && catalogs.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Descricao</th>
+            <th>Produtos</th>
+            <th>Planos</th>
+            <th>Status</th>
+            <th class="actions-col">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let catalog of catalogs; trackBy: trackCatalog">
+            <td>{{ catalog.name }}</td>
+            <td>{{ catalog.description || '-' }}</td>
+            <td>{{ catalog.productCount }}</td>
+            <td>{{ catalog.planCount }}</td>
+            <td>
+              <span class="sabr-badge" [class.sabr-badge-success]="catalog.isActive" [class.sabr-badge-muted]="!catalog.isActive">
+                {{ catalog.isActive ? 'Ativo' : 'Inativo' }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <app-row-actions-menu
+                [ariaLabel]="'Acoes do catalogo'"
+                [actions]="catalogActionsById[catalog.id] || []"
+                (actionClick)="onCatalogAction(catalog, $event)"
+              ></app-row-actions-menu>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button nbButton size="tiny" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <span>{{ skip + 1 }}-{{ skip + catalogs.length }} de {{ total }}</span>
+        <button nbButton size="tiny" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </div>
+</section>

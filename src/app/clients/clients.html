@@ -1,0 +1,142 @@
+<section class="sabr-page clients-page">
+  <ng-template #headerActions>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Novo cliente</button>
+  </ng-template>
+
+  <app-page-header
+    [title]="'Clientes'"
+    [subtitle]="'Cadastre e acompanhe o onboarding dos clientes.'"
+    [actionsTemplate]="headerActions"
+  ></app-page-header>
+
+  <app-search-toolbar
+    [placeholder]="'Buscar por nome, e-mail ou tenant slug...'"
+    [value]="searchControl.value"
+    [filters]="toolbarFilters"
+    (searchChange)="onToolbarSearchChange($event)"
+    (filterChange)="onToolbarFilterChange($event)"
+    (clear)="clearToolbar()"
+  ></app-search-toolbar>
+
+  <div class="sabr-card form-wrapper" *ngIf="formOpen">
+    <form [formGroup]="form">
+      <div class="form-grid">
+        <div class="input-group">
+          <label>Nome completo</label>
+          <input nbInput fullWidth formControlName="accountName" />
+        </div>
+        <div class="input-group">
+          <label>Email</label>
+          <input nbInput fullWidth formControlName="email" />
+        </div>
+        <div class="input-group">
+          <label>Senha temporaria</label>
+          <input nbInput fullWidth type="password" formControlName="temporaryPassword" />
+        </div>
+      </div>
+
+      <p class="error" *ngIf="formError">{{ formError }}</p>
+
+      <div class="form-actions">
+        <button nbButton status="basic" size="small" type="button" (click)="cancelForm()">Cancelar</button>
+        <button nbButton status="primary" size="small" type="button" (click)="saveClient()">Criar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="sabr-card panel">
+    <div class="loading" *ngIf="loading">
+      <nb-spinner size="medium"></nb-spinner>
+      <span>Carregando...</span>
+    </div>
+
+    <p class="error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
+    <p class="success" *ngIf="!loading && successMessage">{{ successMessage }}</p>
+
+    <div class="empty" *ngIf="!loading && !errorMessage && filteredClients.length === 0">
+      Sem clientes cadastrados para o filtro atual.
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && filteredClients.length > 0">
+      <table class="clients-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>ID Cliente</th>
+            <th class="actions-col">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of filteredClients; trackBy: trackClient">
+            <td>{{ client.accountName }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ statusLabel(client.status) }}</td>
+            <td>{{ client.protheusCode }}</td>
+            <td class="actions-col">
+              <app-row-actions-menu
+                [ariaLabel]="'Acoes do cliente'"
+                [actions]="clientActionsById[client.id] || []"
+                (actionClick)="onClientAction(client, $event)"
+              ></app-row-actions-menu>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="documents-overlay" *ngIf="documentsOpen">
+    <div class="documents-modal">
+      <div class="documents-header">
+        <h4>Documentos - {{ selectedClient?.accountName }}</h4>
+        <button nbButton size="tiny" status="basic" (click)="closeDocuments()">Fechar</button>
+      </div>
+
+      <div class="loading" *ngIf="documentsLoading">
+        <nb-spinner size="small"></nb-spinner>
+        <span>Carregando documentos...</span>
+      </div>
+
+      <p class="error" *ngIf="!documentsLoading && documentsError">{{ documentsError }}</p>
+      <p class="success" *ngIf="!documentsLoading && !documentsError && showFinalApprovalHint">
+        Todos os documentos estao aprovados. Agora clique em <strong>Aprovar</strong> na linha do cliente para liberar acesso total.
+      </p>
+
+      <div class="empty" *ngIf="!documentsLoading && !documentsError && selectedClientDocuments.length === 0">
+        Sem documentos enviados.
+      </div>
+
+      <table class="documents-table" *ngIf="!documentsLoading && selectedClientDocuments.length > 0">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Status</th>
+            <th>Data envio</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let document of selectedClientDocuments; trackBy: trackDocument">
+            <td>{{ documentTypeLabel(document.documentType) }}</td>
+            <td>{{ documentStatusLabel(document.status) }}</td>
+            <td>{{ document.submittedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="doc-actions">
+              <button nbButton size="tiny" status="basic" (click)="viewDocument(document)">Ver/Download</button>
+              <ng-container *ngIf="canReviewDocument(document); else reviewLocked">
+                <button nbButton size="tiny" status="success" (click)="approveDocument(document)">Aprovar</button>
+                <button nbButton size="tiny" status="warning" (click)="rejectDocument(document)">Rejeitar</button>
+              </ng-container>
+              <ng-template #reviewLocked>
+                <span class="doc-action-state" [ngClass]="documentActionStateClass(document)">
+                  {{ documentActionStateLabel(document) }}
+                </span>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

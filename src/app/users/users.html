@@ -1,0 +1,93 @@
+<nb-card class="users-card">
+  <nb-card-header class="card-header">
+    <div>
+      <h3>{{ pageTitle }}</h3>
+      <p>Clientes &gt; {{ breadcrumbClientLabel }} &gt; Equipe</p>
+    </div>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Novo usuario</button>
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="form-wrapper" *ngIf="formOpen">
+      <form [formGroup]="form">
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Nome</label>
+            <input nbInput fullWidth formControlName="name" />
+          </div>
+          <div class="input-group">
+            <label>Email</label>
+            <input nbInput fullWidth formControlName="email" />
+          </div>
+          <div class="input-group">
+            <label>Role</label>
+            <nb-select fullWidth formControlName="role">
+              <nb-option *ngFor="let role of roleOptions" [value]="role.value">
+                {{ role.label }}
+              </nb-option>
+            </nb-select>
+          </div>
+          <div class="input-group">
+            <label>Senha</label>
+            <input nbInput fullWidth type="password" formControlName="password" />
+          </div>
+          <div class="input-group">
+            <nb-checkbox formControlName="isActive">Ativo</nb-checkbox>
+          </div>
+        </div>
+
+        <p class="error" *ngIf="formError">{{ formError }}</p>
+
+        <div class="form-actions">
+          <button nbButton status="basic" size="small" type="button" (click)="cancelForm()">
+            Cancelar
+          </button>
+          <button nbButton status="primary" size="small" type="button" (click)="saveUser()">
+            {{ editingUserId ? 'Salvar' : 'Criar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <nb-spinner size="medium"></nb-spinner>
+      <span>Carregando...</span>
+    </div>
+
+    <p class="error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
+
+    <div class="empty" *ngIf="!loading && !errorMessage && users.length === 0">
+      Sem usuarios cadastrados.
+    </div>
+
+    <table class="users-table" *ngIf="!loading && users.length > 0">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Ultimo login</th>
+          <th>Acoes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ roleLabel(user.role) }}</td>
+          <td>
+            <span class="status" [class.active]="user.isActive">
+              {{ user.isActive ? 'Ativo' : 'Inativo' }}
+            </span>
+          </td>
+          <td>{{ user.lastLoginAt ? (user.lastLoginAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</td>
+          <td class="actions">
+            <button nbButton size="tiny" status="info" (click)="openEdit(user)">Editar</button>
+            <button nbButton size="tiny" status="danger" (click)="deactivate(user)">Inativar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </nb-card-body>
+</nb-card>

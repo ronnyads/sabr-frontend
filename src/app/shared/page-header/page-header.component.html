@@ -1,0 +1,11 @@
+<header class="page-header">
+  <div class="meta">
+    <h1>{{ title }}</h1>
+    <p *ngIf="subtitle">{{ subtitle }}</p>
+    <span class="tenant-badge" *ngIf="badgeText">{{ badgeText }}</span>
+  </div>
+
+  <div class="actions" *ngIf="actionsTemplate">
+    <ng-container [ngTemplateOutlet]="actionsTemplate"></ng-container>
+  </div>
+</header>

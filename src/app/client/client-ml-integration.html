@@ -1,0 +1,287 @@
+<section class="sabr-page ml-integration-page">
+  <ng-template #headerActions>
+    <button nbButton status="primary" size="small" (click)="syncNow()" [disabled]="syncing || !connected">
+      {{ syncing ? 'Sincronizando...' : 'Sincronizar pedidos agora' }}
+    </button>
+    <button nbButton status="basic" size="small" (click)="reconcileNow()" [disabled]="reconciling || !connected">
+      {{ reconciling ? 'Reconciliando...' : 'Reconciliar agora' }}
+    </button>
+  </ng-template>
+
+  <app-page-header
+    [title]="'Integracoes'"
+    [subtitle]="'Mercado Livre: conexao OAuth, mappings e pedidos importados.'"
+    [actionsTemplate]="headerActions"
+  ></app-page-header>
+
+  <div class="sabr-card panel">
+    <h3>Status da conexao</h3>
+    <app-ui-state
+      [loading]="statusLoading"
+      [errorMessage]="statusError"
+      [empty]="!statusLoading && !statusError && !status"
+      emptyTitle="Status indisponivel"
+      emptyDescription="Nao foi possivel ler o estado da integracao."
+      (retry)="loadStatusAndData()"
+    ></app-ui-state>
+
+    <div class="status-grid" *ngIf="status">
+      <div class="status-item">
+        <small>Conectado</small>
+        <strong>{{ status.connected ? 'Sim' : 'Nao' }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Sellers conectados</small>
+        <strong>{{ status.connections.length }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Mappings</small>
+        <strong>{{ status.mappingsCount }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Pedidos importados</small>
+        <strong>{{ status.ordersCount }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Itens sem mapping</small>
+        <strong>{{ status.unmappedItemsCount }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Ultimo sync</small>
+        <strong>{{ status.lastSyncAt ? (status.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</strong>
+      </div>
+    </div>
+
+    <div class="connection-actions">
+      <button nbButton status="success" size="small" (click)="connect()">Conectar</button>
+      <button nbButton status="danger" size="small" [disabled]="disconnecting || !connected" (click)="disconnect()">
+        {{ disconnecting ? 'Desconectando...' : 'Desconectar' }}
+      </button>
+      <label class="seller-select" *ngIf="status && status.connections.length > 0">
+        <span>Seller ativo</span>
+        <select [value]="selectedSellerId" (change)="onSellerChanged($any($event.target).value)">
+          <option *ngFor="let connection of status.connections" [value]="connection.sellerId">
+            {{ connection.sellerId }}{{ connection.nickname ? ' - ' + connection.nickname : '' }}
+          </option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="sabr-card panel">
+    <h3>Listings Mercado Livre (publicados)</h3>
+
+    <app-ui-state
+      [loading]="listingsLoading"
+      [errorMessage]="listingsError"
+      [empty]="emptyListings"
+      emptyTitle="Nenhum listing encontrado"
+      emptyDescription="Publique SKUs para criar mapeamentos oficiais de listings."
+      (retry)="loadListings()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!listingsLoading && !listingsError && listings.length > 0">
+      <table class="sabr-table">
+        <thead>
+          <tr>
+            <th>Seller</th>
+            <th>SKU</th>
+            <th>Produto</th>
+            <th>Item ML</th>
+            <th>Variacao</th>
+            <th>Preco</th>
+            <th>Estoque (fis/res/disponivel)</th>
+            <th>Atualizado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let listing of listings; trackBy: trackListing">
+            <td>{{ listing.sellerId }}</td>
+            <td>{{ listing.sabrVariantSku }}</td>
+            <td>{{ listing.productName || '-' }}</td>
+            <td>{{ listing.mlItemId }}</td>
+            <td>{{ listing.mlVariationId || '-' }}</td>
+            <td>{{ listing.catalogPriceCents / 100 | currency: 'BRL' }}</td>
+            <td>{{ listing.physicalStock }}/{{ listing.reservedStock }}/{{ listing.availableStock }}</td>
+            <td>{{ listing.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sabr-card panel">
+    <h3>Vincular produtos (item/variacao -> SKU)</h3>
+
+    <div class="mapping-form">
+      <label>
+        Seller
+        <input nbInput fullWidth [(ngModel)]="mappingDraft.sellerId" />
+      </label>
+      <label>
+        ML itemId
+        <input nbInput fullWidth [(ngModel)]="mappingDraft.mlItemId" />
+      </label>
+      <label>
+        ML variationId (opcional)
+        <input nbInput fullWidth [(ngModel)]="mappingDraft.mlVariationId" />
+      </label>
+      <label>
+        SABR Variant SKU
+        <input nbInput fullWidth [(ngModel)]="mappingDraft.sabrVariantSku" />
+      </label>
+      <button nbButton status="primary" size="small" [disabled]="creatingMapping" (click)="createMapping()">
+        {{ creatingMapping ? 'Salvando...' : 'Adicionar mapping' }}
+      </button>
+    </div>
+
+    <app-ui-state
+      [loading]="mappingsLoading"
+      [errorMessage]="mappingsError"
+      [empty]="emptyMappings"
+      emptyTitle="Nenhum mapping cadastrado"
+      emptyDescription="Cadastre itemId/variationId para reservar e baixar estoque corretamente."
+      (retry)="loadMappings()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!mappingsLoading && !mappingsError && mappings.length > 0">
+      <table class="sabr-table">
+        <thead>
+          <tr>
+            <th>Seller</th>
+            <th>Item</th>
+            <th>Variacao</th>
+            <th>SKU</th>
+            <th>Atualizado</th>
+            <th class="actions-col">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mapping of mappings; trackBy: trackMapping">
+            <td>{{ mapping.sellerId }}</td>
+            <td>{{ mapping.mlItemId }}</td>
+            <td>{{ mapping.mlVariationId || '-' }}</td>
+            <td>{{ mapping.sabrVariantSku }}</td>
+            <td>{{ mapping.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions-col">
+              <button nbButton size="tiny" status="danger" (click)="deleteMapping(mapping.id)">Remover</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sabr-card panel">
+    <h3>Pedidos Mercado Livre</h3>
+
+    <div class="orders-filters">
+      <label>
+        Status
+        <select [(ngModel)]="orderStatusFilter">
+          <option value="">Todos</option>
+          <option value="paid">paid</option>
+          <option value="created">created</option>
+          <option value="cancelled">cancelled</option>
+        </select>
+      </label>
+
+      <label>
+        Logistica
+        <select [(ngModel)]="orderLogisticTypeFilter">
+          <option value="">Todos</option>
+          <option value="fulfillment">fulfillment</option>
+          <option value="cross_docking">cross_docking</option>
+          <option value="self_service">self_service</option>
+          <option value="xd_drop_off">xd_drop_off</option>
+          <option value="drop_off">drop_off</option>
+          <option value="flex">flex</option>
+        </select>
+      </label>
+
+      <button nbButton size="small" status="basic" (click)="applyOrderFilters()">Aplicar</button>
+      <button nbButton size="small" status="basic" (click)="clearOrderFilters()">Limpar</button>
+    </div>
+
+    <app-ui-state
+      [loading]="ordersLoading"
+      [errorMessage]="ordersError"
+      [empty]="emptyOrders"
+      emptyTitle="Nenhum pedido importado"
+      emptyDescription="Use o botao de sincronizacao para importar pedidos do ML."
+      (retry)="loadOrders()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!ordersLoading && !ordersError && orders.length > 0">
+      <table class="sabr-table">
+        <thead>
+          <tr>
+            <th>OrderId ML</th>
+            <th>Status</th>
+            <th>Seller</th>
+            <th>Envio</th>
+            <th>Enviar ate</th>
+            <th>Pago no SABR</th>
+            <th>Itens</th>
+            <th>Risco</th>
+            <th class="actions-col">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of orders; trackBy: trackOrder">
+            <td>{{ order.mlOrderId }}</td>
+            <td>{{ order.status }}</td>
+            <td>{{ order.sellerId }}</td>
+            <td>{{ shippingLabel(order) }}</td>
+            <td>{{ order.shipByDeadlineAt ? (order.shipByDeadlineAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</td>
+            <td>{{ order.sabrPaymentConfirmedAt ? (order.sabrPaymentConfirmedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</td>
+            <td>{{ order.totalItems }} (reservado: {{ order.reservedItems }})</td>
+            <td>
+              <span class="risk-badge" *ngIf="riskBadge(order)">{{ riskBadge(order) }}</span>
+              <span *ngIf="!riskBadge(order)">-</span>
+            </td>
+            <td class="actions-col">
+              <button
+                nbButton
+                size="tiny"
+                status="primary"
+                [disabled]="order.hasUnmappedItems"
+                (click)="markPaid(order, false)"
+              >
+                Marcar pago
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pager" *ngIf="!ordersLoading && !ordersError && orderTotal > 0">
+      <span>{{ orderSkip + 1 }}-{{ orderSkip + orders.length }} de {{ orderTotal }}</span>
+      <div class="pager-actions">
+        <button nbButton size="small" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
+        <button nbButton size="small" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="risk-overlay" *ngIf="riskConfirmation">
+    <div class="risk-modal">
+      <h4>Pagamento fora de prazo/corte</h4>
+      <p>{{ riskConfirmation.payload.message }}</p>
+      <ul>
+        <li>Ship by: {{ riskConfirmation.payload.shipByDeadlineAt ? (riskConfirmation.payload.shipByDeadlineAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</li>
+        <li>Corte local: {{ riskConfirmation.payload.cutoffLocalTime || '-' }}</li>
+        <li>Agora (local): {{ riskConfirmation.payload.nowLocal || '-' }}</li>
+      </ul>
+      <div class="risk-actions">
+        <button nbButton status="basic" size="small" (click)="closeRiskModal()" [disabled]="riskConfirmation.processing">
+          Cancelar
+        </button>
+        <button nbButton status="warning" size="small" (click)="confirmRiskPayment()" [disabled]="riskConfirmation.processing">
+          {{ riskConfirmation.processing ? 'Confirmando...' : 'Confirmar pagamento assim mesmo' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

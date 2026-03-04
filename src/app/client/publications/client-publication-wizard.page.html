@@ -1,0 +1,861 @@
+<section class="sabr-page publication-wizard-page">
+  <header class="wizard-page-topbar">
+    <div class="wizard-page-title">
+      <h1>Publicar no Mercado Livre</h1>
+      <p>Editor de draft com autosave, validate e publish.</p>
+    </div>
+    <button nbButton status="basic" size="small" (click)="goToPublications()">Voltar para Publicacoes</button>
+  </header>
+
+  <div class="sabr-card panel">
+    <app-ui-state
+      [loading]="loading"
+      [errorMessage]="errorMessage"
+      [empty]="false"
+      emptyTitle=""
+      emptyDescription=""
+      (retry)="goToPublications()"
+    ></app-ui-state>
+
+    <div *ngIf="!loading && !errorMessage" class="wizard">
+      <div *ngIf="missingVariantBlocked" class="blocked-banner">
+        <div>
+          <strong>Catalogo incompleto</strong>
+          <p>{{ missingVariantMessage }}</p>
+        </div>
+        <div class="blocked-actions">
+          <button nbButton status="warning" size="small" (click)="retryMissingVariant()">Recarregar</button>
+          <button nbButton status="basic" size="small" (click)="goToMyProducts()">Voltar para Meus Produtos</button>
+        </div>
+      </div>
+
+      <div *ngIf="mlAuthInvalid" class="auth-banner">
+        <div>
+          <strong>Conexao Mercado Livre invalida</strong>
+          <p>Reconecte a integracao para voltar a receber sugestoes de categoria.</p>
+        </div>
+        <div class="blocked-actions">
+          <button nbButton status="primary" size="small" (click)="goToMercadoLivreIntegration()">Reconectar</button>
+          <button nbButton status="basic" size="small" (click)="retryCategorySuggest()">Tentar novamente</button>
+        </div>
+      </div>
+
+      <div *ngIf="categoryMlInvalid && !mlAuthInvalid" class="auth-banner">
+        <div>
+          <strong>Categoria invalida no Mercado Livre</strong>
+          <p>{{ categoryMlInvalidMessage }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="feesInputInvalid && !mlAuthInvalid" class="auth-banner">
+        <div>
+          <strong>Parametros de taxa invalidos no ML</strong>
+          <p>{{ feesInputInvalidMessage }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="publishInputInvalid && !mlAuthInvalid" class="auth-banner">
+        <div>
+          <strong>Dados de publicacao invalidos no ML</strong>
+          <p>Revise categoria, atributos obrigatorios e dados fiscais antes de publicar novamente.</p>
+        </div>
+      </div>
+
+      <div *ngIf="categorySuggestDegraded && !mlAuthInvalid" class="degraded-banner">
+        <div>
+          <strong>Sugestao de categoria degradada</strong>
+          <p>
+            Sugestao de categoria indisponivel no momento. Voce ainda pode usar uma categoria recente validada ({{ categorySuggestReason || 'ML_UNAVAILABLE' }}).
+            <span *ngIf="categorySuggestTraceId">traceId: {{ categorySuggestTraceId }}</span>
+          </p>
+        </div>
+        <div class="blocked-actions">
+          <button nbButton status="basic" size="small" (click)="retryCategorySuggest()" [disabled]="!canRetrySuggestNow || loadingCategorySuggest">
+            {{ canRetrySuggestNow ? 'Tentar novamente' : 'Tentar novamente (' + suggestCooldownSeconds + 's)' }}
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="categoryResolutionBlockedByMl && !mlAuthInvalid" class="degraded-banner">
+        <div>
+          <strong>Resolucao de categoria indisponivel no ML</strong>
+          <p>{{ categoryResolutionBlockedMessage }}</p>
+        </div>
+        <div class="blocked-actions">
+          <button nbButton status="basic" size="small" (click)="retryCategorySuggest()" [disabled]="!canRetrySuggestNow || loadingCategorySuggest">
+            {{ canRetrySuggestNow ? 'Tentar novamente' : 'Tentar novamente (' + suggestCooldownSeconds + 's)' }}
+          </button>
+          <button
+            nbButton
+            *ngIf="categoryResolutionReason === 'ML_AUTH_INVALID'"
+            status="primary"
+            size="small"
+            (click)="goToMercadoLivreIntegration()"
+          >
+            Reconectar
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="categoryAttributesUnavailable && showAttributesUnavailableBanner && !mlAuthInvalid" class="degraded-banner">
+        <div>
+          <strong>Atributos da categoria indisponiveis</strong>
+          <p>
+            Atributos indisponiveis. Tente novamente para carregar obrigatorios.
+            <span *ngIf="categoryAttributesTraceId">traceId: {{ categoryAttributesTraceId }}</span>
+          </p>
+        </div>
+        <div class="blocked-actions">
+          <button nbButton status="basic" size="small" (click)="retryCategoryAttributes()">Tentar novamente</button>
+        </div>
+      </div>
+
+      <div *ngIf="feesEstimateDegraded && showFeesUnavailableBanner && !mlAuthInvalid" class="degraded-banner">
+        <div>
+          <strong>Estimativa de taxas indisponivel no ML</strong>
+          <p>
+            Taxas indisponiveis no momento. Tente novamente para recalcular com dados ao vivo.
+            <span *ngIf="feesEstimateTraceId">traceId: {{ feesEstimateTraceId }}</span>
+          </p>
+        </div>
+        <div class="blocked-actions">
+          <button nbButton status="basic" size="small" (click)="retryEstimate()">Tentar novamente</button>
+        </div>
+      </div>
+
+      <article class="context-card hero-card">
+        <div class="context-image">
+          <img *ngIf="displayPrimaryImageUrl; else noContextImage" [src]="displayPrimaryImageUrl || ''" [alt]="displayProductName" />
+          <ng-template #noContextImage>
+            <span>Sem imagem</span>
+          </ng-template>
+        </div>
+        <div class="context-main">
+          <div class="context-title-row">
+            <span class="chip base">Base</span>
+            <h3>{{ displayProductName }}</h3>
+          </div>
+          <div class="context-chips">
+            <span class="chip status">{{ draftStatus }}</span>
+            <span class="chip">{{ listingTypeDisplayName }}</span>
+          </div>
+          <div class="context-meta">
+            <span>SKU: {{ state.variantSku || '-' }}</span>
+            <span>Preco base: {{ displaySnapshotCost | currency: 'BRL' }}</span>
+            <span>Seller: {{ selectedSellerDisplayName }}</span>
+            <span>Canal: Mercado Livre</span>
+            <span>Categoria: {{ categorySummaryLabel }}</span>
+            <span>Estoque: {{ displayStockAvailable }}</span>
+            <span>Anuncio: {{ listingTypeDisplayName }}</span>
+          </div>
+        </div>
+        <div class="context-actions">
+          <button nbButton status="basic" size="small" (click)="goToMyProducts()">Editar Produto Base</button>
+          <div class="context-price">
+            <small>Preco atual</small>
+            <strong>{{ state.price ?? 0 | currency: 'BRL' }}</strong>
+            <small>Taxa estimada: {{ listingTypeFeePercentLabel }}</small>
+          </div>
+        </div>
+      </article>
+      <div class="context-tech-toggle">
+        <button nbButton status="basic" size="tiny" (click)="toggleTechnicalDetails()">
+          {{ showTechnicalDetails ? 'Ocultar detalhes tecnicos' : 'Mostrar detalhes tecnicos' }}
+        </button>
+      </div>
+      <section class="context-technical" *ngIf="showTechnicalDetails">
+        <p><strong>SKU:</strong> {{ state.variantSku || '-' }}</p>
+        <p><strong>Seller ID:</strong> {{ state.sellerId || '-' }}</p>
+        <p><strong>Seller tecnico:</strong> {{ selectedSellerTechnicalLabel }}</p>
+        <p><strong>Canal tecnico:</strong> {{ state.channel || '-' }}</p>
+        <p><strong>Site ID:</strong> {{ state.siteId || '-' }}</p>
+        <p><strong>Draft ID:</strong> {{ draftId || '-' }}</p>
+        <p><strong>RowVersion:</strong> {{ rowVersion || '-' }}</p>
+        <p><strong>Listing type tecnico:</strong> {{ state.listingTypeId || '-' }}</p>
+      </section>
+
+      <section class="context-issues" *ngIf="snapshotIssues.length > 0">
+        <article *ngFor="let issue of snapshotIssues">
+          <strong>{{ issue.code }}</strong>
+          <span>{{ issue.message }}</span>
+        </article>
+      </section>
+
+      <div class="wizard-steps">
+        <button
+          type="button"
+          *ngFor="let step of steps; let i = index"
+          [class.active]="i === currentStepIndex"
+          [disabled]="missingVariantBlocked"
+          (click)="goToStep(i)"
+        >
+          {{ i + 1 }}. {{ step.label }}
+        </button>
+      </div>
+
+      <div class="editor-grid wizard-shell">
+        <div class="editor-main main-column">
+          <section
+            id="wizard-section-seller"
+            class="editor-card section-card step-panel"
+            [class.step-panel--active]="currentStep === 'seller'"
+            [class.step-panel--hidden]="currentStep !== 'seller'"
+          >
+            <div class="section-heading">
+              <h4>Canal e Integracao</h4>
+            </div>
+            <div class="form-grid seller-grid">
+              <label>
+                Canal
+                <input nbInput fullWidth [ngModel]="state.channel" (ngModelChange)="state.channel = $event; onFieldChanged()" />
+              </label>
+              <label>
+                Seller
+                <select [ngModel]="state.sellerId" (ngModelChange)="onSellerChanged($event)">
+                  <option value="" disabled>Selecione</option>
+                  <option *ngFor="let seller of sellers" [value]="seller.sellerId">
+                    {{ seller.nickname || seller.sellerId }}
+                  </option>
+                </select>
+              </label>
+              <label>
+                Variante principal
+                <select [ngModel]="state.variantSku" (ngModelChange)="selectVariantCandidate($event)">
+                  <option value="" disabled>Selecione uma variante</option>
+                  <option *ngFor="let candidate of candidateVariants" [value]="candidate.sabrVariantSku">
+                    {{ candidate.name || candidate.sabrVariantSku }}
+                  </option>
+                </select>
+              </label>
+              <label>
+                Site
+                <input nbInput fullWidth [ngModel]="state.siteId" (ngModelChange)="onSiteIdChanged($event)" />
+              </label>
+            </div>
+            <div class="variant-actions">
+              <small>Selecionadas: {{ selectedVariantCount }}</small>
+              <button nbButton status="basic" size="tiny" (click)="toggleVariantCsvAdvanced()">
+                {{ showVariantCsvAdvanced ? 'Ocultar modo avancado' : 'Mostrar modo avancado' }}
+              </button>
+            </div>
+            <div class="form-grid" *ngIf="showVariantCsvAdvanced">
+              <label>
+                Variantes selecionadas (CSV)
+                <input
+                  nbInput
+                  fullWidth
+                  [ngModel]="state.selectedVariantSkus.join(', ')"
+                  (ngModelChange)="onSelectedVariantsChanged($event)"
+                />
+              </label>
+              <label>
+                Variant SKU manual
+                <input nbInput fullWidth [ngModel]="state.variantSku" (ngModelChange)="state.variantSku = ($event || '').toUpperCase(); onFieldChanged()" />
+              </label>
+            </div>
+          </section>
+
+          <section
+            id="wizard-section-category"
+            class="editor-card section-card step-panel"
+            [class.step-panel--active]="currentStep === 'category'"
+            [class.step-panel--hidden]="currentStep !== 'category'"
+            [class.section-error]="publishInputInvalid"
+          >
+            <div class="section-heading">
+              <h4>Categoria e Atributos</h4>
+              <span class="required-pill" *ngIf="categoryCapabilities && categoryCapabilities.requiredAttributes.length > 0">
+                {{ categoryCapabilities.requiredAttributes.length }} obrigatorios pendentes
+              </span>
+            </div>
+            <div class="category-path">
+              <small>Caminho da categoria</small>
+              <div>
+                <span>{{ categorySummaryLabel || 'Categoria nao definida' }}</span>
+                <button type="button" (click)="chooseAnotherCategory()">Alterar</button>
+              </div>
+            </div>
+            <div class="form-grid two-cols">
+              <label>
+                Buscar categoria (ML)
+                <input
+                  nbInput
+                  fullWidth
+                  [disabled]="mlAuthInvalid"
+                  [ngModel]="categorySuggestQuery"
+                  (ngModelChange)="onCategorySearchChanged($event)"
+                  placeholder="Digite nome/titulo para sugerir categoria"
+                />
+                <small *ngIf="mlAuthInvalid" class="field-hint field-hint-error">Sessao do Mercado Livre invalida. Reconecte a integracao.</small>
+              </label>
+              <label>
+                Categoria selecionada
+                <div class="category-combobox" (focusout)="onCategorySelectContainerFocusOut($event)">
+                  <button
+                    type="button"
+                    class="category-combobox-trigger"
+                    [class.open]="categorySelectOpen"
+                    [class.empty]="!state.categoryId"
+                    (click)="toggleCategorySelectOpen()"
+                    (keydown)="onCategorySelectTriggerKeydown($event)"
+                    [attr.aria-expanded]="categorySelectOpen"
+                    aria-haspopup="listbox"
+                  >
+                    <span>{{ categorySelectTriggerLabel }}</span>
+                    <span class="category-combobox-arrow">&#9662;</span>
+                  </button>
+
+                  <div class="category-combobox-panel" *ngIf="categorySelectOpen">
+                    <input
+                      nbInput
+                      fullWidth
+                      class="category-combobox-search"
+                      [ngModel]="categorySelectFilterQuery"
+                      (ngModelChange)="onCategorySelectFilterChanged($event)"
+                      (keydown)="onCategorySelectFilterKeydown($event)"
+                      placeholder="Buscar categoria"
+                    />
+
+                    <div class="category-combobox-groups" *ngIf="hasCategorySelectFilteredOptions; else noCategoryOptions">
+                      <section class="category-combobox-group" *ngFor="let group of categorySelectGroupsState; trackBy: trackByCategoryGroup">
+                        <small>{{ group.label }}</small>
+                        <button
+                          type="button"
+                          class="category-combobox-option"
+                          *ngFor="let option of group.options; trackBy: trackByCategoryId"
+                          [class.active]="isCategoryOptionActiveById(option.categoryId)"
+                          (mouseenter)="onCategoryOptionMouseEnter(option.categoryId)"
+                          (click)="selectCategoryOption(option)"
+                        >
+                          <span class="category-option-label">{{ option.displayLabel }}</span>
+                          <span class="category-option-source">
+                            {{ option.source === 'selected' ? 'Selecionada' : option.source === 'suggestion' ? 'Sugestao' : 'Recente' }}
+                          </span>
+                        </button>
+                      </section>
+                    </div>
+                    <ng-template #noCategoryOptions>
+                      <div class="category-combobox-empty">Nenhuma categoria disponivel para o filtro informado.</div>
+                    </ng-template>
+                  </div>
+                </div>
+                <small *ngIf="categoryAutofilledFromGet && !!state.categoryId" class="field-hint">
+                  Categoria aplicada automaticamente com base no mapeamento interno.
+                </small>
+                <small *ngIf="isCategoryUpdateResolutionPending" class="field-hint field-hint-error">
+                  Categoria antiga removida. Aplique a recomendada ou escolha outra categoria para continuar.
+                </small>
+                <small *ngIf="hasCategoryEstimateError && !hasCategoryLocalFormatError" class="field-hint field-hint-error">Selecione uma categoria do ML para calcular taxas.</small>
+                <small *ngIf="hasCategoryLocalFormatError" class="field-hint field-hint-error">{{ categoryLocalFormatMessage }}</small>
+                <small *ngIf="categoryMlInvalid" class="field-hint field-hint-error">{{ categoryMlInvalidMessage }}</small>
+              </label>
+              <label class="button-row">
+                <span>&nbsp;</span>
+                <button nbButton status="basic" size="small" (click)="suggestCategoryNow()" [disabled]="mlAuthInvalid || loadingCategorySuggest">
+                  {{ loadingCategorySuggest ? 'Sugerindo...' : 'Sugerir categoria' }}
+                </button>
+              </label>
+              <label class="button-row">
+                <span>&nbsp;</span>
+                <button
+                  nbButton
+                  status="info"
+                  size="small"
+                  (click)="loadCategoryCapabilities(true)"
+                  [disabled]="loadingCapabilities || !canLoadCategoryCapabilities"
+                  [title]="categoryActionDisabledMessage"
+                >
+                  {{ loadingCapabilities ? 'Carregando...' : 'Carregar atributos' }}
+                </button>
+              </label>
+              <label class="button-row">
+                <span>&nbsp;</span>
+                <button nbButton status="basic" size="small" (click)="clearSelectedCategory()" [disabled]="!state.categoryId">
+                  Limpar categoria
+                </button>
+              </label>
+            </div>
+
+            <div class="hint-box" *ngIf="showCategoryUpdateSuggestion">
+              <div>
+                <small>A categoria do produto foi atualizada no painel. A categoria antiga foi removida para evitar publicacao incorreta.</small>
+                <strong>{{ categoryUpdateSuggestionLabel || 'Categoria recomendada disponivel' }}</strong>
+              </div>
+              <div class="blocked-actions">
+                <button nbButton status="primary" size="small" (click)="applyCategoryUpdateSuggestion()" *ngIf="categoryUpdateSuggestionId">
+                  Aplicar categoria recomendada
+                </button>
+                <button nbButton status="basic" size="small" (click)="chooseAnotherCategory()">Escolher outra categoria</button>
+              </div>
+            </div>
+
+            <div class="caps-grid" *ngIf="categoryCapabilities">
+              <div class="caps-item">
+                <small>Variacoes</small>
+                <strong>{{ categoryCapabilities.allowsVariations ? 'Permitidas' : 'Nao permitido' }}</strong>
+              </div>
+              <div class="caps-item">
+                <small>Max variacoes</small>
+                <strong>{{ categoryCapabilities.maxVariationsAllowed }}</strong>
+              </div>
+              <div class="caps-item">
+                <small>Max eixos</small>
+                <strong>{{ categoryCapabilities.maxVariationAttributes }}</strong>
+              </div>
+              <div class="caps-item">
+                <small>Eixos permitidos</small>
+                <strong>{{ categoryCapabilities.allowedAxes.join(', ') || '-' }}</strong>
+              </div>
+            </div>
+
+            <div class="required-attrs" *ngIf="categoryCapabilities && categoryCapabilities.requiredAttributes.length > 0">
+              <h5>Atributos obrigatorios</h5>
+              <div class="form-grid two-cols">
+                <label *ngFor="let attr of categoryCapabilities.requiredAttributes; trackBy: trackByAttributeId" class="form-label">
+                  {{ attr.name }} ({{ attr.id }}) <span class="text-danger">*</span>
+
+                  <select
+                    *ngIf="attr.values.length > 0"
+                    class="form-control"
+                    required
+                    [name]="'attrMl-' + attr.id"
+                    [ngModel]="getAttributeOptionValue(attr.id)"
+                    (ngModelChange)="updateRequiredAttribute(attr, $event)"
+                  >
+                    <option value="">Selecione</option>
+                    <option *ngFor="let option of attr.values" [value]="option.id">{{ option.name }}</option>
+                  </select>
+
+                  <div *ngIf="attr.values.length === 0 && isBooleanAttr(attr)" class="form-check mt-1">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      required
+                      [name]="'attrMl-' + attr.id"
+                      [ngModel]="getAttributeBooleanValue(attr.id)"
+                      (ngModelChange)="updateRequiredAttribute(attr, $event)"
+                    />
+                    <span class="form-check-label">Sim</span>
+                  </div>
+
+                  <input
+                    *ngIf="attr.values.length === 0 && !isBooleanAttr(attr)"
+                    nbInput
+                    fullWidth
+                    required
+                    class="form-control"
+                    [name]="'attrMl-' + attr.id"
+                    [type]="getRequiredAttrInputType(attr)"
+                    [attr.step]="isNumberAttr(attr) ? 'any' : null"
+                    [ngModel]="getAttributeDisplayValue(attr.id)"
+                    (ngModelChange)="updateRequiredAttribute(attr, $event)"
+                  />
+                </label>
+              </div>
+            </div>
+            <div class="required-attrs optional-attrs" *ngIf="categoryCapabilities && optionalCategoryAttributesState.length > 0">
+              <button type="button" class="optional-attrs__toggle" (click)="toggleOptionalAttributes()">
+                <span>Atributos adicionais (opcionais) - {{ optionalCategoryAttributesState.length }}</span>
+                <span>{{ showOptionalAttributes ? 'Ocultar' : 'Abrir' }}</span>
+              </button>
+
+              <div class="optional-attrs__body" *ngIf="showOptionalAttributes">
+                <label class="optional-attrs__search">
+                  Buscar atributo opcional
+                  <input
+                    nbInput
+                    fullWidth
+                    [ngModel]="optionalAttributesQuery"
+                    (ngModelChange)="onOptionalAttributesQueryChange($event)"
+                    placeholder="Digite nome ou ID"
+                  />
+                </label>
+
+                <div class="form-grid two-cols">
+                  <label *ngFor="let attr of visibleOptionalAttributes; trackBy: trackByAttributeId" class="form-label">
+                  {{ attr.name }} ({{ attr.id }})
+
+                  <select
+                    *ngIf="attr.values.length > 0"
+                    class="form-control"
+                    [name]="'attrMlOptional-' + attr.id"
+                    [ngModel]="getAttributeOptionValue(attr.id)"
+                    (ngModelChange)="updateOptionalAttribute(attr, $event)"
+                  >
+                    <option value="">Nao informar</option>
+                    <option *ngFor="let option of getOptionalAttributeOptions(attr)" [value]="option.id">{{ option.name }}</option>
+                  </select>
+
+                  <div *ngIf="attr.values.length === 0 && isBooleanAttr(attr)" class="form-check mt-1">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [name]="'attrMlOptional-' + attr.id"
+                      [ngModel]="getAttributeBooleanValue(attr.id)"
+                      (ngModelChange)="updateOptionalAttribute(attr, $event)"
+                    />
+                    <span class="form-check-label">Sim</span>
+                  </div>
+
+                  <input
+                    *ngIf="attr.values.length === 0 && !isBooleanAttr(attr)"
+                    nbInput
+                    fullWidth
+                    class="form-control"
+                    [name]="'attrMlOptional-' + attr.id"
+                    [type]="getRequiredAttrInputType(attr)"
+                    [attr.step]="isNumberAttr(attr) ? 'any' : null"
+                    [ngModel]="getAttributeDisplayValue(attr.id)"
+                    (ngModelChange)="updateOptionalAttribute(attr, $event)"
+                  />
+                  </label>
+                </div>
+
+                <div class="optional-attrs__actions" *ngIf="filteredOptionalAttributes.length > optionalAttributesPreviewLimit">
+                  <button nbButton status="basic" size="small" (click)="toggleShowAllOptionalAttributes()">
+                    {{ showAllOptionalAttributes ? 'Ver menos' : 'Ver todos' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <small *ngIf="isAttributesGateBlocked" class="field-hint field-hint-error">
+              Atributos obrigatorios indisponiveis. Recarregue os atributos antes de validar/publicar.
+            </small>
+            <small *ngIf="categoryMlInvalid" class="field-hint field-hint-error">
+              Categoria invalida no Mercado Livre. Selecione outra categoria antes de validar/publicar.
+            </small>
+            <small *ngIf="publishInputInvalid" class="field-hint field-hint-error">
+              Publicacao rejeitada pelo ML. Corrija categoria/atributos e valide novamente.
+            </small>
+          </section>
+
+          <section
+            id="wizard-section-content"
+            class="editor-card section-card step-panel"
+            [class.step-panel--active]="currentStep === 'content'"
+            [class.step-panel--hidden]="currentStep !== 'content'"
+          >
+            <div class="title-row">
+              <h4>Titulo da publicacao</h4>
+              <span class="counter">{{ titleLength }}/60</span>
+            </div>
+            <label>
+              Titulo
+              <input nbInput fullWidth maxlength="60" [ngModel]="state.title" (ngModelChange)="state.title = $event; onFieldChanged()" />
+            </label>
+
+            <div class="hint-box">
+              <div>
+                <small>Sugestao de titulo</small>
+                <strong>{{ suggestedTitle || 'Preencha o SKU para gerar sugestao.' }}</strong>
+              </div>
+              <button nbButton status="basic" size="small" (click)="copySuggestedTitle()">Copiar sugestao</button>
+            </div>
+
+            <label>
+              Descricao do produto
+              <div class="description-toolbar" aria-hidden="true">
+                <button type="button">B</button>
+                <button type="button">I</button>
+                <button type="button">Lista</button>
+                <button type="button">Link</button>
+              </div>
+              <textarea nbInput fullWidth rows="10" [ngModel]="state.description" (ngModelChange)="state.description = $event; onFieldChanged()"></textarea>
+              <small>{{ descriptionLength }} caracteres</small>
+            </label>
+          </section>
+
+          <section
+            id="wizard-section-attributes"
+            class="editor-card section-card step-panel"
+            [class.step-panel--active]="currentStep === 'attributes'"
+            [class.step-panel--hidden]="currentStep !== 'attributes'"
+            [class.section-error]="publishInputInvalid"
+          >
+            <div class="section-heading">
+              <h4>Variacoes e Atributos Tecnicos</h4>
+            </div>
+            <div class="form-grid two-cols">
+              <label>
+                Modo de publicacao
+                <select [ngModel]="state.publishMode" (ngModelChange)="state.publishMode = $event; onFieldChanged()">
+                  <option value="SingleVariant">SingleVariant</option>
+                  <option value="MultiVariation">MultiVariation</option>
+                </select>
+              </label>
+              <label>
+                Eixos de variacao (CSV)
+                <input nbInput fullWidth [ngModel]="state.variationAxes.join(', ')" (ngModelChange)="onVariationAxesChanged($event)" />
+              </label>
+            </div>
+
+            <div class="inline-row">
+              <input #attrId nbInput placeholder="Atributo (id)" />
+              <input #attrValue nbInput placeholder="Valor" />
+              <button nbButton size="small" status="basic" (click)="addAttribute(attrId, attrValue)">Adicionar</button>
+            </div>
+
+            <ul class="chips" *ngIf="state.attributes.length > 0">
+              <li *ngFor="let attr of state.attributes; let i = index">
+                <span>{{ attr.id }}: {{ attr.valueName || attr.valueId || '-' }}</span>
+                <button type="button" (click)="removeAttribute(i)">x</button>
+              </li>
+            </ul>
+          </section>
+        </div>
+
+        <aside class="editor-side side-column">
+          <section
+            id="wizard-section-pricing"
+            class="editor-card section-card step-panel sidebar-card"
+            [class.step-panel--active]="currentStep === 'pricing'"
+            [class.step-panel--hidden]="currentStep !== 'pricing'"
+            [class.sidebar-card--focus]="currentStep === 'pricing'"
+          >
+            <h4>Simulador de preco</h4>
+            <div class="sidebar-summary">
+              <p><span>Tipo</span><strong>{{ listingTypeDisplayName }}</strong></p>
+              <p><span>Preco</span><strong>{{ state.price ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Margem</span><strong>{{ estimate?.marginPercent ?? 0 }}%</strong></p>
+            </div>
+            <div class="sidebar-details">
+            <div class="form-grid">
+              <label>
+                Tipo de anuncio
+                <select [class.input-error]="hasListingTypeEstimateError" [ngModel]="state.listingTypeId" (ngModelChange)="state.listingTypeId = $event; onPricingFieldChanged()">
+                  <option value="gold_special">ML Classico</option>
+                  <option value="gold_pro">ML Gold</option>
+                </select>
+              </label>
+              <label>
+                Preco de venda (BRL)
+                <input
+                  nbInput
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="0,00"
+                  [class.input-error]="hasPriceEstimateError"
+                  [ngModel]="salePriceInput"
+                  (ngModelChange)="onSalePriceInputChanged($event)"
+                  (blur)="onSalePriceInputBlur()"
+                  (keydown.enter)="onSalePriceInputEnter($event)"
+                />
+                <small *ngIf="priceInputInvalid" class="field-hint field-hint-error">Formato invalido de preco. Use exemplo: 35,90.</small>
+                <small *ngIf="!priceInputInvalid && hasPriceEstimateError" class="field-hint field-hint-error">Informe Preco de venda > 0.</small>
+                <small *ngIf="feesInputInvalid" class="field-hint field-hint-error">{{ feesInputInvalidMessage }}</small>
+              </label>
+              <label>
+                Custo de compra
+                <input nbInput [value]="(effectiveProductCost ?? 0) | currency: 'BRL'" readonly />
+              </label>
+              <label>
+                Custo operacional
+                <input nbInput type="number" min="0" step="0.01" [ngModel]="state.operationalCost" (ngModelChange)="state.operationalCost = $event; onPricingFieldChanged()" />
+                <small class="field-hint">Opcional (nao vem do catalogo).</small>
+              </label>
+              <label>
+                Lucro desejado (%)
+                <input nbInput type="number" min="0" max="99" step="0.5" [ngModel]="desiredMarginPercent" (ngModelChange)="desiredMarginPercent = $event ?? 0" />
+              </label>
+              <button nbButton status="info" size="small" (click)="calculateFeesNow()" [disabled]="loadingEstimate || !canEstimate">
+                {{ loadingEstimate ? 'Estimando...' : 'Calcular taxas e lucro' }}
+              </button>
+              <small *ngIf="!canEstimate" class="field-hint field-hint-error">{{ estimateBlockingMessage }}</small>
+              <small *ngIf="autoEstimatePaused && autoEstimatePauseReason === 'unavailable' && !mlAuthInvalid" class="field-hint field-hint-error">
+                Auto-calculo pausado por indisponibilidade. Altere os campos ou clique em calcular manualmente.
+              </small>
+              <small *ngIf="autoEstimatePaused && autoEstimatePauseReason === 'category_invalid' && !mlAuthInvalid" class="field-hint field-hint-error">
+                Auto-calculo pausado ate selecionar categoria valida para {{ categoryValidity.normalizedSiteId }}.
+              </small>
+            </div>
+
+            <div class="calc-card">
+              <p><span>Tipo selecionado</span><strong>{{ listingTypeDisplayName }}</strong></p>
+              <p><span>Taxa variavel (%)</span><strong>{{ saleFeePercentLabel }}</strong></p>
+              <p><span>Taxa efetiva total (%)</span><strong>{{ totalFeePercentLabel }}</strong></p>
+              <p><span>Preco informado</span><strong>{{ state.price ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Taxa de venda</span><strong>{{ estimate?.saleFee ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Taxa fixa</span><strong>{{ estimate?.fixedFee ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Taxas totais</span><strong>{{ estimate?.totalFees ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Lucro estimado</span><strong>{{ estimate?.estimatedProfit ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Margem</span><strong>{{ estimate?.marginPercent ?? 0 }}%</strong></p>
+              <small class="estimate-source">{{ listingTypeHint }}</small>
+              <p class="suggested" *ngIf="suggestedPriceByTargetMargin != null">
+                <span>Preco sugerido (sem reduzir preco atual)</span>
+                <strong>{{ suggestedPriceByTargetMargin | currency: 'BRL' }}</strong>
+              </p>
+              <small *ngIf="currentPriceMeetsTargetMargin" class="estimate-source">
+                Preco atual ja atende a margem alvo.
+              </small>
+            </div>
+
+            <button nbButton status="success" size="small" [disabled]="suggestedPriceByTargetMargin == null" (click)="applySuggestedPrice()">
+              Aplicar ao preco
+            </button>
+            </div>
+          </section>
+
+          <section
+            id="wizard-section-fiscal"
+            class="editor-card section-card step-panel sidebar-card"
+            [class.step-panel--active]="currentStep === 'fiscal'"
+            [class.step-panel--hidden]="currentStep !== 'fiscal'"
+            [class.sidebar-card--focus]="currentStep === 'fiscal'"
+            [class.section-error]="publishInputInvalid"
+          >
+            <h4>Fiscal e imagens</h4>
+            <div class="sidebar-summary">
+              <p><span>GTIN</span><strong>{{ state.gtin || '-' }}</strong></p>
+              <p><span>NCM</span><strong>{{ state.ncm || '-' }}</strong></p>
+              <p><span>Imagens</span><strong>{{ state.images.length }}</strong></p>
+            </div>
+            <div class="sidebar-details">
+            <div class="form-grid">
+              <label>
+                GTIN
+                <input nbInput fullWidth [ngModel]="state.gtin" (ngModelChange)="state.gtin = $event; onFieldChanged()" />
+                <small *ngIf="gtinPrefillSourceLabel" class="field-hint">Prefill: {{ gtinPrefillSourceLabel }}</small>
+              </label>
+              <label>
+                Motivo sem GTIN
+                <input nbInput fullWidth [ngModel]="state.emptyGtinReason" (ngModelChange)="state.emptyGtinReason = $event; onFieldChanged()" />
+              </label>
+              <label>
+                NCM
+                <input nbInput fullWidth [ngModel]="state.ncm" (ngModelChange)="state.ncm = $event; onFieldChanged()" />
+              </label>
+              <label>
+                Origem
+                <input nbInput fullWidth [ngModel]="state.origin" (ngModelChange)="state.origin = $event; onFieldChanged()" />
+              </label>
+            </div>
+            <small *ngIf="publishInputInvalid" class="field-hint field-hint-error">
+              Verifique GTIN/EMPTY_GTIN_REASON, NCM e origem antes de publicar novamente.
+            </small>
+
+            <div class="inline-row image-input-row">
+              <input #imageUrl nbInput placeholder="URL da imagem" />
+              <button nbButton size="small" status="basic" (click)="addImage(imageUrl)">Adicionar</button>
+            </div>
+
+            <div class="image-grid" *ngIf="state.images.length > 0; else emptyImages">
+              <article class="image-card" *ngFor="let image of state.images; let i = index">
+                <img [src]="image.url" [alt]="'Imagem ' + (i + 1)" />
+                <div class="cover-tag" *ngIf="i === 0">Capa</div>
+                <footer>
+                  <small>#{{ image.position }}</small>
+                  <div class="image-actions">
+                    <button type="button" (click)="moveImage(i, 'up')" [disabled]="i === 0">Up</button>
+                    <button type="button" (click)="moveImage(i, 'down')" [disabled]="i === state.images.length - 1">Down</button>
+                    <button type="button" class="danger" (click)="removeImage(i)">Remover</button>
+                  </div>
+                </footer>
+              </article>
+            </div>
+            <ng-template #emptyImages>
+              <div class="empty-images">Nenhuma imagem adicionada.</div>
+            </ng-template>
+            </div>
+          </section>
+
+          <section
+            id="wizard-section-review"
+            class="editor-card section-card checklist-card step-panel sidebar-card"
+            [class.step-panel--active]="currentStep === 'review'"
+            [class.step-panel--hidden]="currentStep !== 'review'"
+            [class.sidebar-card--focus]="currentStep === 'review'"
+          >
+            <h4>Saude da publicacao</h4>
+            <div class="sidebar-summary">
+              <p><span>Conclusao</span><strong>{{ checklistCompletionPercent }}%</strong></p>
+              <p><span>Erros</span><strong>{{ severityErrors }}</strong></p>
+            </div>
+            <div class="sidebar-details">
+
+            <ul class="checklist">
+              <li [class.ok]="isCategoryReady" [class.warn]="!isCategoryReady">
+                <span>{{ isCategoryReady ? 'OK' : 'Pendente' }}</span>
+                <div>
+                  <strong>Categoria definida</strong>
+                  <small>{{ reviewCategoryLabel }}</small>
+                </div>
+              </li>
+              <li [class.ok]="isTitleReady" [class.warn]="!isTitleReady">
+                <span>{{ isTitleReady ? 'OK' : 'Pendente' }}</span>
+                <div>
+                  <strong>Titulo valido</strong>
+                  <small>{{ titleLength }}/60 caracteres</small>
+                </div>
+              </li>
+              <li [class.ok]="isGtinOrReasonReady" [class.warn]="!isGtinOrReasonReady">
+                <span>{{ isGtinOrReasonReady ? 'OK' : 'Pendente' }}</span>
+                <div>
+                  <strong>GTIN ou motivo</strong>
+                  <small>{{ isGtinOrReasonReady ? 'Informado' : 'Preencha GTIN ou motivo' }}</small>
+                </div>
+              </li>
+              <li [class.ok]="isNcmReady" [class.warn]="!isNcmReady">
+                <span>{{ isNcmReady ? 'OK' : 'Pendente' }}</span>
+                <div>
+                  <strong>NCM</strong>
+                  <small>{{ isNcmReady ? 'Formato valido' : 'NCM deve ter 8 digitos' }}</small>
+                </div>
+              </li>
+              <li [class.ok]="isImagesReady" [class.warn]="!isImagesReady">
+                <span>{{ isImagesReady ? 'OK' : 'Pendente' }}</span>
+                <div>
+                  <strong>Imagens</strong>
+                  <small>{{ state.images.length }} imagem(ns)</small>
+                </div>
+              </li>
+              <li [class.ok]="isRequiredAttributesReady" [class.warn]="!isRequiredAttributesReady">
+                <span>{{ isRequiredAttributesReady ? 'OK' : 'Pendente' }}</span>
+                <div>
+                  <strong>Atributos obrigatorios</strong>
+                  <small *ngIf="!isAttributesGateBlocked">
+                    {{ requiredAttributesCompleted }}/{{ categoryCapabilities?.requiredAttributes?.length || 0 }} preenchidos
+                  </small>
+                  <small *ngIf="isAttributesGateBlocked">Atributos indisponiveis no momento</small>
+                </div>
+              </li>
+            </ul>
+
+            <div class="issues-summary" *ngIf="issues.length > 0">
+              <h5>Issues de validacao</h5>
+              <p>{{ severityErrors }} erro(s) e {{ severityWarnings }} aviso(s)</p>
+              <ul>
+                <li *ngFor="let issue of issues">[{{ issue.step }}] {{ issue.fieldPath }} - {{ issue.code }}: {{ issue.message }}</li>
+              </ul>
+            </div>
+
+            <div class="progress-box">
+              <div class="progress-track">
+                <div class="progress-value" [style.width.%]="checklistCompletionPercent"></div>
+              </div>
+              <small>{{ checklistCompletionPercent }}% completo</small>
+            </div>
+
+            <div class="wizard-actions">
+              <button nbButton status="basic" size="small" [disabled]="!hasPreviousStep" (click)="previousStep()">Anterior</button>
+              <button nbButton status="basic" size="small" [disabled]="!hasNextStep" (click)="nextStep()">Proximo</button>
+              <button nbButton status="info" size="small" [disabled]="!canValidate" (click)="validateDraft()">
+                {{ validating ? 'Validando...' : 'Validar' }}
+              </button>
+              <button nbButton status="success" size="small" class="publish-cta" [disabled]="!canPublish" (click)="publishDraft()">
+                {{ publishing ? 'Publicando...' : 'Publicar no Mercado Livre' }}
+              </button>
+            </div>
+
+            <div class="publish-result" *ngIf="lastPublishResult">
+              <small>Status: {{ lastPublishResult.status }}</small>
+              <small *ngIf="lastPublishResult.publishedItemId">Item: {{ lastPublishResult.publishedItemId }}</small>
+            </div>
+
+            <span class="save-status">{{ saving ? 'Salvando draft...' : 'Draft salvo automaticamente' }}</span>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>

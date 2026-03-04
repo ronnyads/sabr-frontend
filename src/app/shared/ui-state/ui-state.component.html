@@ -1,0 +1,14 @@
+<section class="ui-state" *ngIf="loading">
+  <nb-spinner status="primary"></nb-spinner>
+  <p>Carregando dados...</p>
+</section>
+
+<section class="ui-state error" *ngIf="!loading && !!errorMessage">
+  <p>{{ errorMessage }}</p>
+  <button nbButton status="primary" size="small" (click)="onRetry()">{{ retryLabel }}</button>
+</section>
+
+<section class="ui-state empty" *ngIf="!loading && !errorMessage && empty">
+  <h4>{{ emptyTitle }}</h4>
+  <p>{{ emptyDescription }}</p>
+</section>

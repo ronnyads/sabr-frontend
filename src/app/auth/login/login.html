@@ -1,0 +1,110 @@
+<nb-layout class="login-shell">
+  <nb-layout-column class="login-column">
+    <div class="login-grid">
+      <section class="login-hero">
+        <div class="brand">
+          <div class="brand-mark">S3</div>
+          <div class="brand-text">
+            <span class="brand-title">SABR 3.0</span>
+            <span class="brand-subtitle">Enterprise Hub</span>
+          </div>
+        </div>
+
+        <h1>Sua operacao de dropshipping escala aqui.</h1>
+        <p>
+          Gestao logistica completa, processamento automatizado de pedidos e integracao direta com os
+          maiores fornecedores do mercado.
+        </p>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span class="feature-title">Logistica veloz</span>
+            <span class="feature-desc">Despacho em ate 24h</span>
+          </div>
+          <div class="feature-card">
+            <span class="feature-title">Estoque garantido</span>
+            <span class="feature-desc">Sincronizacao em tempo real</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="login-panel">
+        <nb-card class="login-card">
+          <nb-card-header class="login-header">
+            <div class="login-logo">
+              <img src="/assets/logo-seu-armazem-drop.svg" alt="Seu Armazem Drop" />
+            </div>
+            <span class="sr-only">SABR 3.0</span>
+            <h2>Acesse sua conta</h2>
+            <p>Insira seus dados para gerenciar seus pedidos e estoque.</p>
+          </nb-card-header>
+
+          <nb-card-body>
+            <form [formGroup]="form" (ngSubmit)="submit()">
+              <div class="input-group">
+                <label for="email">E-mail de acesso</label>
+                <input
+                  id="email"
+                  nbInput
+                  fullWidth
+                  type="email"
+                  formControlName="email"
+                  placeholder="seu@email.com"
+                />
+              </div>
+
+              <div class="input-group">
+                <div class="password-label">
+                  <label for="password">Senha</label>
+                  <a class="link" href="#">Esqueceu a senha?</a>
+                </div>
+                <div class="password-field">
+                  <input
+                    id="password"
+                    nbInput
+                    fullWidth
+                    [type]="showPassword ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="********"
+                  />
+                  <button
+                    nbButton
+                    size="tiny"
+                    status="basic"
+                    type="button"
+                    class="toggle-button"
+                    (click)="togglePassword()"
+                  >
+                    {{ showPassword ? 'Ocultar' : 'Mostrar' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="login-row">
+                <nb-checkbox formControlName="remember">Lembrar meu acesso</nb-checkbox>
+              </div>
+
+              <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+              <p class="hint" *ngIf="retryAfterSeconds > 0">
+                Novo login disponivel em {{ retryAfterSeconds }}s.
+              </p>
+
+              <button nbButton status="primary" class="submit-button" [disabled]="submitDisabled">
+                {{ loading ? 'Entrando...' : 'Acessar painel' }}
+              </button>
+            </form>
+          </nb-card-body>
+
+          <nb-card-footer class="login-footer">
+            <span>Dica: acesso multi-tenant. Use o dominio correto da sua empresa.</span>
+            <div class="footer-links">
+              <a href="#">Ajuda</a>
+              <a href="#">Privacidade</a>
+              <a href="#">Contato</a>
+            </div>
+          </nb-card-footer>
+        </nb-card>
+      </section>
+    </div>
+  </nb-layout-column>
+</nb-layout>

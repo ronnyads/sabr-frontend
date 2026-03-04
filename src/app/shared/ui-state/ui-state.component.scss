@@ -1,0 +1,23 @@
+.ui-state {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  color: #475569;
+}
+
+.ui-state h4 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.ui-state p {
+  margin: 0;
+}
+
+.ui-state.error {
+  color: #991b1b;
+}
