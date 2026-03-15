@@ -1,96 +1,46 @@
-﻿name: frontend-deploy
+name: frontend-deploy
 
 on:
   push:
     branches: [develop, main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package*.json'
+      - 'angular.json'
+      - '.github/workflows/frontend-deploy.yml'
   workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-env:
-  AWS_REGION: ${{ vars.AWS_REGION || 'sa-east-1' }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+    permissions:
+      contents: read
+      deployments: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-
-      - name: Resolve environment variables
-        id: deployvars
-        shell: bash
-        run: |
-          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            echo "env_name=prod" >> "$GITHUB_OUTPUT"
-            echo "role_arn=${{ secrets.AWS_ROLE_ARN_PROD }}" >> "$GITHUB_OUTPUT"
-            echo "client_bucket=${{ vars.S3_BUCKET_CLIENT_PROD }}" >> "$GITHUB_OUTPUT"
-            echo "admin_bucket=${{ vars.S3_BUCKET_ADMIN_PROD }}" >> "$GITHUB_OUTPUT"
-            echo "client_distribution=${{ vars.CF_DIST_CLIENT_PROD }}" >> "$GITHUB_OUTPUT"
-            echo "admin_distribution=${{ vars.CF_DIST_ADMIN_PROD }}" >> "$GITHUB_OUTPUT"
-            echo "api_base_url=${{ vars.API_BASE_URL_PROD }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "env_name=dev" >> "$GITHUB_OUTPUT"
-            echo "role_arn=${{ secrets.AWS_ROLE_ARN_DEV }}" >> "$GITHUB_OUTPUT"
-            echo "client_bucket=${{ vars.S3_BUCKET_CLIENT_DEV }}" >> "$GITHUB_OUTPUT"
-            echo "admin_bucket=${{ vars.S3_BUCKET_ADMIN_DEV }}" >> "$GITHUB_OUTPUT"
-            echo "client_distribution=${{ vars.CF_DIST_CLIENT_DEV }}" >> "$GITHUB_OUTPUT"
-            echo "admin_distribution=${{ vars.CF_DIST_ADMIN_DEV }}" >> "$GITHUB_OUTPUT"
-            echo "api_base_url=${{ vars.API_BASE_URL_DEV }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ steps.deployvars.outputs.role_arn }}
-          aws-region: ${{ env.AWS_REGION }}
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Inject API URL into deploy environments
-        shell: bash
-        run: |
-          ENV_NAME="${{ steps.deployvars.outputs.env_name }}"
-          API_BASE_URL="${{ steps.deployvars.outputs.api_base_url }}"
+      - name: Build Angular app
+        run: npm run build -- --configuration production
 
-          sed -i "s|__API_BASE_URL__|${API_BASE_URL}|g" "src/environments/environment.client.${ENV_NAME}.ts"
-          sed -i "s|__API_BASE_URL__|${API_BASE_URL}|g" "src/environments/environment.admin.${ENV_NAME}.ts"
-
-      - name: Build client and admin
-        shell: bash
-        run: |
-          if [[ "${{ steps.deployvars.outputs.env_name }}" == "prod" ]]; then
-            npm run build:client:prod:deploy
-            npm run build:admin:prod:deploy
-          else
-            npm run build:client:dev:deploy
-            npm run build:admin:dev:deploy
-          fi
-
-      - name: Deploy static assets to S3
-        shell: bash
-        run: |
-          aws s3 sync dist/sabr-client/ "s3://${{ steps.deployvars.outputs.client_bucket }}" --delete
-          aws s3 sync dist/sabr-admin/ "s3://${{ steps.deployvars.outputs.admin_bucket }}" --delete
-
-      - name: Invalidate CloudFront caches
-        shell: bash
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ steps.deployvars.outputs.client_distribution }}" \
-            --paths "/*"
-
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ steps.deployvars.outputs.admin_distribution }}" \
-            --paths "/*"
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'sabr-frontend'
+          directory: 'dist/sabr-frontend/browser'
+          # Determina a branch do cloudflare (prod pra main, preview pra resto)
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
