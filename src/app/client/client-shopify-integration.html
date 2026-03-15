@@ -1,0 +1,93 @@
+<section class="sabr-page shopify-integration-page">
+
+  <div class="page-header">
+    <div class="page-title">
+      <div class="provider-logo">
+        <img src="assets/logos/shopify.svg" alt="Shopify" class="provider-logo-img" />
+      </div>
+      <div>
+        <h1>Shopify</h1>
+        <p class="subtitle">Sincronize pedidos e inventário com a sua loja Shopify.</p>
+      </div>
+    </div>
+    <div class="header-actions" *ngIf="connected">
+      <button nbButton status="primary" size="small" [disabled]="syncing" (click)="syncNow()">
+        {{ syncing ? 'Sincronizando...' : 'Sincronizar pedidos' }}
+      </button>
+      <button nbButton status="danger" size="small" [disabled]="disconnecting" (click)="disconnect()">
+        {{ disconnecting ? 'Desconectando...' : 'Desconectar' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Carregando status...</span>
+  </div>
+
+  <!-- Error -->
+  <div class="state-error" *ngIf="!loading && error">
+    <nb-icon icon="alert-circle-outline"></nb-icon>
+    <p>{{ error }}</p>
+    <button nbButton size="small" (click)="loadStatus()">Tentar novamente</button>
+  </div>
+
+  <!-- Connected state -->
+  <div class="sabr-card panel" *ngIf="!loading && !error && connected">
+    <h3>Loja conectada</h3>
+    <div class="status-grid">
+      <div class="status-item">
+        <small>Loja</small>
+        <strong>{{ status?.shop }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Conectado em</small>
+        <strong>{{ status?.connectedAt ? (status?.connectedAt | date: 'dd/MM/yyyy') : '-' }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Último sync</small>
+        <strong>{{ status?.lastSyncAt ? (status?.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}</strong>
+      </div>
+    </div>
+
+    <div class="sync-result" *ngIf="lastSync">
+      <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+      <span>{{ lastSync.ordersFetched }} pedidos sincronizados em {{ lastSync.syncedAt | date: 'HH:mm' }}</span>
+    </div>
+  </div>
+
+  <!-- Not connected state -->
+  <div class="sabr-card panel connect-panel" *ngIf="!loading && !error && !connected">
+    <h3>Conectar loja Shopify</h3>
+    <p class="connect-desc">
+      Informe o domínio da sua loja Shopify para iniciar a autorização OAuth.
+    </p>
+
+    <div class="connect-form">
+      <div class="input-group">
+        <label for="shopInput">Domínio da loja</label>
+        <input
+          id="shopInput"
+          nbInput
+          fullWidth
+          [(ngModel)]="shopInput"
+          placeholder="minha-loja.myshopify.com"
+          (keydown.enter)="connect()"
+        />
+        <small class="input-hint">Exemplo: minha-loja.myshopify.com</small>
+      </div>
+
+      <button
+        nbButton
+        status="success"
+        [disabled]="connecting || !shopInput.trim()"
+        (click)="connect()"
+      >
+        <nb-icon icon="external-link-outline"></nb-icon>
+        {{ connecting ? 'Redirecionando...' : 'Autorizar no Shopify' }}
+      </button>
+    </div>
+  </div>
+
+</section>

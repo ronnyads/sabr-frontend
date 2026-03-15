@@ -1,0 +1,41 @@
+<div class="integrations-hub">
+  <div class="page-header">
+    <h1>Integrações</h1>
+    <p class="subtitle">Gerencie as integrações de marketplace dos seus clientes</p>
+  </div>
+
+  <!-- Loading -->
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Carregando integrações...</span>
+  </div>
+
+  <!-- Error -->
+  <div class="state-error" *ngIf="!loading && error">
+    <nb-icon icon="alert-circle-outline"></nb-icon>
+    <p>{{ error }}</p>
+    <button nbButton size="small" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="integrations-grid" *ngIf="!loading && !error">
+    <div class="integration-card" *ngFor="let card of cards" (click)="navigate(card)">
+      <div class="card-logo" [class.logo-ml]="card.provider === 1" [class.logo-tiny]="card.provider === 2">
+        <nb-icon [icon]="card.provider === 1 ? 'shopping-cart-outline' : 'grid-outline'"></nb-icon>
+      </div>
+      <div class="card-body">
+        <h3 class="card-name">{{ card.name }}</h3>
+        <p class="card-desc">{{ card.description }}</p>
+      </div>
+      <div class="card-footer">
+        <span class="connected-badge">
+          <nb-icon icon="people-outline"></nb-icon>
+          {{ card.connectedCount }} cliente{{ card.connectedCount !== 1 ? 's' : '' }} conectado{{ card.connectedCount !== 1 ? 's' : '' }}
+        </span>
+        <button nbButton status="primary" size="small" (click)="$event.stopPropagation(); navigate(card)">
+          Gerenciar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

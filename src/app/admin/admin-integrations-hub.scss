@@ -1,0 +1,156 @@
+.integrations-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.page-header {
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sabr-text);
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: var(--sabr-text-muted);
+    margin: 0;
+  }
+}
+
+// ── Loading state ──────────────────────────────────────────────────────────────
+
+.state-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  color: var(--sabr-text-muted);
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--sabr-border);
+    border-top-color: var(--sabr-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── Error state ────────────────────────────────────────────────────────────────
+
+.state-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 32px;
+  color: var(--sabr-text-muted);
+  text-align: center;
+
+  nb-icon {
+    font-size: 2rem;
+    color: var(--sabr-danger);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+// ── Cards grid ─────────────────────────────────────────────────────────────────
+
+.integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.integration-card {
+  background: var(--sabr-surface);
+  border: 1px solid var(--sabr-border);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: box-shadow var(--sabr-transition-base), transform var(--sabr-transition-base), border-color var(--sabr-transition-base);
+
+  &:hover {
+    box-shadow: var(--sabr-shadow-hover);
+    transform: translateY(-2px);
+    border-color: var(--sabr-primary);
+  }
+}
+
+// ── Card logo ──────────────────────────────────────────────────────────────────
+
+.card-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+
+  &.logo-ml {
+    background: linear-gradient(135deg, #ffe600 0%, #f5a623 100%);
+    color: #7a4800;
+  }
+
+  &.logo-tiny {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0d9488 100%);
+    color: #ffffff;
+  }
+}
+
+// ── Card body ──────────────────────────────────────────────────────────────────
+
+.card-body {
+  flex: 1;
+
+  .card-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--sabr-text);
+    margin: 0 0 6px;
+  }
+
+  .card-desc {
+    font-size: 0.85rem;
+    color: var(--sabr-text-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ── Card footer ────────────────────────────────────────────────────────────────
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--sabr-border);
+}
+
+.connected-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--sabr-text-muted);
+
+  nb-icon {
+    font-size: 0.9rem;
+  }
+}

@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: '',
+  apiBaseUrl: 'https://sabr-api-dev.fly.dev/api/v1',
   devTenant: 'sabr',
   authDebugConsole: true,
   dataCache: {
@@ -16,6 +16,12 @@ export const environment = {
   },
   ui: {
     publicationsEnabled: true,
-    mlLegacyPublishBlock: false
+    mlLegacyPublishBlock: false,
+    redesignShellV1: true,
+    redesignClientDashboardV1: true,
+    redesignAdminDashboardV1: true,
+    redesignLoginV1: true,
+    redesignOnboardingV1: true,
+    darkModeV1: true
   }
 };

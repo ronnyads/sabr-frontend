@@ -40,21 +40,31 @@ export class CsrfService {
   private handleCsrfFailure(url: string, error: HttpErrorResponse): void {
     const status = typeof error?.status === 'number' ? error.status : 0;
     const isBackendUnavailable = status === 0 || status === 502 || status === 503 || status === 504;
-    if (!isBackendUnavailable) {
+
+    if (isBackendUnavailable) {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem(BACKEND_OFFLINE_HINT_KEY, BACKEND_OFFLINE_MESSAGE);
+      }
+
+      this.authDebugLog.logLoginError({
+        realm: this.realm === 'admin' ? 'admin' : 'client',
+        route: 'csrf_init',
+        status,
+        url,
+        reason: 'backend_offline',
+        message: BACKEND_OFFLINE_MESSAGE
+      });
       return;
     }
 
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem(BACKEND_OFFLINE_HINT_KEY, BACKEND_OFFLINE_MESSAGE);
-    }
-
+    // Log other CSRF errors (e.g. 400) for debugging — still allow login to proceed.
     this.authDebugLog.logLoginError({
       realm: this.realm === 'admin' ? 'admin' : 'client',
       route: 'csrf_init',
       status,
       url,
-      reason: 'backend_offline',
-      message: BACKEND_OFFLINE_MESSAGE
+      reason: 'csrf_setup_non_fatal',
+      message: `CSRF endpoint returned ${status}. Login may still work if server does not strictly require CSRF token.`
     });
   }
 }

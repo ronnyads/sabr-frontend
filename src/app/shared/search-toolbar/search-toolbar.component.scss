@@ -41,7 +41,7 @@
   height: 40px;
   border-radius: var(--sabr-radius-control);
   border: 1px solid var(--sabr-border);
-  background: #fff;
+  background: var(--sabr-surface);
   color: var(--sabr-text-muted);
   font-weight: 700;
   padding: 0 14px;
@@ -62,7 +62,7 @@
   min-height: 36px;
   border-radius: var(--sabr-radius-control);
   border: 1px solid var(--sabr-border);
-  background: #fff;
+  background: var(--sabr-surface);
   display: inline-flex;
   align-items: center;
   gap: 8px;

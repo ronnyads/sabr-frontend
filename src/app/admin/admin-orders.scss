@@ -1,0 +1,287 @@
+:host { display: block; }
+
+.orders-page {
+  padding: 24px;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sabr-text);
+  }
+}
+
+.total-badge {
+  background: var(--sabr-primary, #6366f1);
+  color: #fff;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-select,
+.filter-input {
+  background: var(--sabr-surface, rgba(30, 41, 59, 0.8));
+  color: var(--sabr-text);
+  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.15));
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+
+  &:focus {
+    border-color: var(--sabr-primary, #6366f1);
+  }
+
+  &::placeholder {
+    color: var(--sabr-text-muted, #94a3b8);
+  }
+}
+
+// ── States ────────────────────────────────────────────────────────────────────
+
+.state-loading,
+.state-error,
+.state-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 24px;
+  color: var(--sabr-text-muted, #94a3b8);
+  text-align: center;
+
+  nb-icon { font-size: 48px; }
+  h3 { margin: 0; font-size: 18px; color: var(--sabr-text); }
+  p  { margin: 0; font-size: 14px; }
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--sabr-border, rgba(148, 163, 184, 0.2));
+  border-top-color: var(--sabr-primary, #6366f1);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.12));
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  thead tr {
+    background: var(--sabr-surface, rgba(30, 41, 59, 0.9));
+    border-bottom: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.15));
+  }
+
+  th {
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--sabr-text-muted, #94a3b8);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.08));
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+      background: var(--sabr-primary-weak);
+    }
+
+    &.row-expanded {
+      background: var(--sabr-primary-weak);
+    }
+
+    &.cancel-row {
+      cursor: default;
+      &:hover { background: none; }
+    }
+  }
+
+  td {
+    padding: 12px 14px;
+    color: var(--sabr-text);
+    vertical-align: middle;
+  }
+}
+
+.mono {
+  font-family: monospace;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.tenant-tag {
+  display: block;
+  font-size: 11px;
+  color: var(--sabr-text-muted, #94a3b8);
+  margin-top: 2px;
+}
+
+.date-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--sabr-text-muted, #94a3b8);
+  white-space: nowrap;
+
+  nb-icon { font-size: 12px; }
+
+  &.deadline {
+    color: var(--sabr-warning);
+  }
+}
+
+.items-count {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.unmapped-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--sabr-warning);
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: help;
+}
+
+.risk-flag, .label-flag {
+  display: inline-flex;
+  margin-right: 4px;
+  nb-icon { font-size: 15px; }
+}
+
+.risk-flag { color: var(--sabr-danger); }
+.label-flag { color: var(--sabr-success); }
+
+.actions-cell {
+  white-space: nowrap;
+
+  button {
+    margin-right: 4px;
+  }
+}
+
+// ── Status badges ─────────────────────────────────────────────────────────────
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.badge-success   { background: rgba(16, 185, 129, 0.15); color: var(--sabr-success); }
+.badge-info      { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.badge-warning   { background: rgba(245, 158, 11, 0.15); color: var(--sabr-warning); }
+.badge-danger    { background: rgba(239, 68, 68, 0.15);  color: var(--sabr-danger); }
+.badge-purple    { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+.badge-delivered { background: rgba(20, 184, 166, 0.15); color: #14b8a6; }
+.badge-neutral   { background: rgba(148, 163, 184, 0.12); color: #94a3b8; }
+
+// ── Cancel form ───────────────────────────────────────────────────────────────
+
+.cancel-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(239, 68, 68, 0.05);
+  flex-wrap: wrap;
+}
+
+.cancel-label {
+  font-size: 13px;
+  color: var(--sabr-text-muted, #94a3b8);
+  white-space: nowrap;
+}
+
+.cancel-input {
+  flex: 1;
+  min-width: 200px;
+  background: var(--sabr-surface, rgba(30, 41, 59, 0.8));
+  color: var(--sabr-text);
+  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.2));
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 13px;
+  outline: none;
+
+  &:focus { border-color: var(--sabr-primary, #6366f1); }
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.page-info {
+  font-size: 13px;
+  color: var(--sabr-text-muted, #94a3b8);
+}

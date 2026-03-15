@@ -1,0 +1,48 @@
+<div class="integrations-hub">
+  <div class="page-header">
+    <h1>Integrações</h1>
+    <p class="subtitle">Conecte e gerencie suas integrações de marketplace</p>
+  </div>
+
+  <!-- Loading state -->
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Carregando integrações...</span>
+  </div>
+
+  <!-- Error state -->
+  <div class="state-error" *ngIf="!loading && error">
+    <nb-icon icon="alert-circle-outline"></nb-icon>
+    <p>{{ error }}</p>
+    <button nbButton size="small" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="integrations-grid" *ngIf="!loading && !error">
+    <div class="integration-card" *ngFor="let card of cards">
+      <div class="card-logo">
+        <img [src]="getLogoSrc(card.provider)" [alt]="card.name" class="provider-logo-img" />
+      </div>
+      <div class="card-body">
+        <h3 class="card-name">{{ card.name }}</h3>
+        <p class="card-desc">{{ card.description }}</p>
+        <p class="card-details" *ngIf="card.isConnected && card.details">{{ card.details }}</p>
+      </div>
+      <div class="card-footer">
+        <span class="installed-badge" *ngIf="card.isConnected">
+          <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+          Instalado
+        </span>
+        <button
+          nbButton
+          [status]="card.isConnected ? 'basic' : 'primary'"
+          [outline]="card.isConnected"
+          size="small"
+          (click)="navigate(card)"
+        >
+          {{ card.isConnected ? 'Gerenciar' : '+ Conectar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

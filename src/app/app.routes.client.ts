@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { clientGuard } from './core/guards/client.guard';
 import { clientOnboardingGuard } from './core/guards/client-onboarding.guard';
+import { clientFullAccessGuard } from './core/guards/client-full-access.guard';
 
 export const clientRoutes: Routes = [
   { path: 'login', loadComponent: () => import('./auth/login/login').then((m) => m.Login) },
@@ -49,8 +50,28 @@ export const clientRoutes: Routes = [
         canActivate: [clientOnboardingGuard]
       },
       {
+        path: 'integrations',
+        loadComponent: () => import('./client/client-integrations-hub').then((m) => m.ClientIntegrationsHub),
+        canActivate: [clientOnboardingGuard]
+      },
+      {
         path: 'integrations/mercadolivre',
         loadComponent: () => import('./client/client-ml-integration').then((m) => m.ClientMlIntegration),
+        canActivate: [clientOnboardingGuard]
+      },
+      {
+        path: 'integrations/tinyerp',
+        loadComponent: () => import('./client/client-tiny-integration').then((m) => m.ClientTinyIntegration),
+        canActivate: [clientOnboardingGuard]
+      },
+      {
+        path: 'integrations/shopify',
+        loadComponent: () => import('./client/client-shopify-integration').then((m) => m.ClientShopifyIntegration),
+        canActivate: [clientOnboardingGuard]
+      },
+      {
+        path: 'orders',
+        loadComponent: () => import('./client/client-orders').then((m) => m.ClientOrders),
         canActivate: [clientOnboardingGuard]
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' }

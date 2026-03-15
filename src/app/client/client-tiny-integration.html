@@ -1,0 +1,97 @@
+<section class="sabr-page tiny-integration-page">
+  <div class="page-header">
+    <h1>Tiny ERP</h1>
+    <p class="page-description">Gerencie sua integracao com o Tiny ERP</p>
+  </div>
+
+  <!-- Loading state -->
+  <div class="sabr-card panel loading-panel" *ngIf="loading">
+    <div class="loading-content">
+      <nb-icon icon="loader-outline" class="loading-icon"></nb-icon>
+      <span>Verificando integracao...</span>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div class="sabr-card panel error-panel" *ngIf="!loading && error">
+    <p class="error-message">{{ error }}</p>
+    <button nbButton status="basic" size="small" (click)="loadStatus()">Tentar novamente</button>
+  </div>
+
+  <!-- Connection card -->
+  <div class="sabr-card panel" *ngIf="!loading">
+    <h3>Conexao</h3>
+
+    <div class="connection-status" *ngIf="connected">
+      <span class="badge badge-connected">Conectado</span>
+      <div class="connection-details" *ngIf="status">
+        <div class="detail-item" *ngIf="status.companyName">
+          <small>Empresa</small>
+          <strong>{{ status.companyName }}</strong>
+        </div>
+        <div class="detail-item" *ngIf="status.companyEmail">
+          <small>E-mail</small>
+          <strong>{{ status.companyEmail }}</strong>
+        </div>
+        <div class="detail-item" *ngIf="status.connectedAt">
+          <small>Conectado em</small>
+          <strong>{{ status.connectedAt | date: 'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+      </div>
+      <div class="connection-actions">
+        <button
+          nbButton
+          status="danger"
+          appearance="outline"
+          size="small"
+          [disabled]="disconnecting"
+          (click)="disconnect()"
+        >
+          {{ disconnecting ? 'Desconectando...' : 'Desconectar' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="connection-status" *ngIf="!connected">
+      <span class="badge badge-disconnected">Desconectado</span>
+      <p class="disconnected-message">
+        Conecte sua conta Tiny ERP para sincronizar pedidos automaticamente.
+      </p>
+      <div class="connection-actions">
+        <button nbButton status="primary" size="small" [disabled]="connecting" (click)="connect()">
+          {{ connecting ? 'Redirecionando...' : 'Conectar com Tiny ERP' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync card (only if connected) -->
+  <div class="sabr-card panel" *ngIf="!loading && connected">
+    <h3>Sincronizacao</h3>
+
+    <div class="sync-info">
+      <div class="detail-item">
+        <small>Ultimo sync</small>
+        <strong>{{ status?.lastSyncAt ? (status!.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : 'Nunca sincronizado' }}</strong>
+      </div>
+    </div>
+
+    <div class="sync-actions">
+      <button nbButton status="primary" size="small" [disabled]="syncing" (click)="syncNow()">
+        <nb-icon icon="sync-outline"></nb-icon>
+        {{ syncing ? 'Sincronizando...' : 'Sincronizar Agora' }}
+      </button>
+    </div>
+
+    <p class="sync-hint">Seus pedidos do Tiny aparecem em Meus Pedidos apos a sincronizacao.</p>
+  </div>
+
+  <!-- Note card -->
+  <div class="sabr-card panel info-card">
+    <nb-icon icon="info-outline" class="info-icon"></nb-icon>
+    <p>
+      A integracao Tiny ERP sincroniza pedidos e estoque automaticamente.
+      O SABR e sempre a fonte de verdade para o estoque.
+    </p>
+  </div>
+</section>

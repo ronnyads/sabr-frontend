@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ThemeService } from '../../core/services/theme.service';
 import { SabrMenuItem, SabrSidebarComponent } from '../sabr-sidebar/sabr-sidebar.component';
 import { SabrTopbarComponent } from '../sabr-topbar/sabr-topbar.component';
 
@@ -10,9 +11,11 @@ import { SabrTopbarComponent } from '../sabr-topbar/sabr-topbar.component';
   templateUrl: './sabr-shell-layout.component.html',
   styleUrls: ['./sabr-shell-layout.component.scss']
 })
-export class SabrShellLayoutComponent implements OnInit {
+export class SabrShellLayoutComponent implements OnInit, OnChanges {
   @Input() appTitle = 'SABR';
   @Input() appSubtitle = '';
+  @Input() redesignV1 = false;
+  @Input() darkModeEnabled = false;
   @Input() menuItems: SabrMenuItem[] = [];
   @Input() topbarTitle = '';
   @Input() tenantBadgeText: string | null = null;
@@ -25,8 +28,18 @@ export class SabrShellLayoutComponent implements OnInit {
   mobile = false;
   drawerOpen = false;
 
+  constructor(private readonly themeService: ThemeService) {}
+
   ngOnInit(): void {
     this.syncViewport();
+    this.themeService.initialize(this.darkModeEnabled);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const darkModeChange = changes['darkModeEnabled'];
+    if (darkModeChange && !darkModeChange.firstChange) {
+      this.themeService.initialize(this.darkModeEnabled);
+    }
   }
 
   @HostListener('window:resize')

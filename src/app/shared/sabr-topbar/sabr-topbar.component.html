@@ -1,4 +1,4 @@
-<header class="sabr-topbar">
+<header class="sabr-topbar" [class.sabr-topbar-v1]="redesignV1" [class.sabr-topbar-light]="!themeService.isDark">
   <div class="left">
     <button
       *ngIf="mobile"
@@ -23,14 +23,5 @@
     </div>
   </div>
 
-  <div class="right">
-    <div class="user-meta">
-      <strong>{{ userName }}</strong>
-      <span>{{ userSubtitle }}</span>
-    </div>
-
-    <button nbButton size="small" status="basic" type="button" aria-label="Sair" (click)="logout.emit()">
-      Sair
-    </button>
-  </div>
+  <div class="right"></div>
 </header>

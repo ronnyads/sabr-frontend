@@ -23,7 +23,7 @@
 .field label {
   font-size: 12px;
   font-weight: 700;
-  color: #4d5770;
+  color: var(--sabr-text-muted);
 }
 
 .checkbox-field {
@@ -73,7 +73,7 @@
 }
 
 .picker-list label:hover {
-  background: #f4f7ff;
+  background: var(--sabr-primary-weak);
 }
 
 .editor-actions {

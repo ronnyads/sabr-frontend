@@ -10,14 +10,15 @@
 
 .conflict-card {
   margin-bottom: 14px;
-  border: 1px solid #fdba74;
-  background: #fff7ed;
+  border: 1px solid var(--sabr-warning);
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: var(--sabr-radius-card);
   padding: 14px;
 }
 
 .conflict-card p {
   margin: 0 0 10px;
-  color: #9a3412;
+  color: var(--sabr-warning);
 }
 
 .rows {
@@ -30,10 +31,13 @@
   border: 1px solid var(--sabr-border);
   border-radius: 14px;
   padding: 14px;
-  background: #fff;
+  background: var(--sabr-surface);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: border-color var(--sabr-transition-fast);
+
+  &:hover { border-color: var(--sabr-border-strong); }
 }
 
 .row-main {
@@ -47,7 +51,7 @@
   width: 96px;
   height: 96px;
   border-radius: 12px;
-  background: #f0f4fb;
+  background: var(--sabr-surface-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,11 +82,11 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  color: #334155;
+  color: var(--sabr-text-muted);
 }
 
 .prices strong {
-  color: #115fca;
+  color: var(--sabr-primary);
 }
 
 .marketplace-badges {
@@ -96,21 +100,21 @@
 .variant-readiness {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #166534;
-  background: #dcfce7;
+  color: var(--sabr-success);
+  background: rgba(34, 197, 94, 0.12);
   border-radius: 999px;
   padding: 2px 8px;
 }
 
 .variant-readiness.missing {
-  color: #92400e;
-  background: #fef3c7;
+  color: var(--sabr-warning);
+  background: rgba(245, 158, 11, 0.12);
 }
 
 .channel-label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--sabr-text);
 }
 
 .status-badge {
@@ -121,23 +125,23 @@
 }
 
 .badge-none {
-  background: #e2e8f0;
-  color: #334155;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--sabr-text-muted);
 }
 
 .badge-draft {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--sabr-warning);
 }
 
 .badge-published {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--sabr-success);
 }
 
 .badge-error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--sabr-danger);
 }
 
 .controls {
@@ -155,7 +159,7 @@
 .field label {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #4d5770;
+  color: var(--sabr-text-muted);
 }
 
 .actions {

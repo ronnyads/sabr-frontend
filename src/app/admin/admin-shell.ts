@@ -7,6 +7,7 @@ import { AdminTenantContextService } from '../core/services/admin-tenant-context
 import { roleLabelSystem } from '../core/utils/role-labels';
 import { SabrMenuItem } from '../shared/sabr-sidebar/sabr-sidebar.component';
 import { SabrShellLayoutComponent } from '../shared/sabr-shell-layout/sabr-shell-layout.component';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-admin-shell',
@@ -16,6 +17,8 @@ import { SabrShellLayoutComponent } from '../shared/sabr-shell-layout/sabr-shell
   styleUrls: ['./admin-shell.scss']
 })
 export class AdminShell implements AfterViewInit {
+  readonly shellRedesignV1 = !!environment.ui?.redesignShellV1;
+  readonly darkModeEnabled = !!environment.ui?.darkModeV1;
   readonly menuItems: SabrMenuItem[] = [
     { label: 'Dashboard', icon: 'home-outline', link: '/dashboard', exact: true },
     { label: 'Clientes', icon: 'people-outline', link: '/clients' },
@@ -25,14 +28,16 @@ export class AdminShell implements AfterViewInit {
     { label: 'Categorias', icon: 'pricetags-outline', link: '/categories' },
     { label: 'Catalogos', icon: 'grid-outline', link: '/catalogs' },
     { label: 'Planos', icon: 'layers-outline', link: '/plans' },
-    { label: 'Integracoes', icon: 'link-2-outline', link: '/integrations' }
+    { label: 'Integrações', icon: 'link-2-outline', link: '/integrations' },
+    { label: 'Pedidos', icon: 'shopping-bag-outline', link: '/orders' },
+    { label: 'Expedicao', icon: 'car-outline', link: '/fulfillment' }
   ];
 
   constructor(
     private auth: AuthService,
     private readonly tenantContext: AdminTenantContextService,
     private readonly host: ElementRef<HTMLElement>,
-    private readonly overlayContainer: NbOverlayContainerAdapter
+    private readonly overlayContainer: NbOverlayContainerAdapter,
   ) {}
 
   ngAfterViewInit(): void {

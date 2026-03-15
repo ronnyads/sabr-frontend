@@ -1,22 +1,129 @@
-<nb-card class="dashboard-card">
-  <nb-card-header>
-    <h3>Dashboard Admin</h3>
-    <p>Visão geral da operação (em construção).</p>
-  </nb-card-header>
-  <nb-card-body>
-    <div class="placeholder">
-      <div class="tile">
-        <span class="label">Clientes pendentes</span>
-        <span class="value">--</span>
-      </div>
-      <div class="tile">
-        <span class="label">Clientes ativos</span>
-        <span class="value">--</span>
-      </div>
-      <div class="tile">
-        <span class="label">Docs em análise</span>
-        <span class="value">--</span>
-      </div>
+<section class="dash" *ngIf="redesignV1; else legacyAdminDashboard">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
+  <article class="hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-body">
+      <span class="eyebrow">
+        <nb-icon icon="flash-outline"></nb-icon>
+        Operacao SABR
+      </span>
+      <h2>Dashboard <span class="grad">Admin</span></h2>
+      <p>Painel principal para monitorar clientes, documentos e produtividade operacional.</p>
     </div>
-  </nb-card-body>
-</nb-card>
+    <div class="hero-actions">
+      <a nbButton status="primary" size="small" routerLink="/clients" class="btn-glow">
+        <nb-icon icon="people-outline"></nb-icon>
+        Gerenciar clientes
+      </a>
+      <a nbButton status="basic" size="small" routerLink="/integrations">
+        <nb-icon icon="wifi-outline"></nb-icon>
+        Ver integracoes
+      </a>
+    </div>
+  </article>
+
+  <!-- ── KPI grid ──────────────────────────────────────────────────────────── -->
+  <div class="kpi-grid">
+
+    <article class="kpi kpi-warning" style="--i:0">
+      <div class="kpi-glow kpi-glow-warning"></div>
+      <div class="kpi-header">
+        <span class="kpi-label">Clientes pendentes</span>
+        <div class="kpi-badge kpi-badge-warning">
+          <nb-icon icon="clock-outline"></nb-icon>
+        </div>
+      </div>
+      <div class="kpi-value">--</div>
+      <p class="kpi-desc">Backlog de onboarding e aprovacao.</p>
+      <div class="kpi-footer">
+        <span class="kpi-chip kpi-chip-neutral">
+          <nb-icon icon="minus-outline"></nb-icon> Em analise
+        </span>
+        <div class="kpi-bar"><div class="kpi-bar-fill kpi-bar-warning" style="width:40%"></div></div>
+      </div>
+    </article>
+
+    <article class="kpi kpi-success" style="--i:1">
+      <div class="kpi-glow kpi-glow-success"></div>
+      <div class="kpi-header">
+        <span class="kpi-label">Clientes ativos</span>
+        <div class="kpi-badge kpi-badge-success">
+          <nb-icon icon="people-outline"></nb-icon>
+        </div>
+      </div>
+      <div class="kpi-value">--</div>
+      <p class="kpi-desc">Contas com operacao habilitada.</p>
+      <div class="kpi-footer">
+        <span class="kpi-chip kpi-chip-up">
+          <nb-icon icon="trending-up-outline"></nb-icon> Crescendo
+        </span>
+        <div class="kpi-bar"><div class="kpi-bar-fill kpi-bar-success" style="width:70%"></div></div>
+      </div>
+    </article>
+
+    <article class="kpi kpi-primary" style="--i:2">
+      <div class="kpi-glow kpi-glow-primary"></div>
+      <div class="kpi-header">
+        <span class="kpi-label">Docs em analise</span>
+        <div class="kpi-badge kpi-badge-primary">
+          <nb-icon icon="file-text-outline"></nb-icon>
+        </div>
+      </div>
+      <div class="kpi-value">--</div>
+      <p class="kpi-desc">Fila de revisao documental em andamento.</p>
+      <div class="kpi-footer">
+        <span class="kpi-chip kpi-chip-neutral">
+          <nb-icon icon="loader-outline"></nb-icon> Em progresso
+        </span>
+        <div class="kpi-bar"><div class="kpi-bar-fill kpi-bar-primary" style="width:55%"></div></div>
+      </div>
+    </article>
+
+    <article class="kpi kpi-accent" style="--i:3">
+      <div class="kpi-glow kpi-glow-accent"></div>
+      <div class="kpi-header">
+        <span class="kpi-label">Saude da plataforma</span>
+        <div class="kpi-badge kpi-badge-accent">
+          <nb-icon icon="activity-outline"></nb-icon>
+        </div>
+      </div>
+      <div class="kpi-value kpi-value-text">Estavel</div>
+      <p class="kpi-desc">Monitoramento geral sem incidentes ativos.</p>
+      <div class="kpi-footer">
+        <span class="kpi-chip kpi-chip-up">
+          <nb-icon icon="checkmark-circle-outline"></nb-icon> Operacional
+        </span>
+        <div class="kpi-bar"><div class="kpi-bar-fill kpi-bar-accent" style="width:100%"></div></div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<ng-template #legacyAdminDashboard>
+  <nb-card class="dashboard-card">
+    <nb-card-header>
+      <h3>Dashboard Admin</h3>
+      <p>Visao geral da operacao (em construcao).</p>
+    </nb-card-header>
+    <nb-card-body>
+      <div class="placeholder">
+        <div class="tile">
+          <span class="label">Clientes pendentes</span>
+          <span class="value">--</span>
+        </div>
+        <div class="tile">
+          <span class="label">Clientes ativos</span>
+          <span class="value">--</span>
+        </div>
+        <div class="tile">
+          <span class="label">Docs em analise</span>
+          <span class="value">--</span>
+        </div>
+      </div>
+    </nb-card-body>
+  </nb-card>
+</ng-template>

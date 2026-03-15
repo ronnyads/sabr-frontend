@@ -16,7 +16,7 @@
 }
 
 .status-item {
-  background: #f8fafc;
+  background: var(--sabr-surface-soft);
   border: 1px solid var(--sabr-border);
   border-radius: 10px;
   padding: 10px;
@@ -30,7 +30,7 @@
 }
 
 .status-item strong {
-  color: #1e293b;
+  color: var(--sabr-text);
 }
 
 .table-wrapper {
@@ -53,5 +53,11 @@
 .sabr-table th {
   font-size: 0.8rem;
   text-transform: uppercase;
-  color: #475569;
+  letter-spacing: 0.05em;
+  color: var(--sabr-text-muted);
+  font-weight: 600;
+}
+
+.sabr-table td {
+  color: var(--sabr-text);
 }

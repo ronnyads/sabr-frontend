@@ -1,16 +1,19 @@
-<div class="sabr-shell">
+<div class="sabr-shell" [class.sabr-shell-redesign]="redesignV1">
   <div class="sabr-overlay" *ngIf="mobile && drawerOpen" (click)="closeDrawer()"></div>
 
   <app-sabr-sidebar
     [title]="appTitle"
     [subtitle]="appSubtitle"
     [menuItems]="menuItems"
+    [redesignV1]="redesignV1"
     [open]="sidebarOpen"
     [mobile]="mobile"
     [profileName]="profileName"
     [profileSubtitle]="profileSubtitle"
+    [themeToggleEnabled]="darkModeEnabled"
     (closeDrawer)="closeDrawer()"
     (navigate)="closeDrawer()"
+    (logout)="logout.emit()"
   ></app-sabr-sidebar>
 
   <div class="sabr-main">
@@ -19,9 +22,9 @@
       [tenantBadgeText]="tenantBadgeText"
       [userName]="userName"
       [userSubtitle]="userSubtitle"
+      [redesignV1]="redesignV1"
       [mobile]="mobile"
       (menuToggle)="toggleDrawer()"
-      (logout)="logout.emit()"
     ></app-sabr-topbar>
 
     <div class="sabr-content">

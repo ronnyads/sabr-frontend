@@ -1,9 +1,11 @@
-<nb-layout windowMode class="sabr-layout-host">
+<nb-layout class="sabr-layout-host">
   <nb-layout-column>
     <app-sabr-shell-layout
       [appTitle]="'SABR'"
       [appSubtitle]="'Admin Console'"
       [topbarTitle]="'Admin'"
+      [redesignV1]="shellRedesignV1"
+      [darkModeEnabled]="darkModeEnabled"
       [tenantBadgeText]="tenantBadgeText"
       [menuItems]="menuItems"
       [userName]="currentUserName"

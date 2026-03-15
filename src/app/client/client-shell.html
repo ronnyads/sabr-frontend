@@ -1,9 +1,42 @@
 <nb-layout windowMode class="sabr-layout-host">
   <nb-layout-column>
+
+    <!-- ── Banner: Em Análise ─────────────────────────────────────────────── -->
+    <div *ngIf="isUnderReview" class="shell-notice shell-notice--info">
+      <span class="shell-notice__icon">🔍</span>
+      <div class="shell-notice__body">
+        <strong>Perfil em análise</strong>
+        <p>Seus documentos estão sendo analisados. Dashboard e Integrações disponíveis agora. Catálogo e demais funções serão liberados após a aprovação.</p>
+      </div>
+    </div>
+
+    <!-- ── Banner: Reprovado ──────────────────────────────────────────────── -->
+    <div *ngIf="isRejected" class="shell-notice shell-notice--danger">
+      <span class="shell-notice__icon">❌</span>
+      <div class="shell-notice__body">
+        <strong>Cadastro não aprovado</strong>
+        <ng-container *ngIf="rejectedDocumentLabels.length > 0; else noRejectedDocs">
+          <p>Os documentos a seguir foram reprovados e precisam ser reenviados:</p>
+          <ul class="shell-notice__list">
+            <li *ngFor="let label of rejectedDocumentLabels">{{ label }}</li>
+          </ul>
+        </ng-container>
+        <ng-template #noRejectedDocs>
+          <p>Acesse o onboarding para revisar e reenviar seus documentos.</p>
+        </ng-template>
+        <a class="shell-notice__link" [routerLink]="['/client/onboarding']" [queryParams]="{step: 3}">
+          Ir para documentos →
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Shell principal ───────────────────────────────────────────────── -->
     <app-sabr-shell-layout
       [appTitle]="'SABR'"
       [appSubtitle]="'Portal'"
       [topbarTitle]="'Portal do Cliente'"
+      [redesignV1]="shellRedesignV1"
+      [darkModeEnabled]="darkModeEnabled"
       [menuItems]="menuItems"
       [userName]="currentUserName"
       [userSubtitle]="profileSubtitle"
@@ -13,5 +46,6 @@
     >
       <router-outlet></router-outlet>
     </app-sabr-shell-layout>
+
   </nb-layout-column>
 </nb-layout>

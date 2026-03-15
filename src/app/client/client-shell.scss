@@ -9,3 +9,92 @@
 :host ::ng-deep nb-layout.sabr-layout-host nb-layout-column {
   padding: 0 !important;
 }
+
+// ── Shell notice banners ────────────────────────────────────────────────────
+
+.shell-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 24px 0;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid transparent;
+  animation: noticeSlideIn 0.3s ease;
+
+  &__icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__body {
+    flex: 1;
+
+    strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    p {
+      margin: 0 0 6px;
+      opacity: 0.9;
+    }
+  }
+
+  &__list {
+    margin: 4px 0 8px 18px;
+    padding: 0;
+
+    li {
+      list-style: disc;
+      margin-bottom: 2px;
+    }
+  }
+
+  &__link {
+    display: inline-block;
+    margin-top: 4px;
+    font-weight: 600;
+    text-decoration: underline;
+    opacity: 0.95;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  // Variants
+  &--info {
+    background: rgba(0, 122, 255, 0.08);
+    border-color: rgba(0, 122, 255, 0.25);
+    color: #0055cc;
+
+    .shell-notice__link { color: #0055cc; }
+  }
+
+  &--danger {
+    background: rgba(220, 53, 69, 0.08);
+    border-color: rgba(220, 53, 69, 0.25);
+    color: #a71d2a;
+
+    .shell-notice__link { color: #a71d2a; }
+  }
+
+  &--warning {
+    background: rgba(255, 149, 0, 0.08);
+    border-color: rgba(255, 149, 0, 0.3);
+    color: #7a4f00;
+
+    .shell-notice__link { color: #7a4f00; }
+  }
+}
+
+@keyframes noticeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+

@@ -1,21 +1,27 @@
-<nb-layout windowMode class="sabr-layout-host onboarding-layout-host">
-  <nb-layout-column>
-<div class="onboarding-shell">
-  <!-- Sidebar (desktop only) -->
+<div class="onboarding-shell" [class.onboarding-shell-v1]="redesignV1">
+
+  <!-- ══ SIDEBAR (desktop only) ════════════════════════════════════════════ -->
   <aside class="sidebar desktop-only">
+
+    <!-- Brand -->
     <div class="brand">
-      <img src="/assets/logo-seu-armazem-drop.svg" alt="Seu Armazém Drop" class="brand-logo" />
+      <img src="/assets/logo-seu-armazem-drop.svg" alt="Seu Arm&eacute;m Drop" class="brand-logo" />
     </div>
+
+    <!-- User meta -->
     <div class="sidebar-meta">
-      <span class="status-pill">{{ statusLabel }}</span>
-      <div class="user-row">
-        <span class="user-name">{{ currentUser?.name || 'Cliente' }}</span>
-        <button nbButton status="basic" size="tiny" (click)="logout()">Sair</button>
-      </div>
+      <span class="status-pill" [ngClass]="'status-' + statusTone">{{ statusLabel }}</span>
     </div>
+
+    <!-- Profile card -->
     <div class="profile-snippet">
+      <div class="profile-avatar">
+        {{ (currentUser?.name || 'C')[0].toUpperCase() }}
+      </div>
       <div class="profile-name">{{ currentUser?.name || 'Cliente' }}</div>
     </div>
+
+    <!-- Stepper nav -->
     <nav class="stepper">
       <div
         class="step"
@@ -24,86 +30,127 @@
         [class.done]="i < currentStep"
         (click)="goToStep(i)"
       >
-        <div class="circle">{{ i + 1 }}</div>
+        <div class="circle">
+          <span class="circle-num" *ngIf="i >= currentStep">{{ i + 1 }}</span>
+        </div>
         <div class="label">
           {{
-            i === 0
-              ? 'Segurança da Conta'
-              : i === 1
-              ? 'Perfil da Empresa'
-              : i === 2
-              ? 'Dados de Contato'
-              : 'Verificação'
+            i === 0 ? 'Seguran&ccedil;a da Conta'
+            : i === 1 ? 'Perfil da Empresa'
+            : i === 2 ? 'Dados de Contato'
+            : 'Verifica&ccedil;&atilde;o'
           }}
         </div>
       </div>
     </nav>
+
+    <!-- Progress bar -->
+    <div class="sidebar-progress">
+      <div class="sidebar-progress-label">Progresso geral</div>
+      <div class="sidebar-progress-bar">
+        <div class="sidebar-progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+    </div>
+
+    <!-- Rodap&eacute;: logout + theme toggle -->
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" type="button" (click)="logout()">
+        <svg class="sidebar-logout-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sair
+      </button>
+      <button
+        *ngIf="darkModeEnabled"
+        class="sidebar-theme-btn"
+        type="button"
+        [attr.aria-label]="themeLabel"
+        [attr.title]="themeLabel"
+        (click)="toggleTheme()"
+      >
+        <nb-icon [icon]="themeIcon"></nb-icon>
+      </button>
+    </div>
+
   </aside>
 
+  <!-- ══ MAIN CONTENT ════════════════════════════════════════════════════ -->
   <main class="content">
+
+    <!-- Header -->
     <header class="content-header">
       <div class="header-text">
-        <h1>Onboarding Corporativo</h1>
-        <p class="subhead">Complete o perfil da sua empresa para iniciar sua operação de dropshipping.</p>
-        <span class="status-pill">{{ statusLabel }}</span>
+        <span class="eyebrow">Onboarding Corporativo</span>
+        <h1>
+          {{
+            currentStep === 0 ? 'Seguran&ccedil;a da conta'
+            : currentStep === 1 ? 'Perfil da empresa'
+            : currentStep === 2 ? 'Contato &amp; Endere&ccedil;o'
+            : 'Verifica&ccedil;&atilde;o final'
+          }}
+        </h1>
+        <p class="subhead">Complete o perfil da sua empresa para iniciar sua opera&ccedil;&atilde;o de dropshipping.</p>
+        <span class="status-pill" [ngClass]="'status-' + statusTone">{{ statusLabel }}</span>
+      </div>
+      <!-- theme toggle only visible on mobile (sidebar handles desktop) -->
+      <div class="header-actions" *ngIf="darkModeEnabled" style="display:none">
       </div>
     </header>
 
-    <!-- Stepper / progress (mobile-first) -->
+    <!-- Mobile progress -->
     <div class="mobile-progress">
       <div class="progress-top">
         <span>Passo {{ currentStep + 1 }} de {{ steps.length }}</span>
         <span class="progress-label">
           {{
-            currentStep === 0
-              ? 'Segurança'
-              : currentStep === 1
-              ? 'Empresa'
-              : currentStep === 2
-              ? 'Contato & Endereço'
-              : 'Responsável'
+            currentStep === 0 ? 'Seguran&ccedil;a'
+            : currentStep === 1 ? 'Empresa'
+            : currentStep === 2 ? 'Contato &amp; Endere&ccedil;o'
+            : 'Respons&aacute;vel'
           }}
         </span>
       </div>
       <div class="progress-bar">
         <div class="progress-fill" [style.width.%]="progressPercent"></div>
       </div>
-      <div class="stepper-horizontal">
-        <button
-          *ngFor="let step of steps; let i = index"
-          type="button"
-          class="step-dot"
-          [class.active]="i === currentStep"
-          [class.done]="i < currentStep"
-          (click)="goToStep(i)"
-        >
-          {{ i + 1 }}
-        </button>
-      </div>
     </div>
 
-    <!-- Card da etapa -->
+    <!-- ── Step card ──────────────────────────────────────────────────── -->
     <section class="card">
       <p class="submit-summary" *ngIf="submitErrorSummary">{{ submitErrorSummary }}</p>
-      <p class="field-error" *ngIf="profileError">{{ profileError }}</p>
-      <p class="success" *ngIf="profileMessage">{{ profileMessage }}</p>
-      <!-- Passo 1: Segurança -->
+      <p class="field-error"   *ngIf="profileError">{{ profileError }}</p>
+      <p class="field-error"   *ngIf="passwordError">{{ passwordError }}</p>
+      <p class="success"       *ngIf="profileMessage">{{ profileMessage }}</p>
+      <p class="success"       *ngIf="passwordMessage && !passwordError">{{ passwordMessage }}</p>
+
+      <!-- PASSO 1: Seguran&ccedil;a -->
       <form [formGroup]="passwordForm" *ngIf="currentStep === 0 && mustChangePassword" class="section-block">
         <div class="section-title">
-          <h2>Configurações de Segurança</h2>
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h2>Configura&ccedil;&otilde;es de Seguran&ccedil;a</h2>
         </div>
+
         <div class="grid two">
-          <div>
+          <div class="field-group">
             <label class="input-label">Senha atual</label>
-            <input class="premium-input" type="password" placeholder="********" nbInput fullWidth formControlName="currentPassword" />
+            <input class="premium-input" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+              nbInput fullWidth formControlName="currentPassword" />
           </div>
-          <div>
+          <div class="field-group">
             <div class="label-row">
-              <label class="input-label">Crie uma nova senha</label>
-              <span class="badge-required">OBRIGATÓRIO</span>
+              <label class="input-label">Nova senha</label>
+              <span class="badge-required">Obrigat&oacute;rio</span>
             </div>
-            <input class="premium-input" type="password" placeholder="Sua nova senha" nbInput fullWidth formControlName="newPassword" />
-            <div class="strength">
+            <input class="premium-input" type="password" placeholder="Sua nova senha"
+              nbInput fullWidth formControlName="newPassword" />
+            <div class="strength" aria-label="For&ccedil;a da senha">
               <span class="bar strong"></span>
               <span class="bar strong"></span>
               <span class="bar strong"></span>
@@ -112,202 +159,204 @@
             </div>
           </div>
         </div>
-        <div class="actions end">
-          <button nbButton status="primary" size="small" type="button" (click)="savePassword()">
-            {{ loadingPassword ? 'Salvando...' : 'Salvar senha' }}
-          </button>
-        </div>
+
       </form>
 
-      <!-- Passo 2: Empresa -->
+      <!-- PASSO 2: Empresa -->
       <form [formGroup]="profileForm" *ngIf="currentStep === 1" class="section-block">
         <div class="section-title">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
           <h2>Perfil da Empresa</h2>
         </div>
+
         <div class="grid three">
-          <div>
+          <div class="field-group">
             <div class="label-row">
               <label class="input-label">Tipo de pessoa</label>
-              <span class="badge-required">OBRIGATÓRIO</span>
+              <span class="badge-required">Obrigat&oacute;rio</span>
             </div>
-            <nb-select fullWidth formControlName="personType" class="premium-select">
-              <nb-option *ngFor="let option of personTypeOptions" [value]="option.value">
+            <select class="premium-select" formControlName="personType">
+              <option *ngFor="let option of personTypeOptions" [ngValue]="option.value">
                 {{ option.label }}
-              </nb-option>
-            </nb-select>
+              </option>
+            </select>
+
           </div>
-          <div>
+
+          <div class="field-group">
             <label class="input-label">{{ isCpf ? 'CPF' : 'CNPJ' }}</label>
-            <input
-              class="premium-input"
-              nbInput
-              fullWidth
-              formControlName="document"
-              [placeholder]="isCpf ? 'Ex: 123.456.789-09' : 'Ex: 12.345.678/0001-90'"
-            />
-            <small class="field-error" *ngIf="(profileForm.get('document')?.touched || submitAttempted) && profileForm.get('document')?.hasError('cpf')">
-              CPF inválido.
-            </small>
-            <small class="field-error" *ngIf="(profileForm.get('document')?.touched || submitAttempted) && profileForm.get('document')?.hasError('cnpj')">
-              CNPJ inválido.
-            </small>
+            <input class="premium-input" nbInput fullWidth formControlName="document"
+              [placeholder]="isCpf ? 'Ex: 123.456.789-09' : 'Ex: 12.345.678/0001-90'" />
+            <small class="field-error" *ngIf="(profileForm.get('document')?.touched || submitAttempted) && profileForm.get('document')?.hasError('cpf')">CPF inv&aacute;lido.</small>
+            <small class="field-error" *ngIf="(profileForm.get('document')?.touched || submitAttempted) && profileForm.get('document')?.hasError('cnpj')">CNPJ inv&aacute;lido.</small>
           </div>
-          <div>
-            <label class="input-label">{{ isCpf ? 'Nome completo' : 'Razão social' }}</label>
-            <input class="premium-input" nbInput fullWidth formControlName="legalName" placeholder="Ex: Armazém Solutions LTDA" />
+
+          <div class="field-group">
+            <label class="input-label">{{ isCpf ? 'Nome completo' : 'Raz&atilde;o social' }}</label>
+            <input class="premium-input" nbInput fullWidth formControlName="legalName" placeholder="Ex: Arm&eacute;m Solutions LTDA" />
           </div>
-          <div *ngIf="isCnpj">
+
+          <div class="field-group" *ngIf="isCnpj">
             <label class="input-label">Nome fantasia</label>
-            <input class="premium-input" nbInput fullWidth formControlName="tradeName" placeholder="Ex: Seu Armazém Drop" />
+            <input class="premium-input" nbInput fullWidth formControlName="tradeName" placeholder="Ex: Seu Arm&eacute;m Drop" />
           </div>
-          <div *ngIf="isCnpj">
-            <label class="input-label">Inscrição estadual</label>
-            <input
-              class="premium-input"
-              nbInput
-              fullWidth
-              formControlName="stateRegistration"
-              (blur)="onStateRegistrationBlur()"
-              placeholder="Ex: 110.042.490.114"
-            />
-            <small class="hint">Digite os dígitos ou marque IE isento.</small>
-            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('required')">
-              IE obrigatória para PJ.
-            </small>
-            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('ieInvalid')">
-              IE inválida para UF {{ profileForm.get('state')?.value || '' }}. Use ISENTO se não possuir IE. A UF usada na validação vem do endereço (passo "Contato & Endereço").
-            </small>
+
+          <div class="field-group" *ngIf="isCnpj">
+            <label class="input-label">Inscri&ccedil;&atilde;o estadual</label>
+            <input class="premium-input" nbInput fullWidth formControlName="stateRegistration"
+              (blur)="onStateRegistrationBlur()" placeholder="Ex: 110.042.490.114" />
+            <small class="hint">Digite os d&iacute;gitos ou marque IE isento.</small>
+            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('required')">IE obrigat&oacute;ria para PJ.</small>
+            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('ieInvalid')">IE inv&aacute;lida para UF {{ profileForm.get('state')?.value || '' }}. Use ISENTO se n&atilde;o possuir IE.</small>
           </div>
-          <div *ngIf="isCnpj" class="checkbox-row">
-            <nb-checkbox formControlName="isStateRegistrationExempt">IE isento</nb-checkbox>
+
+          <div class="field-group checkbox-row" *ngIf="isCnpj">
+            <label class="custom-checkbox-label">
+              <input type="checkbox" class="custom-checkbox-input" formControlName="isStateRegistrationExempt" />
+              <span class="custom-checkbox-box"></span>
+              <span class="custom-checkbox-text">IE isento</span>
+            </label>
           </div>
+
         </div>
       </form>
 
-      <!-- Passo 3: Contato + Endereço -->
+      <!-- PASSO 3: Contato + Endere&ccedil;o -->
       <form [formGroup]="profileForm" *ngIf="currentStep === 2" class="section-block">
         <div class="section-title">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.38 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.88-1.88a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+          </div>
           <h2>Contato</h2>
         </div>
+
         <div class="grid three">
-          <div>
+          <div class="field-group">
             <label class="input-label">Email</label>
             <input class="premium-input" nbInput fullWidth formControlName="email" placeholder="seu@email.com" />
           </div>
-          <div>
+          <div class="field-group">
             <label class="input-label">WhatsApp</label>
-            <input
-              class="premium-input"
-              nbInput
-              fullWidth
-              formControlName="whatsapp"
-              inputmode="tel"
-              maxlength="20"
-              (input)="handleWhatsappInput()"
-              placeholder="Ex: (11) 99696-5678"
-            />
-            <small class="field-error" *ngIf="(profileForm.get('whatsapp')?.touched || submitAttempted) && profileForm.get('whatsapp')?.invalid">
-              WhatsApp inválido.
-            </small>
+            <input class="premium-input" nbInput fullWidth formControlName="whatsapp"
+              inputmode="tel" maxlength="20" (input)="handleWhatsappInput()" placeholder="Ex: (11) 99696-5678" />
+            <small class="field-error" *ngIf="(profileForm.get('whatsapp')?.touched || submitAttempted) && profileForm.get('whatsapp')?.invalid">WhatsApp inv&aacute;lido.</small>
           </div>
-          <div *ngIf="isCpf">
+          <div class="field-group" *ngIf="isCpf">
             <label class="input-label">Data de nascimento</label>
-            <input class="premium-input" nbInput fullWidth type="date" formControlName="birthDate" placeholder="dd/mm/aaaa" />
+            <input class="premium-input" nbInput fullWidth type="date" formControlName="birthDate" />
           </div>
         </div>
 
-        <div class="section-title spaced">
-          <h2>Endereço</h2>
+        <div class="section-title spaced" style="margin-top:24px">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <h2>Endere&ccedil;o</h2>
         </div>
+
         <div class="grid four">
-          <div>
+          <div class="field-group">
             <label class="input-label">CEP</label>
             <input class="premium-input" nbInput fullWidth formControlName="zipCode" placeholder="Ex: 01311-000" />
             <small class="field-error" *ngIf="cepError">{{ cepError }}</small>
             <small class="hint" *ngIf="loadingCep">Consultando CEP...</small>
           </div>
-          <div>
+          <div class="field-group">
             <label class="input-label">Rua</label>
             <input class="premium-input" nbInput fullWidth formControlName="street" placeholder="Ex: Av. Paulista" />
           </div>
-          <div>
-            <label class="input-label">Número</label>
+          <div class="field-group">
+            <label class="input-label">N&uacute;mero</label>
             <input class="premium-input" nbInput fullWidth formControlName="number" placeholder="Ex: 1000" />
           </div>
-          <div>
+          <div class="field-group">
             <label class="input-label">Bairro</label>
             <input class="premium-input" nbInput fullWidth formControlName="district" placeholder="Ex: Bela Vista" />
           </div>
-          <div>
+          <div class="field-group">
             <label class="input-label">Cidade</label>
-            <input class="premium-input" nbInput fullWidth formControlName="city" placeholder="Ex: São Paulo" />
+            <input class="premium-input" nbInput fullWidth formControlName="city" placeholder="Ex: S&atilde;o Paulo" />
           </div>
-          <div>
+          <div class="field-group">
             <label class="input-label">UF</label>
-            <input class="premium-input" nbInput fullWidth formControlName="state" maxlength="2" placeholder="Ex: SP" />
-            <small class="field-error" *ngIf="(profileForm.get('state')?.touched || submitAttempted) && profileForm.get('state')?.invalid">
-              UF inválida.
-            </small>
+            <input class="premium-input" nbInput fullWidth formControlName="state" maxlength="2" placeholder="SP" />
+            <small class="field-error" *ngIf="(profileForm.get('state')?.touched || submitAttempted) && profileForm.get('state')?.invalid">UF inv&aacute;lida.</small>
           </div>
-          <div>
+          <div class="field-group">
             <label class="input-label">Complemento</label>
             <input class="premium-input" nbInput fullWidth formControlName="complement" placeholder="Ex: Conj. 101" />
           </div>
         </div>
       </form>
 
-      <!-- Passo 4: Responsável + Documentos -->
+      <!-- PASSO 4: Respons&aacute;vel + Documentos -->
       <form [formGroup]="profileForm" *ngIf="currentStep === 3" class="section-block">
         <div class="section-title">
-          <h2>Responsável</h2>
-        </div>
-        <div class="grid three">
-          <div>
-            <label class="input-label">Nome do responsável</label>
-            <input class="premium-input" nbInput fullWidth formControlName="responsibleName" placeholder="Ex: João da Silva" />
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
           </div>
-          <div>
-            <label class="input-label">Documento do responsável</label>
-            <input
-              class="premium-input"
-              nbInput
-              fullWidth
-              formControlName="responsibleDocument"
-              placeholder="Ex: 123.456.789-09"
-              inputmode="tel"
-              maxlength="20"
-              (input)="handleResponsibleDocumentInput()"
-            />
-            <small class="field-error" *ngIf="(profileForm.get('responsibleDocument')?.touched || submitAttempted) && profileForm.get('responsibleDocument')?.hasError('cpf')">
-              CPF do responsável inválido.
-            </small>
+          <h2>Respons&aacute;vel</h2>
+        </div>
+
+        <div class="grid three">
+          <div class="field-group">
+            <label class="input-label">Nome do respons&aacute;vel</label>
+            <input class="premium-input" nbInput fullWidth formControlName="responsibleName" placeholder="Ex: Jo&atilde;o da Silva" />
+          </div>
+          <div class="field-group">
+            <label class="input-label">Documento do respons&aacute;vel</label>
+            <input class="premium-input" nbInput fullWidth formControlName="responsibleDocument"
+              placeholder="Ex: 123.456.789-09" inputmode="tel" maxlength="20"
+              (input)="handleResponsibleDocumentInput()" />
+            <small class="field-error" *ngIf="(profileForm.get('responsibleDocument')?.touched || submitAttempted) && profileForm.get('responsibleDocument')?.hasError('cpf')">CPF do respons&aacute;vel inv&aacute;lido.</small>
           </div>
         </div>
 
         <div class="secure-banner">
           <nb-icon class="secure-icon" icon="checkmark-circle-2-outline"></nb-icon>
-          <span>Sessão segura</span>
+          <span>Sess&atilde;o segura &mdash; seus dados s&atilde;o criptografados em tr&acirc;nsito</span>
         </div>
       </form>
-      <!-- Checklist fixo de documentos -->
+
+      <!-- Documentos (Passo 4) -->
       <section class="section-block" *ngIf="currentStep === 3">
         <div class="section-title">
-          <h2>Verificacao de documentos</h2>
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <h2>Verifica&ccedil;&atilde;o de documentos</h2>
         </div>
-        <small class="hint">Selecionar arquivo nao envia automaticamente. Clique em Enviar em cada documento.</small>
+
+        <small class="hint">Selecionar arquivo n&atilde;o envia automaticamente. Clique em <strong>Enviar</strong> em cada documento.</small>
+
         <div class="documents-checklist">
           <div class="document-item" *ngFor="let required of requiredDocuments">
             <div class="document-header">
               <strong>{{ required.label }}</strong>
-              <span class="status-pill">{{ documentStatusLabel(required.type) }}</span>
+              <span class="status-pill" [ngClass]="'status-' + documentStatusTone(required.type)">{{ documentStatusLabel(required.type) }}</span>
             </div>
             <div class="document-actions">
-              <input
-                class="premium-input file-input"
-                type="file"
-                accept=".pdf,image/*"
-                (change)="onSelectDocumentFile(required.type, $event)"
-              />
+              <input class="premium-input file-input" type="file" accept=".pdf,image/*"
+                (change)="onSelectDocumentFile(required.type, $event)" />
               <button class="btn primary" type="button" (click)="uploadDocumentByType(required.type)">
                 {{ isUploading(required.type) ? 'Enviando...' : 'Enviar' }}
               </button>
@@ -319,19 +368,20 @@
         </div>
 
         <p class="field-error" *ngIf="documentMessage && documentIsError">{{ documentMessage }}</p>
-        <p class="success" *ngIf="documentMessage && !documentIsError">{{ documentMessage }}</p>
+        <p class="success"     *ngIf="documentMessage && !documentIsError">{{ documentMessage }}</p>
       </section>
     </section>
 
-    <!-- Rodapé sticky CTA -->
+    <!-- ── CTA footer ──────────────────────────────────────────────────── -->
     <div class="cta-footer">
-      <button nbButton status="primary" fullWidth (click)="nextStep()" [disabled]="loadingProfile || submittingDocuments">
+      <button nbButton status="primary" fullWidth class="cta-primary-btn"
+        (click)="nextStep()" [disabled]="loadingProfile || submittingDocuments || loadingPassword">
         {{
-          currentStep === 0
-            ? 'Continuar'
-            : currentStep === steps.length - 1
-            ? (loadingProfile || submittingDocuments ? 'Processando...' : 'Enviar para aprovacao')
-            : 'Continuar'
+          currentStep === 0 && mustChangePassword
+            ? (loadingPassword ? 'Salvando senha...' : 'Salvar senha e continuar')
+          : currentStep === steps.length - 1
+            ? (loadingProfile || submittingDocuments ? 'Processando...' : 'Enviar para aprovação')
+          : 'Continuar'
         }}
       </button>
       <div class="cta-secondary">
@@ -341,12 +391,76 @@
         <a class="link" routerLink="/login">Salvar depois / Voltar ao login</a>
       </div>
     </div>
-  </main>
-</div>
 
-<footer class="brand-footer">
-  <span>SABR 3.0 · Desenvolvido por 3Cliques</span>
-</footer>
-  </nb-layout-column>
-</nb-layout>
+  </main>
+
+  <!-- ── Painel lateral de contexto (desktop only) ── -->
+  <aside class="content-aside desktop-only" aria-hidden="true">
+
+    <!-- Card de benef&iacute;cios do passo atual -->
+    <div class="aside-card">
+      <div class="aside-icon-wrap">
+        <svg viewBox="0 0 24 24" class="aside-icon" aria-hidden="true">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h3 class="aside-title">Por que isso importa?</h3>
+      <ul class="aside-list">
+        <ng-container [ngSwitch]="currentStep">
+          <ng-container *ngSwitchCase="0">
+            <li>&#128274; Proteja sua conta com uma senha forte e &uacute;nica</li>
+            <li>&#9889; Acesso seguro ao painel de dropshipping 24/7</li>
+            <li>&#128737;&#65039; Preven&ccedil;&atilde;o contra acessos n&atilde;o autorizados</li>
+          </ng-container>
+          <ng-container *ngSwitchCase="1">
+            <li>&#127962; Dados da empresa para emiss&atilde;o de NF-e</li>
+            <li>&#128269; Verifica&ccedil;&atilde;o autom&aacute;tica via CNPJ/CPF</li>
+            <li>&#128179; Habilita&ccedil;&atilde;o para cr&eacute;dito e condi&ccedil;&otilde;es especiais</li>
+          </ng-container>
+          <ng-container *ngSwitchCase="2">
+            <li>&#128230; Endere&ccedil;o correto para despacho e devolu&ccedil;&otilde;es</li>
+            <li>&#128222; Contato para notifica&ccedil;&otilde;es de pedidos em tempo real</li>
+            <li>&#128506;&#65039; CEP preenchido automaticamente</li>
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            <li>&#128196; Documentos necess&aacute;rios para ativa&ccedil;&atilde;o da conta</li>
+            <li>&#9201;&#65039; An&aacute;lise em at&eacute; 1 dia &uacute;til ap&oacute;s envio</li>
+            <li>&#9989; Aprova&ccedil;&atilde;o libera acesso ao cat&aacute;logo completo</li>
+          </ng-container>
+        </ng-container>
+      </ul>
+    </div>
+
+    <!-- Estat&iacute;sticas -->
+    <div class="aside-stats">
+      <div class="aside-stat">
+        <span class="aside-stat-num">+12k</span>
+        <span class="aside-stat-label">SKUs ativos</span>
+      </div>
+      <div class="aside-stat">
+        <span class="aside-stat-num">24h</span>
+        <span class="aside-stat-label">Despacho</span>
+      </div>
+      <div class="aside-stat">
+        <span class="aside-stat-num">99.9%</span>
+        <span class="aside-stat-label">Uptime</span>
+      </div>
+    </div>
+
+    <!-- Trust badge -->
+    <div class="aside-trust">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="trust-icon">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span>Dados protegidos com criptografia AES-256</span>
+    </div>
+
+  </aside><!-- /content-aside -->
+
+</div><!-- /onboarding-shell -->
+
+  <!-- â•â• SIDEBAR (desktop only) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  <aside class="sidebar desktop-only">
 
