@@ -1,87 +1,311 @@
 @use './styles/sabr-tokens';
 @import url('@nebular/theme/styles/prebuilt/default.css');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=Outfit:wght@600;700;800;900&display=swap');
 
+// ─── Nebular — sobrescrever tema default (textos escuros e fundos brancos) ────
+
+// Forçar cor de texto global para todos os elementos Nebular
+.nb-theme-default,
+.nb-theme-default * {
+  color: var(--sabr-text);
+}
+
+// nb-card fundo e texto
+nb-card,
+nb-card.status-basic,
+.nb-theme-default nb-card {
+  background-color: var(--sabr-surface) !important;
+  border-color:     var(--sabr-border)  !important;
+  color:            var(--sabr-text)    !important;
+}
+
+// Todos os elementos dentro do nb-card
+nb-card *,
+nb-card p,
+nb-card span,
+nb-card h1, nb-card h2, nb-card h3, nb-card h4, nb-card h5, nb-card h6,
+nb-card small, nb-card strong {
+  color: inherit;
+}
+
+nb-card-header {
+  background-color:    var(--sabr-surface-soft) !important;
+  border-bottom-color: var(--sabr-border)       !important;
+  color:               var(--sabr-text)         !important;
+}
+
+nb-card-footer {
+  background-color: var(--sabr-surface-soft) !important;
+  border-top-color: var(--sabr-border)       !important;
+  color:            var(--sabr-text)         !important;
+}
+
+// nb-input — remover fundo branco e texto escuro
+nb-input,
+input[nbInput],
+textarea[nbInput] {
+  background-color: var(--sabr-surface-soft) !important;
+  border-color:     var(--sabr-border)       !important;
+  color:            var(--sabr-text)         !important;
+
+  &::placeholder { color: var(--sabr-text-subtle) !important; }
+  &:focus        { border-color: var(--sabr-primary) !important; }
+}
+
+// nb-select trigger
+nb-select .select-button {
+  background-color: var(--sabr-surface-soft) !important;
+  border-color:     var(--sabr-border)       !important;
+  color:            var(--sabr-text)         !important;
+}
+
+// nb-button — texto branco em botões primary
+[nbButton].appearance-filled.status-primary { color: #fff !important; }
+[nbButton].appearance-outline               { color: var(--sabr-text) !important; }
+
+// Tabelas Nebular
+.nb-theme-default table th,
+.nb-theme-default table td {
+  color: var(--sabr-text) !important;
+  border-color: var(--sabr-border) !important;
+}
+
+// Paragrafos e textos gerais dentro das páginas admin/client
+.sabr-page p, .sabr-page span, .sabr-page small,
+.sabr-page h1, .sabr-page h2, .sabr-page h3, .sabr-page h4 {
+  color: inherit;
+}
+
+// ─── Nebular reset ────────────────────────────────────────────────────────────
 :root {
-  --color-brand-navy: #041631;
-  --color-brand-accent: #fbbd08;
-  --color-bg-light: var(--sabr-bg);
-  --gutter-xs: 16px;
-  --gutter-sm: 20px;
-  --gutter-md: 24px;
-  --gutter-lg: 32px;
+  --nb-layout-padding:                 0;
+  --nb-layout-medium-padding:          0;
+  --nb-layout-small-padding:           0;
+  --nb-layout-column-padding:          0;
+  --nb-layout-window-mode-padding-top: 0;
+  --nb-layout-window-mode-min-width:   100%;
+  --nb-layout-window-mode-max-width:   100%;
+  --nb-card-padding:                   0;
 }
 
-* {
-  box-sizing: border-box;
+nb-layout .layout,
+nb-layout .scrollable-container,
+nb-layout .content,
+nb-layout-column {
+  padding:   0 !important;
+  width:     100% !important;
+  max-width: 100% !important;
+  margin:    0 !important;
 }
+
+// ── Remove Nebular layout gaps and background mismatch ────────────────────────
+// Force all nb-layout variants to use our design tokens and remove any padding
+nb-layout,
+nb-layout.window-mode,
+.nb-theme-default nb-layout,
+.nb-theme-default nb-layout.window-mode {
+  padding-top: 0 !important;
+  background:  var(--sabr-bg) !important;
+}
+
+nb-layout .layout,
+.nb-theme-default nb-layout .layout {
+  background:  var(--sabr-bg) !important;
+  padding-top: 0 !important;
+  min-height:  100vh;
+}
+
+nb-layout .scrollable-container,
+nb-layout.window-mode .scrollable-container,
+.nb-theme-default nb-layout .scrollable-container,
+.nb-theme-default nb-layout.window-mode .scrollable-container {
+  height:     100vh !important;
+  box-shadow: none !important;
+  background: var(--sabr-bg) !important;
+}
+
+// ─── Base ─────────────────────────────────────────────────────────────────────
+*,
+*::before,
+*::after { box-sizing: border-box; }
 
 html,
-body {
-  height: 100%;
-}
+body { height: 100%; }
+
+html { background: var(--sabr-bg) !important; }
+
+// Override Nebular's .nb-theme-default body background (higher specificity than body alone)
+.nb-theme-default,
+.nb-theme-default body { background: var(--sabr-bg) !important; }
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: var(--sabr-font-body-size);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size:   var(--sabr-font-body-size);
   line-height: var(--sabr-font-body-line);
   font-weight: var(--sabr-font-body-weight);
-  color: var(--sabr-text);
-  background: var(--color-bg-light);
-  overflow-x: hidden;
+  color:       var(--sabr-text);
+  background:  var(--sabr-bg);
+  overflow-x:  hidden;
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--sabr-transition-slow), color var(--sabr-transition-slow);
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-  color: var(--sabr-text);
+h1, h2, h3, h4, h5, h6 {
+  margin:         0;
+  color:          var(--sabr-text);
+  font-family:    'Outfit', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
 }
 
+a { color: var(--sabr-primary); text-decoration: none; }
+a:hover { color: var(--sabr-primary-strong); }
+
+// ─── Focus ────────────────────────────────────────────────────────────────────
+:focus-visible {
+  outline:        2px solid var(--sabr-primary);
+  outline-offset: 2px;
+  border-radius:  4px;
+}
+
+// ─── Scrollbar ────────────────────────────────────────────────────────────────
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background:    var(--sabr-border-strong);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--sabr-text-subtle); }
+
+// ─── Layout helpers ───────────────────────────────────────────────────────────
 .sabr-page {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 24px;
+  max-width: var(--sabr-content-max);
+  margin:    0 auto;
+  padding:   var(--sabr-space-lg);
 }
 
+// ─── Card ─────────────────────────────────────────────────────────────────────
 .sabr-card {
   border-radius: var(--sabr-radius-card);
-  border: 1px solid var(--sabr-border);
-  background: var(--sabr-surface);
-  box-shadow: var(--sabr-shadow-soft);
+  border:        1px solid var(--sabr-border);
+  background:    var(--sabr-surface);
+  box-shadow:    var(--sabr-shadow-soft);
 }
 
+.sabr-card-raised {
+  background: var(--sabr-surface-raised);
+  border:     1px solid var(--sabr-border-strong);
+}
+
+// ─── Badges ───────────────────────────────────────────────────────────────────
 .sabr-badge {
-  display: inline-flex;
+  display:     inline-flex;
   align-items: center;
-  gap: 6px;
-  border-radius: var(--sabr-radius-control);
-  padding: 4px 12px;
-  font-size: 12px;
+  gap:         5px;
+  border-radius: var(--sabr-radius-pill);
+  padding:     3px 10px;
+  font-size:   11px;
   line-height: 16px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .sabr-badge-success {
-  background: color-mix(in srgb, var(--sabr-success) 14%, white);
-  color: var(--sabr-success);
+  background: var(--sabr-accent-weak);
+  color:      var(--sabr-accent);
 }
 
 .sabr-badge-warning {
-  background: color-mix(in srgb, var(--sabr-warning) 16%, white);
-  color: var(--sabr-warning);
+  background: rgba(245, 158, 11, 0.12);
+  color:      var(--sabr-warning);
 }
 
 .sabr-badge-danger {
-  background: color-mix(in srgb, var(--sabr-danger) 14%, white);
-  color: var(--sabr-danger);
+  background: rgba(240, 68, 56, 0.12);
+  color:      var(--sabr-danger);
 }
 
 .sabr-badge-muted {
-  background: #eef1f5;
-  color: #5d6878;
+  background: rgba(148, 163, 184, 0.10);
+  color:      var(--sabr-text-muted);
+}
+
+.sabr-badge-primary {
+  background: var(--sabr-primary-weak);
+  color:      var(--sabr-primary-strong);
+}
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+.sabr-divider {
+  border:     none;
+  border-top: 1px solid var(--sabr-border);
+  margin:     var(--sabr-space-lg) 0;
+}
+
+// ─── nb-select / nb-option overrides ─────────────────────────────────────────
+nb-option-list {
+  --nb-option-list-background-color: var(--sabr-surface-raised) !important;
+  background:    var(--sabr-surface-raised) !important;
+  border:        1px solid var(--sabr-border-strong) !important;
+  border-radius: var(--sabr-radius-control) !important;
+  box-shadow:    var(--sabr-shadow-hover) !important;
+  overflow:      hidden !important;
+}
+
+nb-option {
+  color:       var(--sabr-text) !important;
+  background:  transparent !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size:   14px !important;
+  font-weight: 500 !important;
+  padding:     10px 14px !important;
+  cursor:      pointer !important;
+  transition:  background var(--sabr-transition-fast) !important;
+}
+
+nb-option:hover {
+  background: var(--sabr-primary-weak) !important;
+  color:      var(--sabr-primary-strong) !important;
+}
+
+nb-option.selected {
+  color:       var(--sabr-primary-strong) !important;
+  font-weight: 600 !important;
+}
+
+// ─── Onboarding shell select ──────────────────────────────────────────────────
+.onboarding-shell nb-select .select-button {
+  background:    var(--sabr-surface-soft) !important;
+  border:        1px solid var(--sabr-border-strong) !important;
+  border-radius: var(--sabr-radius-control) !important;
+  color:         var(--sabr-text) !important;
+  font-family:   'Inter', sans-serif !important;
+  font-size:     14px !important;
+  height:        44px !important;
+  padding:       0 14px !important;
+  width:         100% !important;
+}
+
+.onboarding-shell nb-select .select-button:focus,
+.onboarding-shell nb-select .select-button:hover {
+  border-color: rgba(45, 111, 255, 0.40) !important;
+  background:   var(--sabr-primary-weak) !important;
+}
+
+.onboarding-shell nb-select .chevron { color: var(--sabr-text-muted) !important; }
+
+// ─── Light theme — topbar e sidebar ──────────────────────────────────────────
+body.sabr-theme-light app-sabr-topbar header {
+  background:      rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom:   1px solid var(--sabr-border) !important;
+  box-shadow:      var(--sabr-shadow-soft) !important;
+}
+
+body.sabr-theme-light app-sabr-sidebar aside {
+  background:      var(--sabr-surface) !important;
+  border-right:    1px solid var(--sabr-border) !important;
+  box-shadow:      2px 0 12px rgba(15, 23, 42, 0.06) !important;
 }

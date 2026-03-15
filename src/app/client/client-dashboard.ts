@@ -11,6 +11,7 @@ import {
   REQUIRED_PJ_DOCUMENT_TYPES,
   normalizeDocumentStatus
 } from '../core/utils/document-status.constants';
+import { environment } from '../../environments/environment';
 
 type DocsUiState =
   | 'DOCS_PENDING'
@@ -27,6 +28,7 @@ type DocsUiState =
   styleUrls: ['./client-dashboard.scss']
 })
 export class ClientDashboard implements OnInit {
+  readonly redesignV1 = !!environment.ui?.redesignClientDashboardV1;
   docsUiState: DocsUiState = 'DOCS_UNKNOWN';
   private docsByType: Partial<Record<number, ClientDocumentResult>> = {};
 
@@ -186,6 +188,53 @@ export class ClientDashboard implements OnInit {
         if (this.status === ClientStatus.Rejected) return 'Reenviar documentos/informacoes';
         return '';
     }
+  }
+
+  get statusTone(): 'success' | 'warning' | 'danger' | 'info' {
+    if (this.docsUiState === 'DOCS_REJECTED' || this.status === ClientStatus.Rejected) {
+      return 'danger';
+    }
+
+    if (this.status === ClientStatus.Approved || this.docsUiState === 'DOCS_ALL_APPROVED') {
+      return 'success';
+    }
+
+    if (
+      this.docsUiState === 'DOCS_UNDER_REVIEW' ||
+      this.status === ClientStatus.UnderReview ||
+      this.status === ClientStatus.PendingAdminApproval
+    ) {
+      return 'info';
+    }
+
+    return 'warning';
+  }
+
+  get documentsSummaryLabel(): string {
+    switch (this.docsUiState) {
+      case 'DOCS_PENDING':
+        return 'Pendentes';
+      case 'DOCS_UNDER_REVIEW':
+        return 'Em analise';
+      case 'DOCS_REJECTED':
+        return 'Reenvio necessario';
+      case 'DOCS_ALL_APPROVED':
+        return 'Aprovados';
+      default:
+        return 'Sem dados';
+    }
+  }
+
+  get journeyStepLabel(): string {
+    if (this.showCompleteProfileCta) {
+      return 'Concluir cadastro';
+    }
+
+    if (this.showDocumentsCta) {
+      return 'Regularizar documentos';
+    }
+
+    return 'Operacao liberada';
   }
 
   goToCta(): void {

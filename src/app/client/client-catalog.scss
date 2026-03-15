@@ -22,11 +22,17 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: #fff;
+  background: var(--sabr-surface);
+  transition: border-color var(--sabr-transition-fast), box-shadow var(--sabr-transition-fast);
+
+  &:hover {
+    border-color: var(--sabr-border-strong);
+    box-shadow: var(--sabr-shadow-hover);
+  }
 }
 
 .thumb {
-  background: linear-gradient(160deg, #f8fafc, #eef2ff);
+  background: var(--sabr-surface-soft);
   border-radius: 12px;
   height: 140px;
   display: flex;
@@ -42,7 +48,7 @@
 }
 
 .thumb span {
-  color: #64748b;
+  color: var(--sabr-text-muted);
   font-size: 0.85rem;
 }
 
@@ -65,7 +71,7 @@
 
 .price {
   margin: 2px 0 0;
-  color: #115fca;
+  color: var(--sabr-primary);
   font-weight: 700;
 }
 

@@ -29,9 +29,9 @@
   display: inline-flex;
   width: fit-content;
   border-radius: var(--sabr-radius-control);
-  border: 1px solid #d5e3fc;
+  border: 1px solid var(--sabr-border-strong);
   background: var(--sabr-primary-weak);
-  color: #21569c;
+  color: var(--sabr-primary-strong);
   min-height: 30px;
   align-items: center;
   padding: 0 10px;

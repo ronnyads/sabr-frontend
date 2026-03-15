@@ -4,10 +4,12 @@ import { catchError, firstValueFrom, map, of, tap } from 'rxjs';
 import { AUTH_REALM, AuthRealm } from '../tokens/auth-realm';
 import { AuthDebugLogService } from './auth-debug-log.service';
 
+import { environment } from '../../../environments/environment';
+
 export const BACKEND_OFFLINE_HINT_KEY = 'sabr_backend_offline_hint';
-export const LOCAL_API_TARGET = 'http://127.0.0.1:5250';
+export const LOCAL_API_TARGET = environment.apiBaseUrl;
 export const BACKEND_OFFLINE_MESSAGE =
-  `API local indisponivel em ${LOCAL_API_TARGET}. Inicie o backend e tente novamente.`;
+  `API indisponível em ${LOCAL_API_TARGET}. O backend na nuvem pode estar suspenso (inative). Tente novamente.`;
 
 @Injectable({ providedIn: 'root' })
 export class CsrfService {
@@ -18,8 +20,9 @@ export class CsrfService {
   ) {}
 
   init(): Promise<void> {
+    const baseUrl = environment.apiBaseUrl.replace(/\/api\/v1\/?$/, '');
     const url =
-      this.realm === 'admin' ? '/api/v1/admin/auth/csrf' : '/api/v1/auth/csrf';
+      this.realm === 'admin' ? `${baseUrl}/api/v1/admin/auth/csrf` : `${baseUrl}/api/v1/auth/csrf`;
 
     return firstValueFrom(
       this.http.get(url).pipe(
@@ -40,21 +43,31 @@ export class CsrfService {
   private handleCsrfFailure(url: string, error: HttpErrorResponse): void {
     const status = typeof error?.status === 'number' ? error.status : 0;
     const isBackendUnavailable = status === 0 || status === 502 || status === 503 || status === 504;
-    if (!isBackendUnavailable) {
+
+    if (isBackendUnavailable) {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem(BACKEND_OFFLINE_HINT_KEY, BACKEND_OFFLINE_MESSAGE);
+      }
+
+      this.authDebugLog.logLoginError({
+        realm: this.realm === 'admin' ? 'admin' : 'client',
+        route: 'csrf_init',
+        status,
+        url,
+        reason: 'backend_offline',
+        message: BACKEND_OFFLINE_MESSAGE
+      });
       return;
     }
 
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem(BACKEND_OFFLINE_HINT_KEY, BACKEND_OFFLINE_MESSAGE);
-    }
-
+    // Log other CSRF errors (e.g. 400) for debugging — still allow login to proceed.
     this.authDebugLog.logLoginError({
       realm: this.realm === 'admin' ? 'admin' : 'client',
       route: 'csrf_init',
       status,
       url,
-      reason: 'backend_offline',
-      message: BACKEND_OFFLINE_MESSAGE
+      reason: 'csrf_setup_non_fatal',
+      message: `CSRF endpoint returned ${status}. Login may still work if server does not strictly require CSRF token.`
     });
   }
 }

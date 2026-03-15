@@ -21,7 +21,7 @@
 }
 
 .status-item {
-  background: #f8fafc;
+  background: var(--sabr-surface-soft);
   border: 1px solid var(--sabr-border);
   border-radius: 10px;
   padding: 10px;
@@ -35,7 +35,7 @@
 }
 
 .status-item strong {
-  color: #1e293b;
+  color: var(--sabr-text);
 }
 
 .connection-actions {
@@ -62,7 +62,8 @@
   border: 1px solid var(--sabr-border);
   border-radius: 8px;
   padding: 8px;
-  background: #fff;
+  background: var(--sabr-surface-soft);
+  color: var(--sabr-text);
 }
 
 .mapping-form {
@@ -78,7 +79,7 @@
   flex-direction: column;
   gap: 6px;
   font-size: 0.82rem;
-  color: #4d5770;
+  color: var(--sabr-text-muted);
 }
 
 .mapping-form .full-width {
@@ -87,13 +88,13 @@
 
 .muted {
   margin: 0 0 10px;
-  color: #64748b;
+  color: var(--sabr-text-muted);
   font-size: 0.86rem;
 }
 
 .error {
   margin: 0 0 10px;
-  color: #b91c1c;
+  color: var(--sabr-danger);
   font-size: 0.84rem;
 }
 
@@ -111,14 +112,15 @@
   gap: 5px;
   min-width: 200px;
   font-size: 0.82rem;
-  color: #4d5770;
+  color: var(--sabr-text-muted);
 }
 
 .orders-filters select {
   border: 1px solid var(--sabr-border);
   border-radius: 8px;
   padding: 8px;
-  background: #fff;
+  background: var(--sabr-surface-soft);
+  color: var(--sabr-text);
 }
 
 .table-wrapper {
@@ -140,10 +142,15 @@
 }
 
 .sabr-table th {
-  color: #475569;
+  color: var(--sabr-text-muted);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sabr-table td {
+  color: var(--sabr-text);
 }
 
 .actions-col {
@@ -154,8 +161,8 @@
   display: inline-flex;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--sabr-danger);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -176,34 +183,36 @@
 .risk-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(0, 0, 0, 0.7);
   display: grid;
   place-items: center;
-  z-index: 900;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .risk-modal {
   width: min(560px, calc(100vw - 24px));
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #fca5a5;
-  padding: 16px;
+  background: var(--sabr-surface-raised);
+  border-radius: var(--sabr-radius-card);
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  padding: 24px;
+  box-shadow: var(--sabr-shadow-hover);
 }
 
 .risk-modal h4 {
   margin: 0 0 10px;
-  color: #7f1d1d;
+  color: var(--sabr-danger);
 }
 
 .risk-modal p {
   margin: 0 0 10px;
-  color: #334155;
+  color: var(--sabr-text-muted);
 }
 
 .risk-modal ul {
   margin: 0 0 14px;
   padding-left: 18px;
-  color: #334155;
+  color: var(--sabr-text-muted);
 }
 
 .risk-actions {

@@ -1,0 +1,117 @@
+<div class="fulfillment-page">
+  <div class="page-header">
+    <div class="page-title">
+      <h1>Expedição</h1>
+      <span class="total-badge" *ngIf="total > 0">{{ total }} pedido{{ total !== 1 ? 's' : '' }}</span>
+      <span class="urgent-badge" *ngIf="urgentCount > 0">
+        <nb-icon icon="clock-outline"></nb-icon>
+        {{ urgentCount }} urgente{{ urgentCount !== 1 ? 's' : '' }}
+      </span>
+    </div>
+    <button nbButton size="small" outline (click)="load()" [disabled]="loading">
+      <nb-icon icon="refresh-outline"></nb-icon>
+      Atualizar
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Carregando pedidos para expedição...</span>
+  </div>
+
+  <!-- Error -->
+  <div class="state-error" *ngIf="!loading && error">
+    <nb-icon icon="alert-circle-outline"></nb-icon>
+    <p>{{ error }}</p>
+    <button nbButton size="small" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <!-- Empty -->
+  <div class="state-empty" *ngIf="!loading && !error && orders.length === 0">
+    <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+    <h3>Tudo em dia!</h3>
+    <p>Não há pedidos aguardando expedição no momento.</p>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="fulfillment-grid" *ngIf="!loading && !error && orders.length > 0">
+    <div
+      class="fulfillment-card"
+      *ngFor="let order of orders"
+      [class.urgent]="order.isUrgent">
+
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="card-title-row">
+          <span class="ml-order-id">#{{ order.mlOrderId }}</span>
+          <span class="urgent-pill" *ngIf="order.isUrgent">
+            <nb-icon icon="clock-outline"></nb-icon> Urgente
+          </span>
+        </div>
+        <span class="client-name">{{ order.clientName ?? order.tenantId }}</span>
+      </div>
+
+      <!-- Info rows -->
+      <div class="card-info">
+        <div class="info-row" *ngIf="order.shipByDeadlineAt">
+          <nb-icon icon="calendar-outline"></nb-icon>
+          <span [class]="deadlineClass(order)">
+            Despachar até {{ order.shipByDeadlineAt | date:'dd/MM/yyyy HH:mm' }}
+          </span>
+        </div>
+        <div class="info-row" *ngIf="order.logisticType">
+          <nb-icon icon="car-outline"></nb-icon>
+          <span>{{ order.logisticType }}</span>
+        </div>
+        <div class="info-row" *ngIf="order.shippingMode">
+          <nb-icon icon="cube-outline"></nb-icon>
+          <span>{{ order.shippingMode }}</span>
+        </div>
+        <div class="info-row">
+          <nb-icon icon="shopping-bag-outline"></nb-icon>
+          <span>{{ order.totalItems }} ite{{ order.totalItems !== 1 ? 'ns' : 'm' }}</span>
+        </div>
+        <div class="info-row">
+          <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+          <span>Confirmado {{ order.sabrPaymentConfirmedAt | date:'dd/MM HH:mm' }}</span>
+        </div>
+      </div>
+
+      <!-- Label status -->
+      <div class="label-status" [class.has-label]="order.hasLabel" [class.no-label]="!order.hasLabel">
+        <nb-icon [icon]="order.hasLabel ? 'checkmark-square-2-outline' : 'square-outline'"></nb-icon>
+        {{ order.hasLabel ? 'Etiqueta disponível' : 'Etiqueta não gerada' }}
+      </div>
+
+      <!-- Card actions -->
+      <div class="card-actions">
+        <button
+          nbButton status="info" size="small"
+          [disabled]="!order.hasLabel || actionLoading[order.id + '_label']"
+          (click)="downloadLabel(order)">
+          <nb-icon icon="download-outline"></nb-icon>
+          {{ actionLoading[order.id + '_label'] ? 'Baixando...' : 'Baixar Etiqueta' }}
+        </button>
+        <button
+          nbButton status="success" size="small"
+          [disabled]="actionLoading[order.id]"
+          (click)="dispatch(order)">
+          <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+          {{ actionLoading[order.id] ? 'Aguarde...' : 'Despachar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="total > limit">
+    <button nbButton size="small" outline (click)="prevPage()" [disabled]="skip === 0 || loading">
+      <nb-icon icon="chevron-left-outline"></nb-icon>
+    </button>
+    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <button nbButton size="small" outline (click)="nextPage()" [disabled]="skip + limit >= total || loading">
+      <nb-icon icon="chevron-right-outline"></nb-icon>
+    </button>
+  </div>
+</div>

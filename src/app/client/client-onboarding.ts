@@ -35,6 +35,8 @@ import { formatIE, isValidIE } from '../core/validators/ie.validator';
 import { ClientOnboardingProgressService } from '../core/services/client-onboarding-progress.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
 import { DocumentStatus, REQUIRED_PJ_DOCUMENT_TYPES } from '../core/utils/document-status.constants';
+import { environment } from '../../environments/environment';
+import { ThemeService } from '../core/services/theme.service';
 
 @Component({
   selector: 'app-client-onboarding',
@@ -55,6 +57,8 @@ import { DocumentStatus, REQUIRED_PJ_DOCUMENT_TYPES } from '../core/utils/docume
   styleUrls: ['./client-onboarding.scss']
 })
 export class ClientOnboarding implements OnInit, OnDestroy {
+  readonly redesignV1 = !!environment.ui?.redesignOnboardingV1;
+  readonly darkModeEnabled = !!environment.ui?.darkModeV1;
   profileForm: FormGroup;
   passwordForm: FormGroup;
 
@@ -110,7 +114,8 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     private cepService: CepService,
     private documentsService: ClientDocumentsService,
     private docLookupService: DocumentLookupService,
-    private onboardingProgress: ClientOnboardingProgressService
+    private onboardingProgress: ClientOnboardingProgressService,
+    private readonly themeService: ThemeService
   ) {
     this.profileForm = this.fb.group({
       personType: [2, [Validators.required]],
@@ -147,6 +152,37 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.themeService.initialize(this.darkModeEnabled);
+
+    // Busca o status atualizado do backend antes de decidir se o onboarding é necessário.
+    // Evita que clientes aprovados fiquem presos por causa de status em cache stale.
+    this.profileService.getProfile().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (profile) => {
+        this.auth.updateCurrentUser({ status: profile.status });
+        this.initOnboarding();
+      },
+      error: () => {
+        // Fallback: usa o status em cache se a API falhar
+        this.initOnboarding();
+      }
+    });
+  }
+
+  private initOnboarding(): void {
+    // Se o perfil já foi submetido e está em análise/aprovado,
+    // redirecionar para o dashboard (acesso parcial ou full).
+    // O onboarding só faz sentido para PendingProfile ou troca de senha obrigatória.
+    const status = this.auth.currentUser?.status ?? ClientStatus.PendingProfile;
+    const needsOnboarding =
+      this.mustChangePassword ||
+      status === ClientStatus.PendingProfile ||
+      status === ClientStatus.PendingDocuments;
+
+    if (!needsOnboarding) {
+      void this.router.navigate(['/client/dashboard']);
+      return;
+    }
+
     this.currentStep = this.computeInitialStep();
 
     this.patchInitialValues();
@@ -165,6 +201,36 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     }
   }
 
+  get themeIcon(): string {
+    return this.themeService.isDark ? 'sun-outline' : 'moon-outline';
+  }
+
+  get themeLabel(): string {
+    return this.themeService.isDark ? 'Tema claro' : 'Tema escuro';
+  }
+
+  get statusTone(): 'success' | 'warning' | 'danger' | 'info' {
+    const status = this.auth.currentUser?.status ?? ClientStatus.PendingProfile;
+
+    if (status === ClientStatus.Rejected || status === ClientStatus.Inactive) {
+      return 'danger';
+    }
+
+    if (status === ClientStatus.Approved) {
+      return 'success';
+    }
+
+    if (status === ClientStatus.UnderReview || status === ClientStatus.PendingAdminApproval) {
+      return 'info';
+    }
+
+    return 'warning';
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -177,6 +243,9 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   get mustChangePassword(): boolean {
     return !!this.auth.currentUser?.mustChangePassword;
   }
+
+  /** True once the user has successfully saved the new password in this session */
+  passwordSaved = false;
 
   get documentsStepIndex(): number {
     return this.steps.length - 1;
@@ -392,8 +461,18 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     this.submitAttempted = false;
     if (this.currentStep === 0) {
       if (this.mustChangePassword) {
-        if (this.passwordForm.invalid) {
-          this.passwordForm.markAllAsTouched();
+        // Senha ainda nao foi salva: tentar salvar agora e so avancar no callback de sucesso
+        if (!this.passwordSaved) {
+          if (this.passwordForm.invalid) {
+            this.passwordForm.markAllAsTouched();
+            this.passwordError = 'Defina e salve sua nova senha antes de continuar.';
+            return;
+          }
+          // Disparar save e avancar automaticamente ao concluir
+          this.savePassword(() => {
+            this.currentStep = 1;
+            this.persistStep(this.currentStep);
+          });
           return;
         }
       }
@@ -465,7 +544,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     }
   }
 
-  savePassword(): void {
+  savePassword(onSuccess?: () => void): void {
     if (this.passwordForm.invalid || this.loadingPassword) {
       this.passwordForm.markAllAsTouched();
       return;
@@ -482,8 +561,12 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.auth.updateCurrentUser({ mustChangePassword: false });
-          this.passwordMessage = 'Senha atualizada com sucesso.';
+          this.passwordSaved = true;
+          this.passwordMessage = 'Senha atualizada com sucesso. Avancando...';
           this.passwordForm.reset();
+          if (onSuccess) {
+            onSuccess();
+          }
         },
         error: (err) => {
           this.passwordError = err?.error?.errors?.[0]?.message ?? 'Erro ao atualizar senha.';
@@ -878,9 +961,13 @@ export class ClientOnboarding implements OnInit, OnDestroy {
             .subscribe({
               next: () => {
                 this.documentIsError = false;
-                this.documentMessage = 'Documentos enviados para analise com sucesso.';
+                this.documentMessage = 'Documentos enviados para análise. Redirecionando...';
                 this.loadDocuments();
                 this.auth.updateCurrentUser({ status: ClientStatus.UnderReview });
+                // Redirecionar para o dashboard com acesso parcial após confirmar
+                setTimeout(() => {
+                  void this.router.navigate(['/client/dashboard']);
+                }, 1500);
               },
               error: (err) => {
                 this.documentIsError = true;
@@ -926,6 +1013,19 @@ export class ClientOnboarding implements OnInit, OnDestroy {
         return 'Nao enviado';
     }
   }
+
+  documentStatusTone(type: number): string {
+    const document = this.documentByType[type];
+    const status = document?.status;
+    switch (status) {
+      case DocumentStatus.Approved:    return 'success';
+      case DocumentStatus.Rejected:    return 'danger';
+      case DocumentStatus.UnderReview: return 'info';
+      case DocumentStatus.Pending:     return 'warning';
+      default:                         return 'info';
+    }
+  }
+
 
   isUploading(type: number): boolean {
     return this.uploadingByType[type] === true;

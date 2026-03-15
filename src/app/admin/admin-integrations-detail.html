@@ -1,0 +1,119 @@
+<div class="integrations-detail">
+  <div class="page-header">
+    <button nbButton size="small" outline (click)="back()">
+      <nb-icon icon="arrow-back-outline"></nb-icon>
+      Voltar
+    </button>
+    <h1>{{ providerName }}</h1>
+    <span class="total-badge" *ngIf="total > 0">{{ total }} cliente{{ total !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <div class="search-bar">
+    <input
+      class="search-input"
+      [(ngModel)]="search"
+      (ngModelChange)="onSearch()"
+      placeholder="Buscar cliente..."
+    />
+  </div>
+
+  <!-- Loading state -->
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Carregando clientes...</span>
+  </div>
+
+  <!-- Error state -->
+  <div class="state-error" *ngIf="!loading && error">
+    <nb-icon icon="alert-circle-outline"></nb-icon>
+    <p>{{ error }}</p>
+    <button nbButton size="small" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <!-- Empty state -->
+  <div class="state-empty" *ngIf="!loading && !error && clients.length === 0">
+    <nb-icon icon="inbox-outline"></nb-icon>
+    <p>Nenhum cliente encontrado.</p>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" *ngIf="!loading && !error && clients.length > 0">
+    <table class="clients-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Tenant</th>
+          <th>Status</th>
+          <th>Conectado em</th>
+          <th>Último sync</th>
+          <th>Info</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let client of clients">
+          <td>{{ client.clientName }}</td>
+          <td class="mono">{{ client.tenantId }}</td>
+          <td>
+            <span
+              class="status-badge"
+              [class.badge-success]="client.isConnected"
+              [class.badge-neutral]="!client.isConnected"
+            >
+              {{ client.isConnected ? 'Conectado' : 'Desconectado' }}
+            </span>
+          </td>
+          <td>{{ client.connectedAt ? (client.connectedAt | date:'dd/MM/yy HH:mm') : '—' }}</td>
+          <td>{{ client.lastSyncAt ? (client.lastSyncAt | date:'dd/MM/yy HH:mm') : '—' }}</td>
+          <td>{{ client.sellerOrCompanyInfo ?? '—' }}</td>
+          <td class="actions-cell" (click)="$event.stopPropagation()">
+            <button
+              *ngIf="client.isConnected && !confirmReset[client.clientId]"
+              nbButton
+              status="danger"
+              size="tiny"
+              title="Resetar integração"
+              (click)="toggleConfirmReset(client.clientId)"
+            >
+              <nb-icon icon="close-circle-outline"></nb-icon>
+            </button>
+            <ng-container *ngIf="confirmReset[client.clientId]">
+              <span class="confirm-label">Confirmar reset?</span>
+              <button
+                nbButton
+                status="danger"
+                size="tiny"
+                [disabled]="resetting[client.clientId]"
+                (click)="resetIntegration(client)"
+              >
+                {{ resetting[client.clientId] ? 'Aguarde...' : 'Sim' }}
+              </button>
+              <button nbButton status="basic" size="tiny" (click)="toggleConfirmReset(client.clientId)">Não</button>
+            </ng-container>
+            <button
+              *ngIf="client.isConnected"
+              nbButton
+              status="info"
+              size="tiny"
+              title="Ver detalhes"
+              (click)="viewDetails(client)"
+            >
+              <nb-icon icon="external-link-outline"></nb-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="total > limit">
+    <button nbButton size="small" outline (click)="prevPage()" [disabled]="skip === 0 || loading">
+      <nb-icon icon="chevron-left-outline"></nb-icon>
+    </button>
+    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <button nbButton size="small" outline (click)="nextPage()" [disabled]="skip + limit >= total || loading">
+      <nb-icon icon="chevron-right-outline"></nb-icon>
+    </button>
+  </div>
+</div>

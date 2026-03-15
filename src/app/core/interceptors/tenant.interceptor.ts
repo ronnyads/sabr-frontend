@@ -12,6 +12,14 @@ export const tenantInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  const normalizedUrl = req.url.toLowerCase();
+  if (
+    normalizedUrl.includes('/api/v1/auth/login') ||
+    normalizedUrl.includes('/api/v1/auth/csrf')
+  ) {
+    return next(req);
+  }
+
   const tenantService = inject(TenantService);
   const slug = tenantService.slug;
 

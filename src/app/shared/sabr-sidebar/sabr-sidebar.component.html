@@ -1,4 +1,4 @@
-<aside class="sabr-sidebar" [class.sabr-sidebar-open]="open">
+<aside class="sabr-sidebar" [class.sabr-sidebar-open]="open" [class.sabr-sidebar-v1]="redesignV1" [class.sabr-sidebar-light]="!themeService.isDark">
   <div class="sabr-sidebar-header">
     <div class="sabr-logo-mark">
       <nb-icon icon="flash-outline"></nb-icon>
@@ -36,11 +36,40 @@
     </a>
   </nav>
 
-  <div class="sabr-profile" *ngIf="profileName">
-    <div class="avatar">{{ profileName[0] || 'U' }}</div>
-    <div class="meta">
-      <strong>{{ profileName }}</strong>
-      <span>{{ profileSubtitle }}</span>
+  <div class="sabr-profile-wrap" *ngIf="profileName">
+    <!-- Mini menu popup -->
+    <div class="profile-popup" *ngIf="profileMenuOpen">
+      <div class="popup-header">
+        <div class="popup-avatar">{{ profileName[0] || 'U' }}</div>
+        <div class="popup-meta">
+          <strong>{{ profileName }}</strong>
+          <span>{{ profileSubtitle }}</span>
+        </div>
+      </div>
+      <div class="popup-divider"></div>
+      <button class="popup-item" routerLink="/profile" (click)="profileMenuOpen = false; navigate.emit()">
+        <nb-icon icon="person-outline"></nb-icon>
+        <span>Editar perfil</span>
+      </button>
+      <button *ngIf="themeToggleEnabled" class="popup-item" (click)="toggleTheme()">
+        <nb-icon [icon]="themeIcon"></nb-icon>
+        <span>{{ themeLabel }}</span>
+      </button>
+      <div class="popup-divider"></div>
+      <button class="popup-item popup-item-danger" (click)="profileMenuOpen = false; logout.emit()">
+        <nb-icon icon="log-out-outline"></nb-icon>
+        <span>Sair</span>
+      </button>
+    </div>
+
+    <!-- Trigger -->
+    <div class="sabr-profile" (click)="toggleProfileMenu()" [class.active]="profileMenuOpen">
+      <div class="avatar">{{ profileName[0] || 'U' }}</div>
+      <div class="meta">
+        <strong>{{ profileName }}</strong>
+        <span>{{ profileSubtitle }}</span>
+      </div>
+      <nb-icon icon="chevron-up-outline" class="profile-chevron" [class.open]="profileMenuOpen"></nb-icon>
     </div>
   </div>
 </aside>

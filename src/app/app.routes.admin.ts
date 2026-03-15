@@ -28,8 +28,14 @@ export const adminRoutes: Routes = [
       { path: 'plans', loadComponent: () => import('./admin/admin-plans-entry').then((m) => m.AdminPlansEntry) },
       {
         path: 'integrations',
-        loadComponent: () => import('./admin/admin-ml-integrations-entry').then((m) => m.AdminMlIntegrationsEntry)
+        loadComponent: () => import('./admin/admin-integrations-hub').then((m) => m.AdminIntegrationsHub)
       },
+      {
+        path: 'integrations/:provider',
+        loadComponent: () => import('./admin/admin-integrations-detail').then((m) => m.AdminIntegrationsDetail)
+      },
+      { path: 'orders', loadComponent: () => import('./admin/admin-orders').then((m) => m.AdminOrders) },
+      { path: 'fulfillment', loadComponent: () => import('./admin/admin-fulfillment').then((m) => m.AdminFulfillment) },
 
       // Tenant-scoped admin pages (tenantId explicit in URL)
       { path: 't/:tenantId/users', loadComponent: () => import('./users/users').then((m) => m.Users) },
@@ -46,6 +52,10 @@ export const adminRoutes: Routes = [
       {
         path: 't/:tenantId/clients/:clientId/integrations/mercadolivre',
         loadComponent: () => import('./admin/admin-ml-integrations').then((m) => m.AdminMlIntegrations)
+      },
+      {
+        path: 't/:tenantId/clients/:clientId/integrations/tinyerp',
+        loadComponent: () => import('./admin/admin-tiny-integration').then((m) => m.AdminTinyIntegration)
       },
 
       // Aliases with /admin prefix (compatibility + explicit contract)
@@ -77,7 +87,7 @@ export const adminRoutes: Routes = [
       },
       {
         path: 'admin/integrations',
-        loadComponent: () => import('./admin/admin-ml-integrations-entry').then((m) => m.AdminMlIntegrationsEntry)
+        loadComponent: () => import('./admin/admin-integrations-hub').then((m) => m.AdminIntegrationsHub)
       },
       { path: 'admin/t/:tenantId/users', loadComponent: () => import('./users/users').then((m) => m.Users) },
       {

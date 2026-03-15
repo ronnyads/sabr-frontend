@@ -16,6 +16,12 @@
   },
   ui: {
     publicationsEnabled: false,
-    mlLegacyPublishBlock: false
+    mlLegacyPublishBlock: false,
+    redesignShellV1: true,
+    redesignClientDashboardV1: true,
+    redesignAdminDashboardV1: true,
+    redesignLoginV1: true,
+    redesignOnboardingV1: true,
+    darkModeV1: true
   }
 };

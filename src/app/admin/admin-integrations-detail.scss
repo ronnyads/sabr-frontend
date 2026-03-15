@@ -1,0 +1,200 @@
+.integrations-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+}
+
+// ── Page header ────────────────────────────────────────────────────────────────
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--sabr-text);
+    margin: 0;
+  }
+}
+
+.total-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: var(--sabr-surface-soft);
+  border: 1px solid var(--sabr-border);
+  border-radius: 99px;
+  font-size: 0.78rem;
+  color: var(--sabr-text-muted);
+}
+
+// ── Search bar ─────────────────────────────────────────────────────────────────
+
+.search-bar {
+  .search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px 14px;
+    border: 1px solid var(--sabr-border);
+    border-radius: 8px;
+    font-size: 0.88rem;
+    color: var(--sabr-text);
+    background: var(--sabr-surface-soft);
+    outline: none;
+    transition: border-color var(--sabr-transition-fast);
+
+    &:focus {
+      border-color: var(--sabr-primary);
+    }
+
+    &::placeholder { color: var(--sabr-text-subtle); }
+  }
+}
+
+// ── States ─────────────────────────────────────────────────────────────────────
+
+.state-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  color: var(--sabr-text-muted);
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--sabr-border);
+    border-top-color: var(--sabr-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.state-error,
+.state-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 32px;
+  color: var(--sabr-text-muted);
+  text-align: center;
+
+  nb-icon { font-size: 2rem; }
+  p { margin: 0; font-size: 0.9rem; }
+}
+
+.state-error nb-icon {
+  color: var(--sabr-danger);
+}
+
+// ── Table ──────────────────────────────────────────────────────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--sabr-border);
+  border-radius: 10px;
+}
+
+.clients-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  thead tr {
+    background: var(--sabr-surface-soft);
+  }
+
+  th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sabr-text-muted);
+    border-bottom: 1px solid var(--sabr-border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--sabr-border);
+    color: var(--sabr-text);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+.mono {
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: var(--sabr-text-muted);
+}
+
+// ── Status badge ───────────────────────────────────────────────────────────────
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.badge-success {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--sabr-success);
+  }
+
+  &.badge-neutral {
+    background: rgba(148, 163, 184, 0.10);
+    color: var(--sabr-text-muted);
+  }
+}
+
+// ── Actions cell ───────────────────────────────────────────────────────────────
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.confirm-label {
+  font-size: 0.78rem;
+  color: var(--sabr-danger);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// ── Pagination ─────────────────────────────────────────────────────────────────
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.page-info {
+  font-size: 0.85rem;
+  color: var(--sabr-text-muted);
+}

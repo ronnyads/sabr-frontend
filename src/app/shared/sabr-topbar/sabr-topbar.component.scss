@@ -1,73 +1,111 @@
+// ─── Topbar — Modern Dark SaaS ────────────────────────────────────────────────
 .sabr-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  min-height: 64px;
-  display: flex;
-  align-items: center;
+  position:        fixed;
+  top:             0;
+  left:            var(--sabr-sidebar-width);
+  right:           0;
+  z-index:         20;
+  min-height:      var(--sabr-topbar-height);
+  display:         flex;
+  align-items:     center;
   justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid var(--sabr-border);
-  background: color-mix(in srgb, var(--sabr-surface) 92%, transparent);
-  backdrop-filter: blur(8px);
-  padding: 8px 18px;
+  gap:             12px;
+  border-bottom:   1px solid var(--sabr-border);
+  background:      rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding:         0 20px;
 }
 
 .left,
 .right {
-  display: flex;
+  display:     flex;
   align-items: center;
-  gap: 10px;
+  gap:         10px;
 }
 
+// ─── Title ────────────────────────────────────────────────────────────────────
 .title-block .title {
-  font-size: 1.15rem;
-  line-height: 1.2;
-  font-weight: 800;
+  font-family:    'Outfit', sans-serif;
+  font-size:      1.1rem;
+  font-weight:    700;
+  letter-spacing: -0.02em;
+  line-height:    1.2;
+  color:          var(--sabr-text);
 }
 
+// ─── Tenant pill ─────────────────────────────────────────────────────────────
 .tenant-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: var(--sabr-radius-control);
-  border: 1px solid #d5e3fc;
-  background: var(--sabr-primary-weak);
-  color: #21569c;
-  min-height: 34px;
-  padding: 0 12px;
-  font-size: 0.84rem;
-  font-weight: 700;
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  border-radius: var(--sabr-radius-pill);
+  border:        1px solid var(--sabr-border-strong);
+  background:    var(--sabr-primary-weak);
+  color:         var(--sabr-primary-strong);
+  min-height:    30px;
+  padding:       0 12px;
+  font-size:     12px;
+  font-weight:   600;
+  letter-spacing: 0.01em;
 }
 
+// ─── User meta ────────────────────────────────────────────────────────────────
 .user-meta {
-  display: flex;
+  display:        flex;
   flex-direction: column;
-  align-items: flex-end;
-  min-width: 0;
+  align-items:    flex-end;
+  min-width:      0;
 }
 
 .user-meta strong {
-  font-size: 0.93rem;
+  font-size:   13px;
+  font-weight: 600;
   line-height: 1.2;
+  color:       var(--sabr-text);
 }
 
 .user-meta span {
-  color: var(--sabr-text-muted);
-  font-size: 0.72rem;
+  color:       var(--sabr-text-muted);
+  font-size:   11px;
   line-height: 1.1;
 }
 
-.menu-toggle {
-  margin-right: 4px;
+.menu-toggle { margin-right: 4px; }
+
+// ─── Theme toggle ────────────────────────────────────────────────────────────
+.theme-toggle {
+  display:     inline-flex;
+  align-items: center;
+  gap:         5px;
+  color:       var(--sabr-text-muted);
+  transition:  color var(--sabr-transition-fast);
+}
+
+.theme-toggle:hover { color: var(--sabr-text); }
+
+.theme-toggle span {
+  font-size:   12px;
+  font-weight: 600;
+}
+
+// ─── Light theme ─────────────────────────────────────────────────────────────
+.sabr-topbar-light {
+  background:    rgba(255, 255, 255, 0.88) !important;
+  border-bottom: 1px solid var(--sabr-border) !important;
+  box-shadow:    var(--sabr-shadow-soft) !important;
+}
+
+// ─── v1 alias (retrocompatibilidade) ─────────────────────────────────────────
+.sabr-topbar-v1 { /* herda tudo do novo padrão */ }
+
+// ─── Mobile ───────────────────────────────────────────────────────────────────
+@media (max-width: 1023px) {
+  .sabr-topbar { left: 0; }
 }
 
 @media (max-width: 760px) {
-  .tenant-pill {
-    display: none;
-  }
-
-  .user-meta span {
-    display: none;
-  }
+  .tenant-pill       { display: none; }
+  .user-meta span    { display: none; }
+  .theme-toggle span { display: none; }
 }

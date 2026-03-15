@@ -1,25 +1,144 @@
-<nb-card class="client-dashboard-card">
-  <nb-card-header>
-    <div class="header">
-      <h3>Bem-vindo, {{ userName }}</h3>
-      <span class="status-pill">{{ statusLabel }}</span>
+<section class="client-dashboard-v1" *ngIf="redesignV1; else legacyDashboard">
+
+  <!-- ── Hero card ──────────────────────────────────────────────────────── -->
+  <article class="hero-card sabr-card">
+    <div class="hero-copy">
+      <span class="eyebrow">Painel do cliente</span>
+      <h2>Bem-vindo, {{ userName }}</h2>
+      <p>
+        Acompanhe cadastro, documentos e integrações em um único fluxo.
+        Tudo sincronizado em tempo real.
+      </p>
     </div>
-  </nb-card-header>
-  <nb-card-body>
-    <p class="description">
-      Aqui voce acompanha o andamento do seu cadastro, documentos e integracoes.
-    </p>
 
-    <p class="description" *ngIf="accessMessage">{{ accessMessage }}</p>
-    <p class="description" *ngIf="bannerMessage">{{ bannerMessage }}</p>
-    <p class="description" *ngIf="docsUiState === 'DOCS_REJECTED'">
-      Reenvie documentos ou informacoes corrigidas para continuar.
-    </p>
-
-    <div class="actions" *ngIf="showCompleteProfileCta || showDocumentsCta">
-      <button nbButton status="primary" (click)="goToCta()">
+    <div class="hero-status">
+      <span class="status-chip" [ngClass]="'status-' + statusTone">{{ statusLabel }}</span>
+      <span class="status-meta" *ngIf="accessMessage">{{ accessMessage }}</span>
+      <span class="status-meta" *ngIf="!accessMessage">Status operacional em sincronização</span>
+      <button
+        *ngIf="showCompleteProfileCta || showDocumentsCta"
+        nbButton
+        status="primary"
+        size="small"
+        type="button"
+        (click)="goToCta()"
+      >
         {{ ctaLabel }}
       </button>
     </div>
-  </nb-card-body>
-</nb-card>
+  </article>
+
+  <!-- ── Insight cards ─────────────────────────────────────────────────── -->
+  <div class="insight-grid">
+
+    <!-- Card 1 — Documentação -->
+    <article class="insight-card sabr-card">
+      <div class="card-header-row">
+        <span class="label">Documentação</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+          </svg>
+        </div>
+      </div>
+      <strong>{{ documentsSummaryLabel }}</strong>
+      <p>{{ bannerMessage || 'Sem pendências no momento.' }}</p>
+      <div class="sparkline" aria-hidden="true">
+        <div class="sparkline-bar" style="height:35%;--i:0"></div>
+        <div class="sparkline-bar" style="height:55%;--i:1"></div>
+        <div class="sparkline-bar" style="height:40%;--i:2"></div>
+        <div class="sparkline-bar" style="height:75%;--i:3"></div>
+        <div class="sparkline-bar" style="height:60%;--i:4"></div>
+        <div class="sparkline-bar" style="height:85%;--i:5"></div>
+        <div class="sparkline-bar" style="height:70%;--i:6"></div>
+        <div class="sparkline-bar" style="height:100%;--i:7"></div>
+      </div>
+    </article>
+
+    <!-- Card 2 — Jornada -->
+    <article class="insight-card sabr-card">
+      <div class="card-header-row">
+        <span class="label">Jornada atual</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"/>
+          </svg>
+        </div>
+      </div>
+      <strong>{{ journeyStepLabel }}</strong>
+      <p>
+        {{ docsUiState === 'DOCS_REJECTED'
+          ? 'Reenvie documentos para concluir liberação.'
+          : 'Continue pelo fluxo recomendado para liberar todas as funcionalidades.' }}
+      </p>
+      <div class="sparkline" aria-hidden="true">
+        <div class="sparkline-bar" style="height:50%;--i:0"></div>
+        <div class="sparkline-bar" style="height:65%;--i:1"></div>
+        <div class="sparkline-bar" style="height:45%;--i:2"></div>
+        <div class="sparkline-bar" style="height:80%;--i:3"></div>
+        <div class="sparkline-bar" style="height:55%;--i:4"></div>
+        <div class="sparkline-bar" style="height:90%;--i:5"></div>
+        <div class="sparkline-bar" style="height:72%;--i:6"></div>
+        <div class="sparkline-bar" style="height:95%;--i:7"></div>
+      </div>
+    </article>
+
+    <!-- Card 3 — Integração -->
+    <article class="insight-card sabr-card">
+      <div class="card-header-row">
+        <span class="label">Integração de conta</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+          </svg>
+        </div>
+      </div>
+      <strong>{{ accessMessage || 'Acesso em configuração' }}</strong>
+      <p>
+        Complete as etapas para desbloquear publicações,
+        catálogo e monitoramento em tempo real.
+      </p>
+      <div class="sparkline" aria-hidden="true">
+        <div class="sparkline-bar" style="height:30%;--i:0"></div>
+        <div class="sparkline-bar" style="height:48%;--i:1"></div>
+        <div class="sparkline-bar" style="height:38%;--i:2"></div>
+        <div class="sparkline-bar" style="height:62%;--i:3"></div>
+        <div class="sparkline-bar" style="height:50%;--i:4"></div>
+        <div class="sparkline-bar" style="height:78%;--i:5"></div>
+        <div class="sparkline-bar" style="height:65%;--i:6"></div>
+        <div class="sparkline-bar" style="height:88%;--i:7"></div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ── Legacy fallback ────────────────────────────────────────────────────── -->
+<ng-template #legacyDashboard>
+  <nb-card class="client-dashboard-card">
+    <nb-card-header>
+      <div class="header">
+        <h3>Bem-vindo, {{ userName }}</h3>
+        <span class="status-pill">{{ statusLabel }}</span>
+      </div>
+    </nb-card-header>
+    <nb-card-body>
+      <p class="description">
+        Aqui você acompanha o andamento do seu cadastro, documentos e integrações.
+      </p>
+      <p class="description" *ngIf="accessMessage">{{ accessMessage }}</p>
+      <p class="description" *ngIf="bannerMessage">{{ bannerMessage }}</p>
+      <p class="description" *ngIf="docsUiState === 'DOCS_REJECTED'">
+        Reenvie documentos ou informações corrigidas para continuar.
+      </p>
+      <div class="actions" *ngIf="showCompleteProfileCta || showDocumentsCta">
+        <button nbButton status="primary" (click)="goToCta()">
+          {{ ctaLabel }}
+        </button>
+      </div>
+    </nb-card-body>
+  </nb-card>
+</ng-template>

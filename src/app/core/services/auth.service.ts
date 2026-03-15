@@ -5,10 +5,12 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AUTH_REALM, AuthRealm } from '../tokens/auth-realm';
 import { normalizeRole } from '../utils/role-labels';
+import { TenantService } from './tenant.service';
 
 export interface AuthUser {
   id: string;
   tenantId: string;
+  tenantSlug?: string | null;
   name: string;
   email: string;
   accountType: 'admin' | 'client';
@@ -39,6 +41,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router,
+    private tenantService: TenantService,
     @Inject(AUTH_REALM) private realm: AuthRealm
   ) {
     this.hydrateSession();
@@ -90,6 +93,7 @@ export class AuthService {
     this.accessToken = null;
     this.user = null;
     this.accountType = null;
+    this.tenantService.clearDevSlug();
     this.clearPersistedSession();
   }
 
@@ -131,6 +135,7 @@ export class AuthService {
       ? {
           id: rawUser.id ?? rawUser.Id,
           tenantId: rawUser.tenantId ?? rawUser.TenantId,
+          tenantSlug: rawUser.tenantSlug ?? rawUser.TenantSlug ?? null,
           name: rawUser.name ?? rawUser.Name,
           email: rawUser.email ?? rawUser.Email,
           accountType: resolvedAccountType,
@@ -146,6 +151,7 @@ export class AuthService {
     this.accessToken = accessToken;
     this.user = normalizedUser;
     this.accountType = resolvedAccountType;
+    this.syncTenantContext(normalizedUser);
     this.persistSession();
   }
 
@@ -195,6 +201,7 @@ export class AuthService {
       this.accessToken = parsed.accessToken;
       this.user = parsed.user;
       this.accountType = parsed.accountType;
+      this.syncTenantContext(parsed.user);
     } catch {
       this.clearPersistedSession();
     }
@@ -224,5 +231,21 @@ export class AuthService {
     }
 
     window.sessionStorage.removeItem(AuthService.SESSION_STORAGE_KEY);
+  }
+
+  private syncTenantContext(user: AuthUser | null): void {
+    if (this.realm !== 'client') {
+      return;
+    }
+
+    const tenantSlug = user?.tenantSlug?.trim().toLowerCase() ?? '';
+    if (tenantSlug) {
+      this.tenantService.setDevSlug(tenantSlug);
+      return;
+    }
+
+    if (!user) {
+      this.tenantService.clearDevSlug();
+    }
   }
 }

@@ -1,0 +1,89 @@
+<section class="sabr-page admin-tiny-integration-page">
+  <div class="page-header">
+    <h1>
+      Integracao Tiny ERP
+      <span class="client-badge" *ngIf="clientId">{{ clientId }}</span>
+    </h1>
+  </div>
+
+  <!-- Loading state -->
+  <div class="sabr-card panel loading-panel" *ngIf="loading">
+    <div class="loading-content">
+      <nb-icon icon="loader-outline" class="loading-icon"></nb-icon>
+      <span>Carregando integracao...</span>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div class="sabr-card panel error-panel" *ngIf="!loading && error">
+    <p class="error-message">{{ error }}</p>
+    <button nbButton status="basic" size="small" (click)="loadStatus()">Tentar novamente</button>
+  </div>
+
+  <!-- Status card -->
+  <div class="sabr-card panel" *ngIf="!loading && !error">
+    <h3>Status</h3>
+
+    <div class="status-row">
+      <span class="badge badge-connected" *ngIf="connected">Conectado</span>
+      <span class="badge badge-disconnected" *ngIf="!connected">Desconectado</span>
+    </div>
+
+    <div class="status-grid" *ngIf="status && connected">
+      <div class="detail-item" *ngIf="status.companyName">
+        <small>Empresa</small>
+        <strong>{{ status.companyName }}</strong>
+      </div>
+      <div class="detail-item" *ngIf="status.companyEmail">
+        <small>E-mail</small>
+        <strong>{{ status.companyEmail }}</strong>
+      </div>
+      <div class="detail-item" *ngIf="status.connectedAt">
+        <small>Conectado em</small>
+        <strong>{{ status.connectedAt | date: 'dd/MM/yyyy HH:mm' }}</strong>
+      </div>
+      <div class="detail-item">
+        <small>Ultimo sync</small>
+        <strong>{{ status.lastSyncAt ? (status.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : 'Nunca sincronizado' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions card -->
+  <div class="sabr-card panel" *ngIf="!loading && !error && connected">
+    <h3>Acoes</h3>
+
+    <div class="actions-row">
+      <button
+        nbButton
+        status="primary"
+        size="small"
+        [disabled]="syncingOrders"
+        (click)="syncOrders()"
+      >
+        <nb-icon icon="sync-outline"></nb-icon>
+        {{ syncingOrders ? 'Sincronizando pedidos...' : 'Sync Pedidos' }}
+      </button>
+
+      <button
+        nbButton
+        status="info"
+        size="small"
+        [disabled]="syncingCatalog"
+        (click)="syncCatalog()"
+      >
+        <nb-icon icon="grid-outline"></nb-icon>
+        {{ syncingCatalog ? 'Sincronizando catalogo...' : 'Sync Catalogo' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Note card -->
+  <div class="sabr-card panel info-card">
+    <nb-icon icon="info-outline" class="info-icon"></nb-icon>
+    <p>
+      Para emitir NF-e, acesse os detalhes do pedido em <strong>Pedidos</strong>.
+      As acoes acima sincronizam dados entre o Tiny ERP e o SABR para este cliente.
+    </p>
+  </div>
+</section>

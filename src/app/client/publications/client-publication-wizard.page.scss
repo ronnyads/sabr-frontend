@@ -112,7 +112,7 @@
   padding: 3px 8px;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--sabr-text-muted);
   background: #f6f9fd;
 }
 .chip.base {
@@ -149,7 +149,7 @@
 .context-issues span {
   margin: 0;
   font-size: 0.78rem;
-  color: #475569;
+  color: var(--sabr-text-muted);
 }
 .wizard-steps {
   display: flex;
@@ -160,7 +160,7 @@
   border: 1px solid #d5deeb;
   border-radius: var(--sabr-radius-control);
   background: #f6f9fd;
-  color: #475569;
+  color: var(--sabr-text-muted);
   font-size: 0.82rem;
   font-weight: 700;
   padding: 7px 12px;
@@ -314,7 +314,7 @@ textarea[nbinput] {
   align-items: center;
   font-weight: 700;
   cursor: pointer;
-  color: #334155;
+  color: var(--sabr-text-muted);
 }
 .optional-attrs__body {
   margin-top: 10px;
@@ -354,7 +354,7 @@ textarea[nbinput] {
 } .image-actions button {
   border: 1px solid #c8d4e6;
   border-radius: 8px;
-  background: #fff;
+  background: var(--sabr-surface);
   cursor: pointer;
 }
 .sidebar-card {
@@ -396,7 +396,7 @@ textarea[nbinput] {
   border: 1px solid #d8e2ef;
   border-radius: 10px;
   overflow: hidden;
-  background: #fff;
+  background: var(--sabr-surface);
   position: relative;
 }
 .image-card img {

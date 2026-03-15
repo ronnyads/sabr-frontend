@@ -15,6 +15,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { AuthDebugLogService } from '../../core/services/auth-debug-log.service';
 import { AUTH_REALM, AuthRealm } from '../../core/tokens/auth-realm';
 import { BACKEND_OFFLINE_HINT_KEY, BACKEND_OFFLINE_MESSAGE } from '../../core/services/csrf.service';
+import { environment } from '../../../environments/environment';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -34,6 +36,8 @@ import { BACKEND_OFFLINE_HINT_KEY, BACKEND_OFFLINE_MESSAGE } from '../../core/se
 })
 export class Login implements OnDestroy, OnInit {
   form: FormGroup;
+  readonly redesignV1 = !!environment.ui?.redesignLoginV1;
+  readonly darkModeEnabled = !!environment.ui?.darkModeV1;
 
   loading = false;
   errorMessage = '';
@@ -49,6 +53,7 @@ export class Login implements OnDestroy, OnInit {
     private authDebugLog: AuthDebugLogService,
     private router: Router,
     private route: ActivatedRoute,
+    private readonly themeService: ThemeService,
     @Inject(AUTH_REALM) private realm: AuthRealm
   ) {
     this.form = this.fb.group({
@@ -64,10 +69,23 @@ export class Login implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     this.applyBackendOfflineHintFromBootstrap();
+    this.themeService.initialize(this.darkModeEnabled);
+  }
+
+  get themeIcon(): string {
+    return this.themeService.isDark ? 'sun-outline' : 'moon-outline';
+  }
+
+  get themeLabel(): string {
+    return this.themeService.isDark ? 'Tema claro' : 'Tema escuro';
   }
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 
   submit(): void {
@@ -148,6 +166,16 @@ export class Login implements OnDestroy, OnInit {
             traceId,
             source
           } as const;
+
+          if (err?.status === 409 && this.isTenantAmbiguousError(err)) {
+            this.errorMessage = 'Nao foi possivel identificar sua empresa automaticamente. Contate o suporte.';
+            this.authDebugLog.logLoginError({
+              ...baseMeta,
+              reason: 'tenant_ambiguous',
+              message: backendMsg || this.errorMessage
+            });
+            return;
+          }
 
           if (err?.status === 401) {
             this.errorMessage = 'E-mail ou senha invalidos. Confira os dados e tente novamente.';
@@ -303,6 +331,11 @@ export class Login implements OnDestroy, OnInit {
 
   private extractSource(err: any): string | undefined {
     return typeof err?.error?.source === 'string' ? err.error.source : undefined;
+  }
+
+  private isTenantAmbiguousError(err: any): boolean {
+    const code = err?.error?.code ?? err?.error?.Code;
+    return typeof code === 'string' && code.trim().toUpperCase() === 'TENANT_AMBIGUOUS';
   }
 
   private resolveDebugRealm(): 'admin' | 'client' {

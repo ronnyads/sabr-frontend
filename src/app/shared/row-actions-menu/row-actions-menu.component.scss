@@ -8,8 +8,8 @@
   height: 34px;
   border-radius: 50%;
   border: 1px solid var(--sabr-border);
-  background: #fff;
-  color: #637084;
+  background: var(--sabr-surface-raised);
+  color: var(--sabr-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -17,7 +17,7 @@
 }
 
 .menu-trigger:hover {
-  background: #f5f8ff;
+  background: var(--sabr-surface-soft);
   color: var(--sabr-primary);
 }
 
@@ -25,12 +25,12 @@
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  z-index: 15;
+  z-index: 1050;
   min-width: 180px;
   border-radius: 12px;
-  border: 1px solid var(--sabr-border);
-  background: #fff;
-  box-shadow: var(--sabr-shadow-soft);
+  border: 1px solid var(--sabr-border-strong, rgba(255,255,255,0.14));
+  background: var(--sabr-surface-raised);
+  box-shadow: var(--sabr-shadow-hover);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -42,7 +42,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #344056;
+  color: var(--sabr-text);
   padding: 0 10px;
   display: inline-flex;
   align-items: center;
@@ -52,7 +52,7 @@
 }
 
 .menu-panel button:hover:not(:disabled) {
-  background: #f4f7ff;
+  background: var(--sabr-primary-weak, rgba(99, 102, 241, 0.1));
 }
 
 .menu-panel button.danger {
@@ -60,6 +60,6 @@
 }
 
 .menu-panel button:disabled {
-  color: #9fa9b8;
+  color: var(--sabr-text-subtle);
   cursor: not-allowed;
 }
