@@ -4,10 +4,12 @@ import { catchError, firstValueFrom, map, of, tap } from 'rxjs';
 import { AUTH_REALM, AuthRealm } from '../tokens/auth-realm';
 import { AuthDebugLogService } from './auth-debug-log.service';
 
+import { environment } from '../../../environments/environment';
+
 export const BACKEND_OFFLINE_HINT_KEY = 'sabr_backend_offline_hint';
-export const LOCAL_API_TARGET = 'http://127.0.0.1:5250';
+export const LOCAL_API_TARGET = environment.apiBaseUrl;
 export const BACKEND_OFFLINE_MESSAGE =
-  `API local indisponivel em ${LOCAL_API_TARGET}. Inicie o backend e tente novamente.`;
+  `API indisponível em ${LOCAL_API_TARGET}. O backend na nuvem pode estar suspenso (inative). Tente novamente.`;
 
 @Injectable({ providedIn: 'root' })
 export class CsrfService {
@@ -18,8 +20,9 @@ export class CsrfService {
   ) {}
 
   init(): Promise<void> {
+    const baseUrl = environment.apiBaseUrl.replace(/\/api\/v1\/?$/, '');
     const url =
-      this.realm === 'admin' ? '/api/v1/admin/auth/csrf' : '/api/v1/auth/csrf';
+      this.realm === 'admin' ? `${baseUrl}/api/v1/admin/auth/csrf` : `${baseUrl}/api/v1/auth/csrf`;
 
     return firstValueFrom(
       this.http.get(url).pipe(
