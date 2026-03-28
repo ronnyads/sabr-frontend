@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, firstValueFrom, map, of, tap } from 'rxjs';
+import { catchError, firstValueFrom, map, of, tap, timeout } from 'rxjs';
 import { AUTH_REALM, AuthRealm } from '../tokens/auth-realm';
 import { AuthDebugLogService } from './auth-debug-log.service';
 
@@ -23,9 +23,11 @@ export class CsrfService {
     const baseUrl = environment.apiBaseUrl.replace(/\/api\/v1\/?$/, '');
     const url =
       this.realm === 'admin' ? `${baseUrl}/api/v1/admin/auth/csrf` : `${baseUrl}/api/v1/auth/csrf`;
+    const CSRF_TIMEOUT_MS = 2000;
 
     return firstValueFrom(
       this.http.get(url).pipe(
+        timeout(CSRF_TIMEOUT_MS),
         tap(() => {
           if (typeof window !== 'undefined') {
             window.sessionStorage.removeItem(BACKEND_OFFLINE_HINT_KEY);
