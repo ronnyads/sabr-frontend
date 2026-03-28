@@ -9,8 +9,17 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const authDebugLog = inject(AuthDebugLogService);
 
-  if (auth.hasToken()) {
-    return true;
+  if (!auth.hasToken()) {
+    authDebugLog.logGuardRedirect({
+      realm: 'unknown',
+      guard: 'authGuard',
+      from: state.url,
+      to: '/login',
+      decision: 'redirect',
+      reason: 'no_token_skip_refresh'
+    });
+
+    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
   }
 
   return auth.refresh().pipe(
