@@ -271,11 +271,16 @@ export class AuthService {
       expiresAt: this.expiresAt
     };
     try {
-      window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, JSON.stringify(payload));
+      const json = JSON.stringify(payload);
+      console.log('[AuthService] persistSession - Payload size:', json.length, 'bytes');
+      window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, json);
       const stored = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
-      console.log('[AuthService] persistSession - Stored successfully:', { email: this.user.email, accountType: this.accountType, verified: !!stored });
+      console.log('[AuthService] persistSession - Stored successfully:', { email: this.user.email, accountType: this.accountType, verified: !!stored, storedSize: stored?.length });
+      if (!stored) {
+        console.warn('[AuthService] persistSession - WARNING: setItem succeeded but getItem returns empty!');
+      }
     } catch (e) {
-      console.error('[AuthService] persistSession - ERROR storing to sessionStorage:', e);
+      console.error('[AuthService] persistSession - ERROR storing to sessionStorage:', e, 'message:', (e as Error).message);
     }
   }
 
