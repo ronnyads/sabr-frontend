@@ -12,11 +12,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   if (!token) {
-    console.log('[AuthInterceptor] No token available for URL:', req.url);
+    console.warn('[AuthInterceptor] No token available for URL:', req.url, '- Current user:', auth.currentUser?.email || 'none');
+    console.log('[AuthInterceptor] Debug info:', {
+      hasToken: auth.hasToken(),
+      currentUser: auth.currentUser?.email,
+      isTokenFresh: auth.isTokenFresh(),
+      accountType: auth.currentAccountType
+    });
     return next(req);
   }
 
-  console.log('[AuthInterceptor] Attaching token to URL:', req.url);
+  console.log('[AuthInterceptor] Attaching token to URL:', req.url, '- User:', auth.currentUser?.email);
   return next(
     req.clone({
       setHeaders: {

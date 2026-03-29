@@ -219,8 +219,22 @@ export class AuthService {
     }
 
     try {
+      // Verify sessionStorage is accessible first
+      try {
+        const testKey = '__auth_test_' + Date.now();
+        window.sessionStorage.setItem(testKey, '1');
+        window.sessionStorage.removeItem(testKey);
+      } catch (testError) {
+        console.warn('[AuthService] hydrateSession - sessionStorage not accessible:', {
+          errorName: (testError as any).name,
+          errorMessage: (testError as Error).message,
+          isQuotaExceeded: (testError as any).name === 'QuotaExceededError'
+        });
+        return;
+      }
+
       const raw = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
-      console.log('[AuthService] hydrateSession - Found stored session:', !!raw);
+      console.log('[AuthService] hydrateSession - Found stored session:', !!raw, raw ? `(${raw.length} chars)` : '');
       if (!raw) {
         return;
       }
@@ -271,6 +285,20 @@ export class AuthService {
       expiresAt: this.expiresAt
     };
     try {
+      // Check if sessionStorage is available and writable
+      const testKey = '__auth_test_' + Date.now();
+      try {
+        window.sessionStorage.setItem(testKey, '1');
+        window.sessionStorage.removeItem(testKey);
+      } catch (testError) {
+        console.error('[AuthService] persistSession - sessionStorage is NOT writable:', {
+          errorName: (testError as any).name,
+          errorMessage: (testError as Error).message,
+          isQuotaExceeded: (testError as any).name === 'QuotaExceededError'
+        });
+        throw new Error('sessionStorage quota exceeded or not available');
+      }
+
       const json = JSON.stringify(payload);
       console.log('[AuthService] persistSession - Payload size:', json.length, 'bytes');
       window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, json);
@@ -281,6 +309,8 @@ export class AuthService {
       }
     } catch (e) {
       console.error('[AuthService] persistSession - ERROR storing to sessionStorage:', e, 'message:', (e as Error).message);
+      // As a fallback, store in a memory variable to at least keep the session during this page load
+      console.warn('[AuthService] persistSession - Using in-memory fallback only. Session will be lost on page reload!');
     }
   }
 
