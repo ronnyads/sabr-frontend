@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, finalize, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AUTH_REALM, AuthRealm } from '../tokens/auth-realm';
 import { normalizeRole } from '../utils/role-labels';
@@ -28,6 +28,7 @@ export interface AuthLoginResponse {
   expiresAt: string;
   accountType: 'admin' | 'client';
   user: AuthUser;
+  refreshToken?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -36,6 +37,9 @@ export class AuthService {
   private accessToken: string | null = null;
   private user: AuthUser | null = null;
   private accountType: 'admin' | 'client' | null = null;
+  private refreshToken: string | null = null;
+  private expiresAt: string | null = null;
+  private refreshInProgress$: Observable<AuthLoginResponse> | null = null;
   private readonly apiBaseUrl = environment.apiBaseUrl;
 
   constructor(
@@ -63,22 +67,45 @@ export class AuthService {
     return !!this.accessToken;
   }
 
+  isTokenFresh(): boolean {
+    if (!this.accessToken || !this.expiresAt) return false;
+    const expiry = new Date(this.expiresAt).getTime();
+    const bufferMs = 5 * 60 * 1000;
+    return expiry - Date.now() > bufferMs;
+  }
+
   login(email: string, password: string): Observable<AuthLoginResponse> {
     const payload = { email, password };
     return this.http
-      .post<AuthLoginResponse>(`${this.apiBaseUrl}${this.authBasePath()}/login`, payload)
+      .post<AuthLoginResponse>(`${this.apiBaseUrl}${this.authBasePath()}/login`, payload, {
+        withCredentials: true
+      })
       .pipe(tap((response) => this.setSession(response)));
   }
 
   refresh(): Observable<AuthLoginResponse> {
-    return this.http
-      .post<AuthLoginResponse>(`${this.apiBaseUrl}${this.authBasePath()}/refresh`, {})
-      .pipe(tap((response) => this.setSession(response)));
+    if (this.refreshInProgress$) return this.refreshInProgress$;
+
+    this.refreshInProgress$ = this.http
+      .post<AuthLoginResponse>(
+        `${this.apiBaseUrl}${this.authBasePath()}/refresh`,
+        this.refreshToken ? { refreshToken: this.refreshToken } : {},
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((response) => this.setSession(response)),
+        finalize(() => {
+          this.refreshInProgress$ = null;
+        }),
+        shareReplay(1)
+      );
+
+    return this.refreshInProgress$;
   }
 
   logout(): Observable<void> {
     return this.http
-      .post<void>(`${this.apiBaseUrl}${this.authBasePath()}/logout`, {})
+      .post<void>(`${this.apiBaseUrl}${this.authBasePath()}/logout`, {}, { withCredentials: true })
       .pipe(tap(() => this.clearSession()));
   }
 
@@ -93,6 +120,8 @@ export class AuthService {
     this.accessToken = null;
     this.user = null;
     this.accountType = null;
+    this.refreshToken = null;
+    this.expiresAt = null;
     this.tenantService.clearDevSlug();
     this.clearPersistedSession();
   }
@@ -115,6 +144,8 @@ export class AuthService {
     const raw = response as any;
     const rawUser = raw?.user ?? raw?.User ?? null;
     const accessToken = raw?.accessToken ?? raw?.AccessToken ?? null;
+    this.refreshToken = raw?.refreshToken ?? raw?.RefreshToken ?? null;
+    this.expiresAt = raw?.expiresAt ?? raw?.ExpiresAt ?? null;
     const accountTypeRaw =
       raw?.accountType ??
       raw?.AccountType ??
@@ -191,6 +222,8 @@ export class AuthService {
         accessToken?: string | null;
         user?: AuthUser | null;
         accountType?: 'admin' | 'client' | null;
+        refreshToken?: string | null;
+        expiresAt?: string | null;
       };
 
       if (!parsed || !parsed.accessToken || !parsed.user || !parsed.accountType) {
@@ -201,6 +234,8 @@ export class AuthService {
       this.accessToken = parsed.accessToken;
       this.user = parsed.user;
       this.accountType = parsed.accountType;
+      this.refreshToken = parsed.refreshToken ?? null;
+      this.expiresAt = parsed.expiresAt ?? null;
       this.syncTenantContext(parsed.user);
     } catch {
       this.clearPersistedSession();
@@ -220,7 +255,9 @@ export class AuthService {
     const payload = {
       accessToken: this.accessToken,
       user: this.user,
-      accountType: this.accountType
+      accountType: this.accountType,
+      refreshToken: this.refreshToken,
+      expiresAt: this.expiresAt
     };
     window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, JSON.stringify(payload));
   }
