@@ -182,6 +182,10 @@ export class AuthService {
     this.accessToken = accessToken;
     this.user = normalizedUser;
     this.accountType = resolvedAccountType;
+    console.log('[AuthService] setSession - Token set:', !!accessToken, 'Email:', normalizedUser?.email);
+    if (!this.refreshToken) {
+      console.warn('[AuthService] refreshToken is null after setSession!', { raw });
+    }
     this.syncTenantContext(normalizedUser);
     this.persistSession();
   }
@@ -214,6 +218,7 @@ export class AuthService {
 
     try {
       const raw = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+      console.log('[AuthService] hydrateSession - Found stored session:', !!raw);
       if (!raw) {
         return;
       }
@@ -227,6 +232,7 @@ export class AuthService {
       };
 
       if (!parsed || !parsed.accessToken || !parsed.user || !parsed.accountType) {
+        console.log('[AuthService] hydrateSession - Invalid parsed data:', { token: !!parsed?.accessToken, user: !!parsed?.user, accountType: !!parsed?.accountType });
         this.clearPersistedSession();
         return;
       }
@@ -236,8 +242,10 @@ export class AuthService {
       this.accountType = parsed.accountType;
       this.refreshToken = parsed.refreshToken ?? null;
       this.expiresAt = parsed.expiresAt ?? null;
+      console.log('[AuthService] hydrateSession - Session restored:', { email: parsed.user.email, accountType: parsed.accountType });
       this.syncTenantContext(parsed.user);
-    } catch {
+    } catch (e) {
+      console.error('[AuthService] hydrateSession - Error:', e);
       this.clearPersistedSession();
     }
   }
@@ -248,6 +256,7 @@ export class AuthService {
     }
 
     if (!this.accessToken || !this.user || !this.accountType) {
+      console.log('[AuthService] persistSession - Missing required fields:', { token: !!this.accessToken, user: !!this.user, accountType: !!this.accountType });
       this.clearPersistedSession();
       return;
     }
@@ -260,6 +269,7 @@ export class AuthService {
       expiresAt: this.expiresAt
     };
     window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, JSON.stringify(payload));
+    console.log('[AuthService] persistSession - Stored successfully:', { email: this.user.email, accountType: this.accountType });
   }
 
   private clearPersistedSession(): void {

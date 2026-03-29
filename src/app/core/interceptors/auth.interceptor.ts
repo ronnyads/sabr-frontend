@@ -11,8 +11,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  if (!token) return next(req);
+  if (!token) {
+    console.log('[AuthInterceptor] No token available for URL:', req.url);
+    return next(req);
+  }
 
+  console.log('[AuthInterceptor] Attaching token to URL:', req.url);
   return next(
     req.clone({
       setHeaders: {
