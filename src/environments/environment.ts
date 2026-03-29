@@ -1,6 +1,12 @@
+const runtimeApiBase =
+  (typeof window !== 'undefined' && (window as any).__API_BASE_URL__) || undefined;
+
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://sabr-api-dev.fly.dev/api/v1',
+  apiBaseUrl:
+    runtimeApiBase && runtimeApiBase !== '__API_BASE_URL__'
+      ? runtimeApiBase
+      : 'https://api.marketplaceonline.site/api/v1',
   devTenant: 'sabr',
   authDebugConsole: true,
   dataCache: {

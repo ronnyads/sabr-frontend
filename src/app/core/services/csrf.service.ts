@@ -26,7 +26,7 @@ export class CsrfService {
     const CSRF_TIMEOUT_MS = 2000;
 
     return firstValueFrom(
-      this.http.get(url).pipe(
+      this.http.get(url, { withCredentials: true }).pipe(
         timeout(CSRF_TIMEOUT_MS),
         tap(() => {
           if (typeof window !== 'undefined') {

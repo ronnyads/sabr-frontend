@@ -107,7 +107,6 @@ export class Login implements OnDestroy, OnInit {
       this.form.markAllAsTouched();
       return;
     }
-
     const email = this.form.value.email ?? '';
     const password = this.form.value.password ?? '';
     this.loading = true;
@@ -168,7 +167,7 @@ export class Login implements OnDestroy, OnInit {
           } as const;
 
           if (err?.status === 409 && this.isTenantAmbiguousError(err)) {
-            this.errorMessage = 'Nao foi possivel identificar sua empresa automaticamente. Contate o suporte.';
+            this.errorMessage = 'Não foi possível identificar sua empresa automaticamente. Contate o suporte.';
             this.authDebugLog.logLoginError({
               ...baseMeta,
               reason: 'tenant_ambiguous',
@@ -178,7 +177,7 @@ export class Login implements OnDestroy, OnInit {
           }
 
           if (err?.status === 401) {
-            this.errorMessage = 'E-mail ou senha invalidos. Confira os dados e tente novamente.';
+            this.errorMessage = 'E-mail ou senha inválidos. Confira os dados e tente novamente.';
             this.authDebugLog.logLoginError({
               ...baseMeta,
               reason: 'invalid_credentials',

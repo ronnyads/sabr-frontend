@@ -11,6 +11,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { requestIdInterceptor } from './core/interceptors/request-id.interceptor';
 import { tenantInterceptor } from './core/interceptors/tenant.interceptor';
+import { apiCredentialsInterceptor } from './core/interceptors/api-credentials.interceptor';
 import { CsrfService } from './core/services/csrf.service';
 import { AUTH_REALM } from './core/tokens/auth-realm';
 import { GlobalErrorHandler } from './core/observability/global-error.handler';
@@ -23,7 +24,13 @@ export const appConfigClient: ApplicationConfig = {
     { provide: LOCALE_ID, useValue: 'pt-BR' },
     { provide: DEFAULT_CURRENCY_CODE, useValue: 'BRL' },
     provideHttpClient(
-      withInterceptors([requestIdInterceptor, tenantInterceptor, authInterceptor, errorInterceptor]),
+      withInterceptors([
+        apiCredentialsInterceptor,
+        requestIdInterceptor,
+        tenantInterceptor,
+        authInterceptor,
+        errorInterceptor
+      ]),
       withXsrfConfiguration({
         cookieName: 'XSRF-TOKEN',
         headerName: 'X-XSRF-TOKEN'

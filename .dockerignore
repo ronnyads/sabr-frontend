@@ -1,0 +1,11 @@
+.git
+.gitignore
+.vscode
+.angular
+node_modules
+.DS_Store
+Thumbs.db
+*.log
+.sass-cache
+.idea
+# Mantém dist/ para o Docker

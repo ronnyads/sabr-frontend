@@ -8,7 +8,7 @@
     "start:client:stack": "powershell -ExecutionPolicy Bypass -File \"../Outros projetos/scripts/dev-client.ps1\"",
     "start:admin": "ng serve --configuration admin-development",
     "check:api": "powershell -ExecutionPolicy Bypass -File \"../Outros projetos/scripts/check-api.ps1\"",
-    "build": "ng build",
+    "build": "ng build && ng build --configuration admin-production",
     "build:client": "ng build --configuration production",
     "build:admin": "ng build --configuration admin-production",
     "build:client:dev:deploy": "ng build --configuration client-dev-deploy",

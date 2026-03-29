@@ -6,6 +6,20 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      var current = (window.__API_BASE_URL__ || '').trim();
+      var host = (window.location && window.location.hostname || '').toLowerCase();
+      var isAdmin = host.startsWith('admin.');
+      var fallback = isAdmin
+        ? 'https://api.marketplaceonline.site'
+        : 'https://api.marketplaceonline.site/api/v1';
+
+      if (!current || current.indexOf('__API_BASE_URL__') >= 0) {
+        window.__API_BASE_URL__ = fallback;
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>
