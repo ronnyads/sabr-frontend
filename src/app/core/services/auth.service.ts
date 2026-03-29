@@ -218,27 +218,39 @@ export class AuthService {
       return;
     }
 
+    let raw: string | null = null;
+
+    // Try sessionStorage first
     try {
-      // Verify sessionStorage is accessible first
+      const testKey = '__auth_test_' + Date.now();
+      window.sessionStorage.setItem(testKey, '1');
+      window.sessionStorage.removeItem(testKey);
+      raw = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+      if (raw) {
+        console.log('[AuthService] hydrateSession - Restored from sessionStorage');
+      }
+    } catch (e) {
+      console.warn('[AuthService] hydrateSession - sessionStorage failed, trying localStorage');
+    }
+
+    // Fallback to localStorage if sessionStorage didn't work
+    if (!raw) {
       try {
-        const testKey = '__auth_test_' + Date.now();
-        window.sessionStorage.setItem(testKey, '1');
-        window.sessionStorage.removeItem(testKey);
-      } catch (testError) {
-        console.warn('[AuthService] hydrateSession - sessionStorage not accessible:', {
-          errorName: (testError as any).name,
-          errorMessage: (testError as Error).message,
-          isQuotaExceeded: (testError as any).name === 'QuotaExceededError'
-        });
-        return;
+        raw = window.localStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+        if (raw) {
+          console.log('[AuthService] hydrateSession - Restored from localStorage (fallback)');
+        }
+      } catch (e) {
+        console.error('[AuthService] hydrateSession - Both storages failed');
       }
+    }
 
-      const raw = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
-      console.log('[AuthService] hydrateSession - Found stored session:', !!raw, raw ? `(${raw.length} chars)` : '');
-      if (!raw) {
-        return;
-      }
+    console.log('[AuthService] hydrateSession - Found stored session:', !!raw);
+    if (!raw) {
+      return;
+    }
 
+    try {
       const parsed = JSON.parse(raw) as {
         accessToken?: string | null;
         user?: AuthUser | null;
@@ -265,7 +277,6 @@ export class AuthService {
       this.clearPersistedSession();
     }
   }
-
   private persistSession(): void {
     if (typeof window === 'undefined') {
       return;
