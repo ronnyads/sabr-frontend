@@ -111,7 +111,7 @@ export class AuthService {
 
   changePassword(newPassword: string): Observable<{ success: boolean }> {
     return this.http.post<{ success: boolean }>(
-      `${this.apiBaseUrl}/api/v1/auth/change-password`,
+      `${this.apiBaseUrl}/auth/change-password`,
       { newPassword }
     );
   }
@@ -219,33 +219,46 @@ export class AuthService {
     }
 
     let raw: string | null = null;
+    let restoredFrom = 'none';
 
-    // Try sessionStorage first
+    // LAYER 1: Try sessionStorage first
     try {
       const testKey = '__auth_test_' + Date.now();
       window.sessionStorage.setItem(testKey, '1');
       window.sessionStorage.removeItem(testKey);
       raw = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
       if (raw) {
+        restoredFrom = 'sessionStorage';
         console.log('[AuthService] hydrateSession - Restored from sessionStorage');
       }
     } catch (e) {
-      console.warn('[AuthService] hydrateSession - sessionStorage failed, trying localStorage');
+      console.warn('[AuthService] hydrateSession - sessionStorage unavailable:', (e as Error).message);
     }
 
-    // Fallback to localStorage if sessionStorage didn't work
+    // LAYER 2: Try localStorage if sessionStorage didn't work
     if (!raw) {
       try {
         raw = window.localStorage.getItem(AuthService.SESSION_STORAGE_KEY);
         if (raw) {
+          restoredFrom = 'localStorage';
           console.log('[AuthService] hydrateSession - Restored from localStorage (fallback)');
         }
       } catch (e) {
-        console.error('[AuthService] hydrateSession - Both storages failed');
+        console.warn('[AuthService] hydrateSession - localStorage unavailable:', (e as Error).message);
       }
     }
 
-    console.log('[AuthService] hydrateSession - Found stored session:', !!raw);
+    // LAYER 3: Try memory fallback if neither storage worked
+    if (!raw) {
+      const memSession = (window as any).__authSession__;
+      if (memSession) {
+        raw = JSON.stringify(memSession);
+        restoredFrom = 'memory';
+        console.log('[AuthService] hydrateSession - Restored from memory fallback (window.__authSession__)');
+      }
+    }
+
+    console.log('[AuthService] hydrateSession - Found stored session:', !!raw, '- Source:', restoredFrom);
     if (!raw) {
       return;
     }
@@ -270,10 +283,10 @@ export class AuthService {
       this.accountType = parsed.accountType;
       this.refreshToken = parsed.refreshToken ?? null;
       this.expiresAt = parsed.expiresAt ?? null;
-      console.log('[AuthService] hydrateSession - Session restored:', { email: parsed.user.email, accountType: parsed.accountType });
+      console.log('[AuthService] hydrateSession - Session fully restored:', { email: parsed.user.email, accountType: parsed.accountType, restoredFrom });
       this.syncTenantContext(parsed.user);
     } catch (e) {
-      console.error('[AuthService] hydrateSession - Error:', e);
+      console.error('[AuthService] hydrateSession - Error parsing session:', e);
       this.clearPersistedSession();
     }
   }
@@ -295,33 +308,50 @@ export class AuthService {
       refreshToken: this.refreshToken,
       expiresAt: this.expiresAt
     };
-    try {
-      // Check if sessionStorage is available and writable
-      const testKey = '__auth_test_' + Date.now();
-      try {
-        window.sessionStorage.setItem(testKey, '1');
-        window.sessionStorage.removeItem(testKey);
-      } catch (testError) {
-        console.error('[AuthService] persistSession - sessionStorage is NOT writable:', {
-          errorName: (testError as any).name,
-          errorMessage: (testError as Error).message,
-          isQuotaExceeded: (testError as any).name === 'QuotaExceededError'
-        });
-        throw new Error('sessionStorage quota exceeded or not available');
-      }
 
-      const json = JSON.stringify(payload);
-      console.log('[AuthService] persistSession - Payload size:', json.length, 'bytes');
+    const json = JSON.stringify(payload);
+    let stored = false;
+    let storageType = 'none';
+
+    // LAYER 1: ALWAYS store in memory as ultimate fallback
+    (window as any).__authSession__ = payload;
+    console.log('[AuthService] persistSession - Stored in memory (always available)');
+
+    // LAYER 2: Try sessionStorage
+    try {
+      const testKey = '__auth_test_' + Date.now();
+      window.sessionStorage.setItem(testKey, '1');
+      window.sessionStorage.removeItem(testKey);
       window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, json);
-      const stored = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
-      console.log('[AuthService] persistSession - Stored successfully:', { email: this.user.email, accountType: this.accountType, verified: !!stored, storedSize: stored?.length });
-      if (!stored) {
-        console.warn('[AuthService] persistSession - WARNING: setItem succeeded but getItem returns empty!');
+      const verify = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+      if (verify) {
+        stored = true;
+        storageType = 'sessionStorage';
+        console.log('[AuthService] persistSession - Stored in sessionStorage:', { email: this.user.email, accountType: this.accountType, size: json.length });
       }
     } catch (e) {
-      console.error('[AuthService] persistSession - ERROR storing to sessionStorage:', e, 'message:', (e as Error).message);
-      // As a fallback, store in a memory variable to at least keep the session during this page load
-      console.warn('[AuthService] persistSession - Using in-memory fallback only. Session will be lost on page reload!');
+      console.warn('[AuthService] persistSession - sessionStorage failed:', { errorName: (e as any).name, message: (e as Error).message });
+    }
+
+    // LAYER 3: If sessionStorage failed, try localStorage
+    if (!stored) {
+      try {
+        window.localStorage.setItem(AuthService.SESSION_STORAGE_KEY, json);
+        const verify = window.localStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+        if (verify) {
+          stored = true;
+          storageType = 'localStorage';
+          console.log('[AuthService] persistSession - Stored in localStorage (fallback):', { email: this.user.email, accountType: this.accountType });
+        }
+      } catch (e) {
+        console.warn('[AuthService] persistSession - localStorage failed:', { errorName: (e as any).name, message: (e as Error).message });
+      }
+    }
+
+    if (!stored) {
+      console.warn('[AuthService] persistSession - Both storage layers failed. Session persists ONLY in memory (window.__authSession__). Will be lost on page reload.');
+    } else {
+      console.log('[AuthService] persistSession - Successfully persisted via:', storageType);
     }
   }
 
@@ -330,7 +360,26 @@ export class AuthService {
       return;
     }
 
-    window.sessionStorage.removeItem(AuthService.SESSION_STORAGE_KEY);
+    // Clear from all 3 storage layers
+    try {
+      window.sessionStorage.removeItem(AuthService.SESSION_STORAGE_KEY);
+    } catch (e) {
+      // Ignore errors
+    }
+
+    try {
+      window.localStorage.removeItem(AuthService.SESSION_STORAGE_KEY);
+    } catch (e) {
+      // Ignore errors
+    }
+
+    try {
+      delete (window as any).__authSession__;
+    } catch (e) {
+      // Ignore errors
+    }
+
+    console.log('[AuthService] clearPersistedSession - Cleared from all storage layers');
   }
 
   private syncTenantContext(user: AuthUser | null): void {
