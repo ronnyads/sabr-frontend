@@ -117,6 +117,8 @@ export class AuthService {
   }
 
   clearSession(): void {
+    console.log('[AuthService] clearSession called - Clearing all auth data');
+    console.trace('[AuthService] clearSession stack trace');
     this.accessToken = null;
     this.user = null;
     this.accountType = null;
@@ -268,8 +270,13 @@ export class AuthService {
       refreshToken: this.refreshToken,
       expiresAt: this.expiresAt
     };
-    window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, JSON.stringify(payload));
-    console.log('[AuthService] persistSession - Stored successfully:', { email: this.user.email, accountType: this.accountType });
+    try {
+      window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, JSON.stringify(payload));
+      const stored = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+      console.log('[AuthService] persistSession - Stored successfully:', { email: this.user.email, accountType: this.accountType, verified: !!stored });
+    } catch (e) {
+      console.error('[AuthService] persistSession - ERROR storing to sessionStorage:', e);
+    }
   }
 
   private clearPersistedSession(): void {
