@@ -40,16 +40,27 @@ nb-card-footer {
   color:            var(--sabr-text)         !important;
 }
 
-// nb-input — remover fundo branco e texto escuro
+// nb-input — remover fundo branco, melhorar UX (altura, padding, border-radius, focus ring)
 nb-input,
 input[nbInput],
 textarea[nbInput] {
   background-color: var(--sabr-surface-soft) !important;
   border-color:     var(--sabr-border)       !important;
   color:            var(--sabr-text)         !important;
+  height:           44px !important;                                    // altura consistente
+  padding:          0 14px !important;                                  // padding lateral uniforme
+  border-radius:    var(--sabr-radius-control) !important;              // arredondamento
+  border-width:     1px !important;
+  border-style:     solid !important;
+  transition:       border-color var(--sabr-transition-fast),
+                    box-shadow var(--sabr-transition-fast) !important;
 
   &::placeholder { color: var(--sabr-text-subtle) !important; }
-  &:focus        { border-color: var(--sabr-primary) !important; }
+
+  &:focus {
+    border-color: var(--sabr-border-focus) !important;
+    box-shadow:   0 0 0 3px var(--sabr-primary-weak) !important;  // ring de foco visível
+  }
 }
 
 // nb-select trigger
@@ -289,7 +300,7 @@ nb-option.selected {
 
 .onboarding-shell nb-select .select-button:focus,
 .onboarding-shell nb-select .select-button:hover {
-  border-color: rgba(45, 111, 255, 0.40) !important;
+  border-color: var(--sabr-primary) !important;  // fix: era rgba(45,111,255,0.40) hardcoded azul
   background:   var(--sabr-primary-weak) !important;
 }
 

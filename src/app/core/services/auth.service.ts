@@ -193,7 +193,8 @@ export class AuthService {
   }
 
   private authBasePath(): string {
-    return this.realm === 'admin' ? '/api/v1/admin/auth' : '/api/v1/auth';
+    // apiBaseUrl já contém /api/v1, então retornar apenas o sufixo
+    return this.realm === 'admin' ? '/admin/auth' : '/auth';
   }
 
   private normalizeAccountType(value: unknown): 'admin' | 'client' | null {
