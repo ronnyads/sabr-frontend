@@ -550,6 +550,10 @@
                 <strong>{{ suggestedTitle || 'Preencha o SKU para gerar sugestao.' }}</strong>
               </div>
               <button nbButton status="basic" size="small" (click)="copySuggestedTitle()">Copiar sugestao</button>
+              <button nbButton status="info" size="small" (click)="generateAiTitle()" [disabled]="loadingAiTitle">
+                <span *ngIf="!loadingAiTitle">✨ Sugerir titulo</span>
+                <span *ngIf="loadingAiTitle">Gerando...</span>
+              </button>
             </div>
 
             <label>
@@ -559,6 +563,10 @@
                 <button type="button">I</button>
                 <button type="button">Lista</button>
                 <button type="button">Link</button>
+                <button type="button" (click)="generateAiDescription()" [disabled]="loadingAiDescription" nbButton status="info" size="small">
+                  <span *ngIf="!loadingAiDescription">✨ Melhorar</span>
+                  <span *ngIf="loadingAiDescription">Gerando...</span>
+                </button>
               </div>
               <textarea nbInput fullWidth rows="10" [ngModel]="state.description" (ngModelChange)="state.description = $event; onFieldChanged()"></textarea>
               <small>{{ descriptionLength }} caracteres</small>
@@ -703,7 +711,7 @@
             [class.sidebar-card--focus]="currentStep === 'fiscal'"
             [class.section-error]="publishInputInvalid"
           >
-            <h4>Fiscal e imagens</h4>
+            <h4>Fiscal, envio e imagens</h4>
             <div class="sidebar-summary">
               <p><span>GTIN</span><strong>{{ state.gtin || '-' }}</strong></p>
               <p><span>NCM</span><strong>{{ state.ncm || '-' }}</strong></p>
@@ -728,6 +736,38 @@
                 Origem
                 <input nbInput fullWidth [ngModel]="state.origin" (ngModelChange)="state.origin = $event; onFieldChanged()" />
               </label>
+              <label>
+                Tipo de garantia
+                <select [ngModel]="state.warrantyType" (ngModelChange)="state.warrantyType = $event; onFieldChanged()">
+                  <option [value]="null">Selecione...</option>
+                  <option value="Garantia do fabricante">Garantia do fabricante</option>
+                  <option value="Garantia do vendedor">Garantia do vendedor</option>
+                </select>
+              </label>
+              <label>
+                Tempo de garantia
+                <select [ngModel]="state.warrantyTime" (ngModelChange)="state.warrantyTime = $event; onFieldChanged()">
+                  <option [value]="null">Selecione...</option>
+                  <option value="90 dias">90 dias</option>
+                  <option value="6 meses">6 meses</option>
+                  <option value="12 meses">12 meses</option>
+                  <option value="24 meses">24 meses</option>
+                </select>
+              </label>
+              <label>
+                <input type="checkbox" [ngModel]="state.freeShipping" (ngModelChange)="state.freeShipping = $event; onFieldChanged()" />
+                Frete grátis
+              </label>
+            </div>
+            <div class="inline-row">
+              <button nbButton status="info" size="small" (click)="generateAiWarranty()" [disabled]="loadingAiWarranty">
+                <span *ngIf="!loadingAiWarranty">✨ Sugerir garantia</span>
+                <span *ngIf="loadingAiWarranty">Gerando...</span>
+              </button>
+              <button nbButton status="info" size="small" (click)="generateAiShipping()" [disabled]="loadingAiShipping">
+                <span *ngIf="!loadingAiShipping">✨ Analisar frete</span>
+                <span *ngIf="loadingAiShipping">Analisando...</span>
+              </button>
             </div>
             <small *ngIf="publishInputInvalid" class="field-hint field-hint-error">
               Verifique GTIN/EMPTY_GTIN_REASON, NCM e origem antes de publicar novamente.

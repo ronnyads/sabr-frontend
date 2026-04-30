@@ -45,7 +45,7 @@ export class CatalogService {
     }
 
     const request$ = this.http
-      .get<PagedResult<CatalogProduct>>(`${this.apiBaseUrl}/api/v1/catalog/products`, { params })
+      .get<PagedResult<CatalogProduct>>(`${this.apiBaseUrl}/catalog/products`, { params })
       .pipe(
         catchError((error) => {
           this.listCache.delete(cacheKey);

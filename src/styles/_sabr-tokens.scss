@@ -45,8 +45,8 @@
   --sabr-shadow-glow:    0 0 24px rgba(124, 58, 237, 0.25);  // indigo glow (era azul)
 
   // ── Gradients — Prometheus Fire ────────────────────────────────────────────
-  --sabr-gradient-brand: linear-gradient(135deg, #7C3AED 0%, #F59E0B 100%);  // indigo → amber
-  --sabr-gradient-bg:    linear-gradient(160deg, rgba(124,58,237,0.04) 0%, rgba(245,158,11,0.02) 100%);
+  --sabr-gradient-brand: linear-gradient(135deg, #312e81 0%, #7C3AED 100%);  // deep indigo → indigo
+  --sabr-gradient-bg:    linear-gradient(160deg, rgba(124,58,237,0.04) 0%, rgba(124,58,237,0.02) 100%);
 
   // ── Radius ─────────────────────────────────────────────────────────────────
   --sabr-radius-card:    16px;
@@ -106,15 +106,15 @@
 
 // ── Light mode — Prometheus Fire + WCAG AA contraste ────────────────────────
 :root[data-theme='light'] {
-  --sabr-bg:             #ffffff;
-  --sabr-bg-strong:      #f8fafc;
+  --sabr-bg:             #f4f6f9;   // off-white cool
+  --sabr-bg-strong:      #edf0f5;
   --sabr-bg-accent:      rgba(109, 40, 217, 0.06);      // indigo accent
   --sabr-bg-accent-alt:  rgba(217, 119, 6, 0.05);       // amber accent
 
-  // Hierarquia de surface — surface-raised agora diferente (dá elevação visual)
+  // Hierarquia de surface — cards brancos sobre fundo cinzento
   --sabr-surface:        #ffffff;
   --sabr-surface-soft:   #f1f5f9;
-  --sabr-surface-raised: #f8fafc;  // era #ffffff — agora tem profundidade
+  --sabr-surface-raised: #ffffff;  // cards elevados ficam brancos sobre --sabr-bg off-white
 
   --sabr-text:           #0f172a;
   --sabr-text-muted:     #64748b;
@@ -143,7 +143,7 @@
   --sabr-warning:        #d97706;
   --sabr-danger:         #dc2626;
 
-  --sabr-gradient-brand: linear-gradient(135deg, #6D28D9 0%, #D97706 100%);  // indigo → amber
+  --sabr-gradient-brand: linear-gradient(135deg, #1e1b4b 0%, #6D28D9 100%);  // dark navy indigo → indigo
   --sabr-border-focus:   var(--sabr-primary);
 }
 
@@ -168,6 +168,6 @@
   --sabr-border:         rgba(255, 255, 255, 0.06);
   --sabr-border-strong:  rgba(255, 255, 255, 0.12);
   --sabr-shadow-glow:    0 0 24px rgba(124, 58, 237, 0.25);
-  --sabr-gradient-brand: linear-gradient(135deg, #7C3AED 0%, #F59E0B 100%);
+  --sabr-gradient-brand: linear-gradient(135deg, #312e81 0%, #7C3AED 100%);
   --sabr-border-focus:   var(--sabr-primary);
 }

@@ -32,7 +32,7 @@ import { ThemeService } from '../../core/services/theme.service';
     NbIconModule
   ],
   templateUrl: './login.html',
-  styleUrls: ['./login.scss']
+  styleUrls: ['./login.scss'] // v1
 })
 export class Login implements OnDestroy, OnInit {
   form: FormGroup;

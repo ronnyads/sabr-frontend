@@ -134,7 +134,7 @@ export class AuthServiceIntegrated implements OnDestroy {
 
   changePassword(newPassword: string): Observable<{ success: boolean }> {
     return this.http.post<{ success: boolean }>(
-      `${this.apiBaseUrl}/api/v1/auth/change-password`,
+      `${this.apiBaseUrl}/auth/change-password`,
       { newPassword }
     );
   }

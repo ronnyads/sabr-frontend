@@ -56,6 +56,6 @@ export class CatalogSnapshotService {
   constructor(private readonly http: HttpClient) {}
 
   getVariantSnapshot(request: CatalogVariantSnapshotRequest): Observable<CatalogVariantSnapshotResult> {
-    return this.http.post<CatalogVariantSnapshotResult>(`${this.apiBaseUrl}/api/v1/client/catalog/variants/snapshot`, request);
+    return this.http.post<CatalogVariantSnapshotResult>(`${this.apiBaseUrl}/client/catalog/variants/snapshot`, request);
   }
 }

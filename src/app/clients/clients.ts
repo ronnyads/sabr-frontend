@@ -88,6 +88,7 @@ export class Clients implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.adminTenantContext.clear();
     combineLatest([
       this.searchControl.valueChanges.pipe(startWith(this.searchControl.value), debounceTime(250), distinctUntilChanged()),
       this.statusFilterControl.valueChanges.pipe(startWith(this.statusFilterControl.value), distinctUntilChanged())
@@ -363,28 +364,19 @@ export class Clients implements OnInit, OnDestroy {
       return;
     }
 
-    this.errorMessage = '';
-    localStorage.setItem(this.lastTenantKey, client.tenantId);
-    localStorage.setItem(
-      this.lastTenantContextKey,
-      JSON.stringify({
-        tenantId: client.tenantId,
-        accountName: client.accountName,
-        protheusCode: client.protheusCode
-      })
-    );
-    void this.router.navigate([`/t/${client.tenantId}/users`]);
-  }
-
-  openCatalogs(client: ClientResult): void {
     const tenantSlug = (client.tenantSlug ?? '').trim().toLowerCase();
     if (!tenantSlug) {
-      this.toastr.warning('Cliente sem tenant slug ativo para abrir catalogos.', 'Tenant ausente');
+      this.toastr.warning('Cliente sem tenant slug ativo para abrir usuarios.', 'Tenant ausente');
       return;
     }
 
     this.adminTenantContext.set(tenantSlug, client.accountName, client.id);
-    void this.router.navigate([`/t/${tenantSlug}/catalogs`]);
+    void this.router.navigate([`/t/${tenantSlug}/users`]);
+  }
+
+  openCatalogs(client: ClientResult): void {
+    this.adminTenantContext.set(client.tenantSlug ?? client.tenantId, client.accountName, client.id);
+    void this.router.navigate(['/admin/catalogs']);
   }
 
   openPlans(client: ClientResult): void {
@@ -395,7 +387,7 @@ export class Clients implements OnInit, OnDestroy {
     }
 
     this.adminTenantContext.set(tenantSlug, client.accountName, client.id);
-    void this.router.navigate([`/t/${tenantSlug}/clients/${client.id}/plans`]);
+    void this.router.navigate([`/admin/clients/${client.id}/subscriptions`]);
   }
 
   openIntegrations(client: ClientResult): void {
@@ -406,7 +398,7 @@ export class Clients implements OnInit, OnDestroy {
     }
 
     this.adminTenantContext.set(tenantSlug, client.accountName, client.id);
-    void this.router.navigate([`/t/${tenantSlug}/clients/${client.id}/integrations/mercadolivre`]);
+    void this.router.navigate([`/admin/clients/${client.id}/integrations/mercadolivre`]);
   }
 
   openDocuments(client: ClientResult): void {

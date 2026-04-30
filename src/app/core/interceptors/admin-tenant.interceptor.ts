@@ -2,7 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 export const adminTenantInterceptor: HttpInterceptorFn = (req, next) => {
-  if (!req.url.startsWith('/api/')) {
+  if (!req.url.includes('/api/')) {
     return next(req);
   }
 

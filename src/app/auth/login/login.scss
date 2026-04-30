@@ -63,9 +63,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 10% 20%, rgba(100, 180, 255, 0.28) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 70%, rgba(120, 80, 255, 0.22) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 100%, rgba(0, 200, 200, 0.18) 0%, transparent 45%);
+    radial-gradient(ellipse at 10% 20%, color-mix(in srgb, var(--sabr-primary) 28%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, color-mix(in srgb, var(--sabr-accent) 22%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--sabr-secondary) 18%, transparent) 0%, transparent 45%);
   animation: meshPulse 8s ease-in-out infinite alternate;
   pointer-events: none;
 }
@@ -149,7 +149,7 @@
 
 .login-hero h1 em {
   font-style: normal;
-  background: linear-gradient(90deg, #8dd4ff, #a5f3fc, #6de7ff);
+  background: var(--sabr-gradient-brand);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -496,11 +496,7 @@
 }
 
 .login-grid-v1 .login-hero {
-  background:
-    linear-gradient(135deg,
-      color-mix(in srgb, var(--sabr-primary) 88%, #1a2d80) 0%,
-      #0d2055 62%,
-      #07102e 100%);
+  background: var(--sabr-gradient-brand);
   box-shadow: inset -1px 0 0 color-mix(in srgb, #ffffff 12%, transparent);
 }
 
@@ -548,7 +544,7 @@
 
 /* Dark mode V1 */
 :host-context([data-theme='dark']) .login-grid-v1 .login-hero {
-  background: linear-gradient(130deg, #0b1940 0%, #0b2248 56%, #070e22 100%);
+  background: var(--sabr-gradient-brand);
 }
 
 :host-context([data-theme='dark']) .login-grid-v1 .login-panel {

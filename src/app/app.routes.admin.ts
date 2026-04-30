@@ -23,9 +23,9 @@ export const adminRoutes: Routes = [
       },
       {
         path: 'catalogs',
-        loadComponent: () => import('./admin/admin-catalogs-entry').then((m) => m.AdminCatalogsEntry)
+        loadComponent: () => import('./admin/admin-global-catalogs').then((m) => m.AdminGlobalCatalogs)
       },
-      { path: 'plans', loadComponent: () => import('./admin/admin-plans-entry').then((m) => m.AdminPlansEntry) },
+      { path: 'plans', loadComponent: () => import('./admin/admin-plans').then((m) => m.AdminPlans) },
       {
         path: 'integrations',
         loadComponent: () => import('./admin/admin-integrations-hub').then((m) => m.AdminIntegrationsHub)
@@ -36,8 +36,24 @@ export const adminRoutes: Routes = [
       },
       { path: 'orders', loadComponent: () => import('./admin/admin-orders').then((m) => m.AdminOrders) },
       { path: 'fulfillment', loadComponent: () => import('./admin/admin-fulfillment').then((m) => m.AdminFulfillment) },
+      { path: 'ai-prompts', loadComponent: () => import('./admin/admin-ai-prompts').then((m) => m.AdminAiPrompts) },
 
-      // Tenant-scoped admin pages (tenantId explicit in URL)
+      // Client-scoped admin pages (clientId in URL, tenant from context)
+      {
+        path: 'admin/clients/:clientId/subscriptions',
+        loadComponent: () =>
+          import('./admin/admin-client-plan-subscriptions').then((m) => m.AdminClientPlanSubscriptions)
+      },
+      {
+        path: 'admin/clients/:clientId/integrations/mercadolivre',
+        loadComponent: () => import('./admin/admin-ml-integrations').then((m) => m.AdminMlIntegrations)
+      },
+      {
+        path: 'admin/clients/:clientId/integrations/tinyerp',
+        loadComponent: () => import('./admin/admin-tiny-integration').then((m) => m.AdminTinyIntegration)
+      },
+
+      // Legacy tenant-scoped routes (backward compat — kept for existing bookmarks)
       { path: 't/:tenantId/users', loadComponent: () => import('./users/users').then((m) => m.Users) },
       {
         path: 't/:tenantId/catalogs',
@@ -79,7 +95,7 @@ export const adminRoutes: Routes = [
       },
       {
         path: 'admin/catalogs',
-        loadComponent: () => import('./admin/admin-catalogs-entry').then((m) => m.AdminCatalogsEntry)
+        loadComponent: () => import('./admin/admin-global-catalogs').then((m) => m.AdminGlobalCatalogs)
       },
       {
         path: 'admin/plans',
@@ -89,6 +105,11 @@ export const adminRoutes: Routes = [
         path: 'admin/integrations',
         loadComponent: () => import('./admin/admin-integrations-hub').then((m) => m.AdminIntegrationsHub)
       },
+      {
+        path: 'admin/ai-prompts',
+        loadComponent: () => import('./admin/admin-ai-prompts').then((m) => m.AdminAiPrompts)
+      },
+      { path: 'admin/plans/detail', loadComponent: () => import('./admin/admin-plans').then((m) => m.AdminPlans) },
       { path: 'admin/t/:tenantId/users', loadComponent: () => import('./users/users').then((m) => m.Users) },
       {
         path: 'admin/t/:tenantId/catalogs',

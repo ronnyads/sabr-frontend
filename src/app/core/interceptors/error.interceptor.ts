@@ -39,8 +39,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         });
       }
 
-      // Login/refresh/csrf auth errors are handled inline (avoid duplicated toasts).
-      if (error.status === 401 && isAuthEndpoint) {
+      // Auth errors (401, 400) em auth endpoints são tratados pelo auth.interceptor (auto-refresh + redirect).
+      // Não mostrar toast redundante.
+      if ((error.status === 401 || error.status === 400) && isAuthEndpoint) {
         return throwError(() => error);
       }
       if (error.status === 429 && isAuthLogin) {

@@ -20,7 +20,7 @@ export interface TinySyncResult {
 
 @Injectable({ providedIn: 'root' })
 export class TinyIntegrationService {
-  private base = `${environment.apiBaseUrl}/api/v1/client/integrations/tinyerp`;
+  private base = `${environment.apiBaseUrl}/client/integrations/tinyerp`;
 
   constructor(private http: HttpClient) {}
 

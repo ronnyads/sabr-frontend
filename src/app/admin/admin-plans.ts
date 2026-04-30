@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   NbButtonModule,
   NbInputModule,
@@ -18,7 +18,6 @@ import {
   BillingPeriod
 } from '../core/services/admin-plans.service';
 import { AdminCatalogResult, AdminCatalogsService } from '../core/services/admin-catalogs.service';
-import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
 import { UiStateComponent } from '../shared/ui-state/ui-state.component';
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
 import { SearchToolbarComponent, SearchToolbarFilter } from '../shared/search-toolbar/search-toolbar.component';
@@ -66,7 +65,6 @@ export class AdminPlans implements OnInit, OnDestroy {
     isActive: [true]
   });
 
-  tenantId = '';
   plans: AdminPlanResult[] = [];
   planActionsById: Record<string, RowActionMenuAction[]> = {};
   readonly billingPeriodOptions: BillingPeriod[] = ['Monthly', 'Quarterly', 'Semiannual', 'Annual'];
@@ -94,29 +92,14 @@ export class AdminPlans implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly toastr: NbToastrService,
-    private readonly tenantContext: AdminTenantContextService,
     private readonly plansService: AdminPlansService,
     private readonly catalogsService: AdminCatalogsService
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-      const routeTenant = (params.get('tenantId') ?? '').trim().toLowerCase();
-      if (!routeTenant) {
-        this.toastr.warning('Selecione um cliente/tenant antes de abrir Planos.', 'Tenant obrigatorio');
-        void this.router.navigate(['/clients']);
-        return;
-      }
-
-      this.tenantId = routeTenant;
-      this.tenantContext.set(this.tenantId);
-      this.skip = 0;
-      this.closeLinks();
-      this.loadPlans();
-    });
+    this.loadPlans();
 
     combineLatest([
       this.searchControl.valueChanges.pipe(startWith(this.searchControl.value), debounceTime(300), distinctUntilChanged()),
@@ -124,10 +107,6 @@ export class AdminPlans implements OnInit, OnDestroy {
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        if (!this.tenantId) {
-          return;
-        }
-
         this.updateToolbarFilters();
         this.skip = 0;
         this.loadPlans();
@@ -265,7 +244,7 @@ export class AdminPlans implements OnInit, OnDestroy {
   }
 
   savePlan(): void {
-    if (this.form.invalid || this.saving || !this.tenantId) {
+    if (this.form.invalid || this.saving) {
       this.form.markAllAsTouched();
       return;
     }
@@ -281,8 +260,8 @@ export class AdminPlans implements OnInit, OnDestroy {
     this.formError = null;
 
     const request$ = this.editingPlanId
-      ? this.plansService.update(this.tenantId, this.editingPlanId, request)
-      : this.plansService.create(this.tenantId, request);
+      ? this.plansService.update(this.editingPlanId, request)
+      : this.plansService.create(request);
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
@@ -299,7 +278,7 @@ export class AdminPlans implements OnInit, OnDestroy {
   }
 
   deactivate(plan: AdminPlanResult): void {
-    if (!this.tenantId || !plan.isActive) {
+    if (!plan.isActive) {
       return;
     }
 
@@ -308,7 +287,7 @@ export class AdminPlans implements OnInit, OnDestroy {
     }
 
     this.plansService
-      .deactivate(this.tenantId, plan.id)
+      .deactivate(plan.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -322,10 +301,6 @@ export class AdminPlans implements OnInit, OnDestroy {
   }
 
   openCatalogLinks(plan: AdminPlanResult): void {
-    if (!this.tenantId) {
-      return;
-    }
-
     this.linksOpen = true;
     this.linksLoading = true;
     this.linksSaving = false;
@@ -333,7 +308,7 @@ export class AdminPlans implements OnInit, OnDestroy {
     this.linksPlan = null;
 
     forkJoin({
-      plan: this.plansService.getById(this.tenantId, plan.id),
+      plan: this.plansService.getById(plan.id),
       catalogs: this.loadAllActiveCatalogs()
     })
       .pipe(takeUntil(this.destroy$))
@@ -388,7 +363,7 @@ export class AdminPlans implements OnInit, OnDestroy {
   }
 
   saveCatalogLinks(): void {
-    if (!this.linksPlan || !this.tenantId || this.linksSaving) {
+    if (!this.linksPlan || this.linksSaving) {
       return;
     }
 
@@ -406,7 +381,7 @@ export class AdminPlans implements OnInit, OnDestroy {
     }
 
     this.plansService
-      .replaceCatalogs(this.tenantId, this.linksPlan.id, sanitizedCatalogIds)
+      .replaceCatalogs(this.linksPlan.id, sanitizedCatalogIds)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (detail) => {
@@ -446,10 +421,6 @@ export class AdminPlans implements OnInit, OnDestroy {
   }
 
   private loadPlans(): void {
-    if (!this.tenantId) {
-      return;
-    }
-
     this.loading = true;
     this.errorMessage = null;
 
@@ -457,7 +428,7 @@ export class AdminPlans implements OnInit, OnDestroy {
     const isActive = activeFilter === 'all' ? null : activeFilter === 'active';
 
     this.plansService
-      .list(this.tenantId, this.skip, this.limit, this.searchControl.value, isActive)
+      .list(this.skip, this.limit, this.searchControl.value, isActive)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -507,7 +478,7 @@ export class AdminPlans implements OnInit, OnDestroy {
 
   private loadAllActiveCatalogs() {
     const pageSize = 200;
-    return this.catalogsService.list(this.tenantId, 0, pageSize, undefined, true).pipe(
+    return this.catalogsService.list(0, pageSize, undefined, true).pipe(
       switchMap((firstPage) => {
         const firstItems = firstPage.items ?? [];
         const total = firstPage.total ?? firstItems.length;
@@ -518,7 +489,7 @@ export class AdminPlans implements OnInit, OnDestroy {
         }
 
         const remainingRequests = Array.from({ length: totalPages - 1 }, (_, index) =>
-          this.catalogsService.list(this.tenantId, (index + 1) * pageSize, pageSize, undefined, true)
+          this.catalogsService.list((index + 1) * pageSize, pageSize, undefined, true)
         );
 
         return forkJoin(remainingRequests).pipe(

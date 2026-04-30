@@ -91,7 +91,7 @@ export class MyProductsService {
     };
 
     return this.http
-      .post<MyProductDraft>(`${this.apiBaseUrl}/api/v1/my-products`, payload, {
+      .post<MyProductDraft>(`${this.apiBaseUrl}/my-products`, payload, {
         headers,
         observe: 'response'
       })
@@ -103,7 +103,7 @@ export class MyProductsService {
 
   getMyProductById(draftId: string): Observable<MyProductDraft> {
     return this.http
-      .get<MyProductDraft>(`${this.apiBaseUrl}/api/v1/my-products/${draftId}`, { observe: 'response' })
+      .get<MyProductDraft>(`${this.apiBaseUrl}/my-products/${draftId}`, { observe: 'response' })
       .pipe(map((response) => this.mapDraftResponse(response)));
   }
 
@@ -146,7 +146,7 @@ export class MyProductsService {
     }
 
     const request$ = this.http
-      .get<PagedResult<MyProductDraft>>(`${this.apiBaseUrl}/api/v1/my-products`, { params })
+      .get<PagedResult<MyProductDraft>>(`${this.apiBaseUrl}/my-products`, { params })
       .pipe(
         catchError((error) => {
           this.listCache.delete(cacheKey);
@@ -174,7 +174,7 @@ export class MyProductsService {
     }
 
     return this.http
-      .put<MyProductDraft>(`${this.apiBaseUrl}/api/v1/my-products/${draftId}`, request, {
+      .put<MyProductDraft>(`${this.apiBaseUrl}/my-products/${draftId}`, request, {
         headers,
         observe: 'response'
       })
@@ -185,7 +185,7 @@ export class MyProductsService {
   }
 
   deleteMyProduct(draftId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/api/v1/my-products/${draftId}`).pipe(
+    return this.http.delete<void>(`${this.apiBaseUrl}/my-products/${draftId}`).pipe(
       tap(() => this.invalidate())
     );
   }

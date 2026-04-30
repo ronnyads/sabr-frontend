@@ -3,7 +3,7 @@ const runtimeApiBase =
 const resolvedApiBase =
   runtimeApiBase && !`${runtimeApiBase}`.includes('__API_BASE_URL__')
     ? runtimeApiBase
-    : 'https://api.marketplaceonline.site';
+    : 'https://api.marketplaceonline.site/api/v1';
 
 export const environment = {
   production: true,

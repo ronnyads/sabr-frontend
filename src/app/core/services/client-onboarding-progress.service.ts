@@ -11,7 +11,7 @@ export class ClientOnboardingProgressService {
 
   setStep(step: number): Observable<{ success: boolean; step: number }> {
     return this.http.put<{ success: boolean; step: number }>(
-      `${this.apiBaseUrl}/api/v1/client/onboarding/step`,
+      `${this.apiBaseUrl}/client/onboarding/step`,
       { step }
     );
   }

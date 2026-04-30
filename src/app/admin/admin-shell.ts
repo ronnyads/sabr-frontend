@@ -1,13 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { NbLayoutModule, NbOverlayContainerAdapter } from '@nebular/theme';
+import { Subject, filter, takeUntil } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
 import { roleLabelSystem } from '../core/utils/role-labels';
 import { SabrMenuItem } from '../shared/sabr-sidebar/sabr-sidebar.component';
 import { SabrShellLayoutComponent } from '../shared/sabr-shell-layout/sabr-shell-layout.component';
 import { environment } from '../../environments/environment';
+
+// Rotas que pertencem ao contexto de um cliente específico — NÃO limpam o contexto
+const TENANT_SCOPED_PATTERNS = [
+  /\/t\/[^/]+\//,             // /t/:tenantId/...
+  /\/admin\/clients\/[^/]+\//, // /admin/clients/:clientId/...
+];
 
 @Component({
   selector: 'app-admin-shell',
@@ -16,7 +23,8 @@ import { environment } from '../../environments/environment';
   templateUrl: './admin-shell.html',
   styleUrls: ['./admin-shell.scss']
 })
-export class AdminShell implements AfterViewInit {
+export class AdminShell implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   readonly shellRedesignV1 = !!environment.ui?.redesignShellV1;
   readonly darkModeEnabled = !!environment.ui?.darkModeV1;
   readonly menuItems: SabrMenuItem[] = [
@@ -30,7 +38,8 @@ export class AdminShell implements AfterViewInit {
     { label: 'Planos', icon: 'layers-outline', link: '/plans' },
     { label: 'Integrações', icon: 'link-2-outline', link: '/integrations' },
     { label: 'Pedidos', icon: 'shopping-bag-outline', link: '/orders' },
-    { label: 'Expedicao', icon: 'car-outline', link: '/fulfillment' }
+    { label: 'Expedicao', icon: 'car-outline', link: '/fulfillment' },
+    { label: 'Prompts de IA', icon: 'bulb-outline', link: '/ai-prompts' }
   ];
 
   constructor(
@@ -38,7 +47,24 @@ export class AdminShell implements AfterViewInit {
     private readonly tenantContext: AdminTenantContextService,
     private readonly host: ElementRef<HTMLElement>,
     private readonly overlayContainer: NbOverlayContainerAdapter,
+    private readonly router: Router
   ) {}
+
+  ngOnInit(): void {
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd), takeUntil(this.destroy$))
+      .subscribe((e) => {
+        const isTenantScoped = TENANT_SCOPED_PATTERNS.some((p) => p.test(e.urlAfterRedirects));
+        if (!isTenantScoped) {
+          this.tenantContext.clear();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   ngAfterViewInit(): void {
     const layout = this.host.nativeElement.querySelector('nb-layout');
@@ -73,7 +99,7 @@ export class AdminShell implements AfterViewInit {
     }
 
     const label = context.label?.trim();
-    return label ? `Cliente: ${label} • ${context.tenantId}` : `Tenant: ${context.tenantId}`;
+    return label ? `Cliente: ${label}` : `Cliente: ${context.tenantId}`;
   }
 
   logout(): void {

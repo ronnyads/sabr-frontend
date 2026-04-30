@@ -1,0 +1,101 @@
+<section class="sabr-page admin-ai-prompts-page">
+  <ng-template #headerActions>
+    <button nbButton status="primary" size="small" (click)="openForm()">Novo Prompt</button>
+  </ng-template>
+
+  <app-page-header
+    [title]="'Prompts de IA'"
+    [subtitle]="'Configure templates de prompts para sugerir títulos, descrições, garantias e frete.'"
+    [actionsTemplate]="headerActions"
+  ></app-page-header>
+
+  <div class="sabr-card panel" *ngIf="formOpen">
+    <form [formGroup]="form" class="editor-grid">
+      <div class="field">
+        <label>Feature</label>
+        <select nbInput formControlName="feature">
+          <option value="">Selecione...</option>
+          <option value="ml_title">ml_title - Sugerir título</option>
+          <option value="ml_description">ml_description - Melhorar descrição</option>
+          <option value="ml_sale_terms">ml_sale_terms - Sugerir garantia</option>
+          <option value="ml_shipping">ml_shipping - Analisar frete grátis</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Canal</label>
+        <select nbInput formControlName="channel">
+          <option value="">Selecione...</option>
+          <option value="mercadolivre">mercadolivre</option>
+          <option value="*">* (todos os canais)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Nome</label>
+        <input nbInput formControlName="name" placeholder="Ex: Sugerir título otimizado para ML" />
+      </div>
+
+      <div class="field full-width">
+        <label>Prompt Template</label>
+        <textarea nbInput formControlName="prompt" rows="8" placeholder="Use {placeholders} como {title}, {brand}, {category}, {price}, etc."></textarea>
+        <small>Disponíveis: &#123;title&#125;, &#123;description&#125;, &#123;name&#125;, &#123;brand&#125;, &#123;category&#125;, &#123;price&#125;, &#123;cost&#125;, &#123;attributes&#125;, &#123;condition&#125;</small>
+      </div>
+
+      <div class="field checkbox-field">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive" />
+          Ativo
+        </label>
+      </div>
+    </form>
+
+    <p class="error" *ngIf="formError">{{ formError }}</p>
+
+    <div class="editor-actions">
+      <button nbButton status="basic" size="small" [disabled]="saving" (click)="closeForm()">Cancelar</button>
+      <button nbButton status="primary" size="small" [disabled]="saving" (click)="savePrompt()">
+        {{ editingPromptId ? 'Salvar' : 'Criar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="sabr-card panel">
+    <app-ui-state
+      [loading]="loading"
+      [empty]="prompts.length === 0"
+      [errorMessage]="errorMessage"
+      emptyTitle="Nenhum prompt encontrado"
+      emptyDescription="Crie prompts para disponibilizar features de IA aos clientes."
+      (retry)="loadPrompts()"
+    ></app-ui-state>
+
+    <div class="table-wrapper" *ngIf="!loading && !errorMessage && prompts.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Canal</th>
+            <th>Nome</th>
+            <th>Status</th>
+            <th style="width: 100px;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prompt of prompts">
+            <td><strong>{{ prompt.feature }}</strong></td>
+            <td>{{ prompt.channel }}</td>
+            <td>{{ prompt.name }}</td>
+            <td><span [class.badge]="true" [class.active]="prompt.isActive" [class.inactive]="!prompt.isActive">{{ prompt.isActive ? 'Ativo' : 'Inativo' }}</span></td>
+            <td>
+              <app-row-actions-menu
+                [actions]="promptActionsById[prompt.id] || []"
+                (actionClick)="onPromptActionClick($event, prompt.id)"
+              ></app-row-actions-menu>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

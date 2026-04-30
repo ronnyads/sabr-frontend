@@ -6,7 +6,6 @@ import { PagedResult } from './catalog.service';
 
 export interface AdminCatalogResult {
   id: string;
-  tenantId: string;
   name: string;
   description?: string | null;
   isActive: boolean;
@@ -18,7 +17,6 @@ export interface AdminCatalogResult {
 
 export interface AdminCatalogDetailResult {
   id: string;
-  tenantId: string;
   name: string;
   description?: string | null;
   isActive: boolean;
@@ -34,19 +32,16 @@ export interface AdminCatalogUpsertRequest {
   isActive: boolean;
 }
 
+// Alias kept for backward compat with components that still import AdminCatalogGlobalResult
+export type AdminCatalogGlobalResult = AdminCatalogResult;
+
 @Injectable({ providedIn: 'root' })
 export class AdminCatalogsService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
 
   constructor(private http: HttpClient) {}
 
-  list(
-    tenantId: string,
-    skip = 0,
-    limit = 20,
-    search?: string,
-    isActive?: boolean | null
-  ): Observable<PagedResult<AdminCatalogResult>> {
+  list(skip = 0, limit = 50, search?: string, isActive?: boolean | null): Observable<PagedResult<AdminCatalogResult>> {
     const safeSkip = Math.max(0, Math.trunc(skip));
     const safeLimit = Math.min(200, Math.max(1, Math.trunc(limit)));
     let params = new HttpParams().set('skip', safeSkip).set('limit', safeLimit);
@@ -57,48 +52,36 @@ export class AdminCatalogsService {
       params = params.set('isActive', isActive);
     }
 
-    return this.http.get<PagedResult<AdminCatalogResult>>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/catalogs`,
-      { params }
-    );
+    return this.http.get<PagedResult<AdminCatalogResult>>(`${this.apiBaseUrl}/admin/catalogs`, { params });
   }
 
-  getById(tenantId: string, catalogId: string): Observable<AdminCatalogDetailResult> {
-    return this.http.get<AdminCatalogDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/catalogs/${catalogId}`
-    );
+  listGlobal(skip = 0, limit = 100, search?: string, isActive?: boolean | null): Observable<PagedResult<AdminCatalogResult>> {
+    return this.list(skip, limit, search, isActive);
   }
 
-  create(tenantId: string, request: AdminCatalogUpsertRequest): Observable<AdminCatalogDetailResult> {
-    return this.http.post<AdminCatalogDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/catalogs`,
-      request
-    );
+  getById(catalogId: string): Observable<AdminCatalogDetailResult> {
+    return this.http.get<AdminCatalogDetailResult>(`${this.apiBaseUrl}/admin/catalogs/${catalogId}`);
   }
 
-  update(tenantId: string, catalogId: string, request: AdminCatalogUpsertRequest): Observable<AdminCatalogDetailResult> {
+  create(request: AdminCatalogUpsertRequest): Observable<AdminCatalogDetailResult> {
+    return this.http.post<AdminCatalogDetailResult>(`${this.apiBaseUrl}/admin/catalogs`, request);
+  }
+
+  update(catalogId: string, request: AdminCatalogUpsertRequest): Observable<AdminCatalogDetailResult> {
+    return this.http.put<AdminCatalogDetailResult>(`${this.apiBaseUrl}/admin/catalogs/${catalogId}`, request);
+  }
+
+  deactivate(catalogId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/admin/catalogs/${catalogId}`);
+  }
+
+  replaceProducts(catalogId: string, productSkus: string[]): Observable<AdminCatalogDetailResult> {
+    return this.http.put<AdminCatalogDetailResult>(`${this.apiBaseUrl}/admin/catalogs/${catalogId}/products`, { productSkus });
+  }
+
+  replacePlans(tenantSlug: string, catalogId: string, planIds: string[]): Observable<AdminCatalogDetailResult> {
     return this.http.put<AdminCatalogDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/catalogs/${catalogId}`,
-      request
-    );
-  }
-
-  deactivate(tenantId: string, catalogId: string): Observable<void> {
-    return this.http.delete<void>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/catalogs/${catalogId}`
-    );
-  }
-
-  replaceProducts(tenantId: string, catalogId: string, productSkus: string[]): Observable<AdminCatalogDetailResult> {
-    return this.http.put<AdminCatalogDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/catalogs/${catalogId}/products`,
-      { productSkus }
-    );
-  }
-
-  replacePlans(tenantId: string, catalogId: string, planIds: string[]): Observable<AdminCatalogDetailResult> {
-    return this.http.put<AdminCatalogDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/catalogs/${catalogId}/plans`,
+      `${this.apiBaseUrl}/admin/tenants/${encodeURIComponent(tenantSlug)}/catalogs/${catalogId}/plans`,
       { planIds }
     );
   }

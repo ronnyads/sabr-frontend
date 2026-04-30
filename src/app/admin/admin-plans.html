@@ -5,8 +5,7 @@
 
   <app-page-header
     [title]="'Planos'"
-    [subtitle]="'Gerencie ciclos e catalogos vinculados por tenant.'"
-    [badgeText]="'Tenant: ' + tenantId"
+    [subtitle]="'Gerencie planos globais e seus catálogos vinculados.'"
     [actionsTemplate]="headerActions"
   ></app-page-header>
 
@@ -89,7 +88,7 @@
       [empty]="empty"
       [errorMessage]="errorMessage"
       emptyTitle="Nenhum plano encontrado"
-      emptyDescription="Crie planos para liberar catalogos por tenant."
+      emptyDescription="Crie planos globais e vincule catálogos a eles."
       (retry)="retry()"
     ></app-ui-state>
 

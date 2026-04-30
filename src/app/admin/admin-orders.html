@@ -11,7 +11,7 @@
       <select class="filter-select" [(ngModel)]="filterProvider" (change)="onFilterChange()">
         <option *ngFor="let opt of providerOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
-      <input class="filter-input" [(ngModel)]="filterTenant" (change)="onFilterChange()" placeholder="Filtrar por tenant..." />
+      <input class="filter-input" [(ngModel)]="filterTenant" (change)="onFilterChange()" placeholder="Filtrar por cliente..." />
     </div>
   </div>
 

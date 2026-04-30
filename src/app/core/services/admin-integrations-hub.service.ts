@@ -28,7 +28,7 @@ export interface PagedIntegrationClients {
 
 @Injectable({ providedIn: 'root' })
 export class AdminIntegrationsHubService {
-  private base = `${environment.apiBaseUrl}/api/v1/admin/integrations`;
+  private base = `${environment.apiBaseUrl}/admin/integrations`;
 
   constructor(private http: HttpClient) {}
 

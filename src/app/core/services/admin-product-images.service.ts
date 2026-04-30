@@ -15,20 +15,20 @@ export class AdminProductImagesService {
     formData.append('file', file, file.name);
 
     return this.http.post<AdminProductImageResult>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}/images`,
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/images`,
       formData
     );
   }
 
   delete(sku: string, imageId: string): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}/images/${encodeURIComponent(imageId)}`
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/images/${encodeURIComponent(imageId)}`
     );
   }
 
   setPrimary(sku: string, imageId: string): Observable<AdminProductImageResult> {
     return this.http.put<AdminProductImageResult>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}/images/${encodeURIComponent(imageId)}/primary`,
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/images/${encodeURIComponent(imageId)}/primary`,
       {}
     );
   }

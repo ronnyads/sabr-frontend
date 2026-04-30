@@ -22,7 +22,7 @@ export interface TinyInvoiceResult {
 @Injectable({ providedIn: 'root' })
 export class AdminTinyIntegrationService {
   private base(clientId: string) {
-    return `${environment.apiBaseUrl}/api/v1/admin/clients/${clientId}/integrations/tinyerp`;
+    return `${environment.apiBaseUrl}/admin/clients/${clientId}/integrations/tinyerp`;
   }
 
   constructor(private http: HttpClient) {}

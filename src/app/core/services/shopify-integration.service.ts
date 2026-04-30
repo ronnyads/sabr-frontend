@@ -21,7 +21,7 @@ export interface ShopifySyncResult {
 
 @Injectable({ providedIn: 'root' })
 export class ShopifyIntegrationService {
-  private base = `${environment.apiBaseUrl}/api/v1/client/integrations/shopify`;
+  private base = `${environment.apiBaseUrl}/client/integrations/shopify`;
 
   constructor(private http: HttpClient) {}
 

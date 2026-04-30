@@ -103,37 +103,37 @@ export class AdminProductsService {
       params = params.set('isActive', isActive);
     }
 
-    return this.http.get<PagedResult<AdminProductResult>>(`${this.apiBaseUrl}/api/v1/admin/products`, { params });
+    return this.http.get<PagedResult<AdminProductResult>>(`${this.apiBaseUrl}/admin/products`, { params });
   }
 
   getBySku(sku: string): Observable<AdminProductResult> {
-    return this.http.get<AdminProductResult>(`${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}`);
+    return this.http.get<AdminProductResult>(`${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}`);
   }
 
   create(request: AdminProductUpsertRequest): Observable<AdminProductResult> {
-    return this.http.post<AdminProductResult>(`${this.apiBaseUrl}/api/v1/admin/products`, request);
+    return this.http.post<AdminProductResult>(`${this.apiBaseUrl}/admin/products`, request);
   }
 
   update(sku: string, request: AdminProductUpdateRequest): Observable<AdminProductResult> {
     return this.http.put<AdminProductResult>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}`,
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}`,
       request
     );
   }
 
   deactivate(sku: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}`);
+    return this.http.delete<void>(`${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}`);
   }
 
-  getCatalogLinks(tenantSlug: string, sku: string): Observable<ProductCatalogLinksResult> {
+  getCatalogLinks(sku: string): Observable<ProductCatalogLinksResult> {
     return this.http.get<ProductCatalogLinksResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantSlug)}/products/${encodeURIComponent(sku)}/catalogs`
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/catalogs`
     );
   }
 
-  replaceCatalogLinks(tenantSlug: string, sku: string, catalogIds: string[]): Observable<AdminProductResult> {
+  replaceCatalogLinks(sku: string, catalogIds: string[]): Observable<AdminProductResult> {
     return this.http.put<AdminProductResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantSlug)}/products/${encodeURIComponent(sku)}/catalogs`,
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/catalogs`,
       { catalogIds }
     );
   }

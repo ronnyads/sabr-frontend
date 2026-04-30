@@ -55,6 +55,11 @@ export const clientRoutes: Routes = [
         canActivate: [clientOnboardingGuard]
       },
       {
+        path: 'integrations/mercadolivre/callback',
+        loadComponent: () => import('./client/client-ml-callback').then((m) => m.ClientMlCallback)
+        // sem canActivate — callback público do ML
+      },
+      {
         path: 'integrations/mercadolivre',
         loadComponent: () => import('./client/client-ml-integration').then((m) => m.ClientMlIntegration),
         canActivate: [clientOnboardingGuard]

@@ -80,6 +80,9 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   cepError = '';
   documentIsError = false;
 
+  showCurrentPassword = false;
+  showNewPassword = false;
+
   readonly requiredDocuments: Array<{ type: number; label: string }> = [
     { type: REQUIRED_PJ_DOCUMENT_TYPES[0], label: 'Certidao CNPJ' },
     { type: REQUIRED_PJ_DOCUMENT_TYPES[1], label: 'Contrato Social' },
@@ -1383,6 +1386,11 @@ export class ClientOnboarding implements OnInit, OnDestroy {
 
     this.docLookupService.lookup(digits).subscribe({
       next: (result) => {
+        // CPF retorna 204 No Content (sem body), então result pode ser null
+        if (!result) {
+          return;
+        }
+
         const patch: any = {};
         if (result.legalName) {
           patch.legalName = result.legalName;
@@ -1415,8 +1423,13 @@ export class ClientOnboarding implements OnInit, OnDestroy {
         this.profileForm.patchValue(patch, { emitEvent: false });
         this.toggleStateRegistration();
       },
-      error: () => {
-        // se 404 ou erro, não bloquear, apenas permitir edição manual
+      error: (err) => {
+        // 404: documento não encontrado - permitir edição manual
+        // 503: serviço indisponível - mostrar mensagem
+        // Outros: permitir edição manual
+        if (err.status === 503) {
+          console.warn('[DocumentLookup] Serviço de validação indisponível (503). Preenchimento manual necessário.');
+        }
       }
     });
   }
@@ -1597,6 +1610,14 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     check = sum % 11;
     check = check < 2 ? 0 : 11 - check;
     return check === parseInt(value.charAt(13), 10);
+  }
+
+  toggleCurrentPasswordVisibility(): void {
+    this.showCurrentPassword = !this.showCurrentPassword;
+  }
+
+  toggleNewPasswordVisibility(): void {
+    this.showNewPassword = !this.showNewPassword;
   }
 }
 

@@ -25,7 +25,7 @@ export class AdminClientPlanSubscriptionsService {
 
   getCurrent(tenantSlug: string, clientId: string): Observable<ClientPlanSubscriptionsResult> {
     return this.http.get<ClientPlanSubscriptionsResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantSlug)}/clients/${clientId}/plan-subscriptions`
+      `${this.apiBaseUrl}/admin/tenants/${encodeURIComponent(tenantSlug)}/clients/${clientId}/plan-subscriptions`
     );
   }
 
@@ -35,7 +35,7 @@ export class AdminClientPlanSubscriptionsService {
     planIds: string[]
   ): Observable<ClientPlanSubscriptionsResult> {
     return this.http.put<ClientPlanSubscriptionsResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantSlug)}/clients/${clientId}/plan-subscriptions`,
+      `${this.apiBaseUrl}/admin/tenants/${encodeURIComponent(tenantSlug)}/clients/${clientId}/plan-subscriptions`,
       { planIds }
     );
   }

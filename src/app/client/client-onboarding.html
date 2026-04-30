@@ -140,16 +140,28 @@
         <div class="grid two">
           <div class="field-group">
             <label class="input-label">Senha atual</label>
-            <input class="premium-input" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-              nbInput fullWidth formControlName="currentPassword" />
+            <div style="position: relative;">
+              <input class="premium-input" [type]="showCurrentPassword ? 'text' : 'password'" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                nbInput fullWidth formControlName="currentPassword" />
+              <button type="button" (click)="toggleCurrentPasswordVisibility()"
+                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; padding: 0; display: flex; align-items: center; justify-content: center;">
+                <nb-icon [icon]="showCurrentPassword ? 'eye-off-outline' : 'eye-outline'" style="width: 20px; height: 20px;"></nb-icon>
+              </button>
+            </div>
           </div>
           <div class="field-group">
             <div class="label-row">
               <label class="input-label">Nova senha</label>
               <span class="badge-required">Obrigat&oacute;rio</span>
             </div>
-            <input class="premium-input" type="password" placeholder="Sua nova senha"
-              nbInput fullWidth formControlName="newPassword" />
+            <div style="position: relative;">
+              <input class="premium-input" [type]="showNewPassword ? 'text' : 'password'" placeholder="Sua nova senha"
+                nbInput fullWidth formControlName="newPassword" />
+              <button type="button" (click)="toggleNewPasswordVisibility()"
+                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; padding: 0; display: flex; align-items: center; justify-content: center;">
+                <nb-icon [icon]="showNewPassword ? 'eye-off-outline' : 'eye-outline'" style="width: 20px; height: 20px;"></nb-icon>
+              </button>
+            </div>
             <div class="strength" aria-label="For&ccedil;a da senha">
               <span class="bar strong"></span>
               <span class="bar strong"></span>

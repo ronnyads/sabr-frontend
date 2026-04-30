@@ -15,7 +15,7 @@ export interface ClientIntegrationCard {
 
 @Injectable({ providedIn: 'root' })
 export class ClientIntegrationsHubService {
-  private base = `${environment.apiBaseUrl}/api/v1/client/integrations`;
+  private base = `${environment.apiBaseUrl}/client/integrations`;
 
   constructor(private http: HttpClient) {}
 

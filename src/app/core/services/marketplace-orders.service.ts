@@ -57,23 +57,23 @@ export class MarketplaceOrdersService {
     if (status) params = params.set('status', status);
     const provider = (options?.provider ?? '').trim();
     if (provider) params = params.set('provider', provider);
-    return this.http.get<PagedResult<any>>(`${this.apiBaseUrl}/api/v1/client/orders/marketplace`, { params });
+    return this.http.get<PagedResult<any>>(`${this.apiBaseUrl}/client/orders/marketplace`, { params });
   }
 
   getOrder(orderId: string): Observable<MarketplaceOrderDetail> {
-    return this.http.get<MarketplaceOrderDetail>(`${this.apiBaseUrl}/api/v1/client/orders/marketplace/${orderId}`);
+    return this.http.get<MarketplaceOrderDetail>(`${this.apiBaseUrl}/client/orders/marketplace/${orderId}`);
   }
 
   cancelOrder(orderId: string, reason?: string | null): Observable<OrderActionResult> {
     return this.http.post<OrderActionResult>(
-      `${this.apiBaseUrl}/api/v1/client/orders/marketplace/${orderId}/cancel`,
+      `${this.apiBaseUrl}/client/orders/marketplace/${orderId}/cancel`,
       { reason: reason ?? null }
     );
   }
 
   requestRefund(orderId: string, reason?: string | null): Observable<OrderActionResult> {
     return this.http.post<OrderActionResult>(
-      `${this.apiBaseUrl}/api/v1/client/orders/marketplace/${orderId}/refund-request`,
+      `${this.apiBaseUrl}/client/orders/marketplace/${orderId}/refund-request`,
       { reason: reason ?? null }
     );
   }
