@@ -85,7 +85,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadStatus();
-    this.loadCategories();
 
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const tikTokParam = params.get('tiktok');
@@ -132,6 +131,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
             this.loadOrders();
             this.loadMappings();
             this.loadListings();
+            this.loadCategories();
           }
         },
         error: (err: HttpErrorResponse) => {
