@@ -75,6 +75,12 @@ export const clientRoutes: Routes = [
         canActivate: [clientOnboardingGuard]
       },
       {
+        path: 'integrations/tiktokshop',
+        loadComponent: () =>
+          import('./client/client-tiktok-shop-integration').then((m) => m.ClientTikTokShopIntegration),
+        canActivate: [clientOnboardingGuard]
+      },
+      {
         path: 'orders',
         loadComponent: () => import('./client/client-orders').then((m) => m.ClientOrders),
         canActivate: [clientOnboardingGuard]

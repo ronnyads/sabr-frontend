@@ -26,6 +26,8 @@ export interface PagedIntegrationClients {
   total: number;
 }
 
+export type IntegrationProviderSlug = 'mercadolivre' | 'tinyerp' | 'shopify' | 'tiktokshop';
+
 @Injectable({ providedIn: 'root' })
 export class AdminIntegrationsHubService {
   private base = `${environment.apiBaseUrl}/admin/integrations`;
@@ -36,23 +38,32 @@ export class AdminIntegrationsHubService {
     return this.http.get<IntegrationCard[]>(this.base);
   }
 
+  listClients(provider: IntegrationProviderSlug, skip = 0, limit = 20, search = ''): Observable<PagedIntegrationClients> {
+    const params: Record<string, string | number> = { skip, limit };
+    if (search) {
+      params['search'] = search;
+    }
+
+    return this.http.get<PagedIntegrationClients>(`${this.base}/${provider}/clients`, { params });
+  }
+
+  disconnect(provider: IntegrationProviderSlug, clientId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${provider}/clients/${clientId}`);
+  }
+
   listMlClients(skip = 0, limit = 20, search = ''): Observable<PagedIntegrationClients> {
-    const params: any = { skip, limit };
-    if (search) params.search = search;
-    return this.http.get<PagedIntegrationClients>(`${this.base}/mercadolivre/clients`, { params });
+    return this.listClients('mercadolivre', skip, limit, search);
   }
 
   listTinyClients(skip = 0, limit = 20, search = ''): Observable<PagedIntegrationClients> {
-    const params: any = { skip, limit };
-    if (search) params.search = search;
-    return this.http.get<PagedIntegrationClients>(`${this.base}/tinyerp/clients`, { params });
+    return this.listClients('tinyerp', skip, limit, search);
   }
 
   disconnectMl(clientId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/mercadolivre/clients/${clientId}`);
+    return this.disconnect('mercadolivre', clientId);
   }
 
   disconnectTiny(clientId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/tinyerp/clients/${clientId}`);
+    return this.disconnect('tinyerp', clientId);
   }
 }
