@@ -1,0 +1,63 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'hotfix/**'
+      - 'release/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build client (prod)
+        if: github.ref == 'refs/heads/main'
+        run: npm run build:client:prod:deploy
+
+      - name: Build client (dev)
+        if: github.ref != 'refs/heads/main'
+        run: npm run build:client:dev:deploy
+
+      - name: Build admin (prod)
+        if: github.ref == 'refs/heads/main'
+        run: npm run build:admin:prod:deploy
+
+      - name: Build admin (dev)
+        if: github.ref != 'refs/heads/main'
+        run: npm run build:admin:dev:deploy
+
+      - name: Deploy client to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: sabr-frontend
+          directory: dist/sabr-client
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
+
+      - name: Deploy admin to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: sabr-admin
+          directory: dist/sabr-admin
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
