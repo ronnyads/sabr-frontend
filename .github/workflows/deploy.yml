@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Deploy Frontend
 
 on:
   push:
@@ -69,3 +69,13 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy to Fly.io (production)
+        if: github.ref == 'refs/heads/main'
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Run fly deploy (production)
+        if: github.ref == 'refs/heads/main'
+        run: flyctl deploy --remote-only --app sabr-frontend-prod
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
