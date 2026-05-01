@@ -42,13 +42,29 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: npm run build:admin:dev:deploy
 
-      - name: Deploy client to Cloudflare Pages
+      - name: Deploy client to Cloudflare Pages (production)
+        if: github.ref == 'refs/heads/main'
+        run: npx wrangler pages deploy dist/sabr-client --project-name=sabr-frontend
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy client to Cloudflare Pages (preview)
+        if: github.ref != 'refs/heads/main'
         run: npx wrangler pages deploy dist/sabr-client --project-name=sabr-frontend --branch=${{ github.ref_name }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Deploy admin to Cloudflare Pages
+      - name: Deploy admin to Cloudflare Pages (production)
+        if: github.ref == 'refs/heads/main'
+        run: npx wrangler pages deploy dist/sabr-admin --project-name=sabr-admin
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy admin to Cloudflare Pages (preview)
+        if: github.ref != 'refs/heads/main'
         run: npx wrangler pages deploy dist/sabr-admin --project-name=sabr-admin --branch=${{ github.ref_name }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
