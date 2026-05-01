@@ -12,7 +12,7 @@ import { SabrTopbarComponent } from '../sabr-topbar/sabr-topbar.component';
   styleUrls: ['./sabr-shell-layout.component.scss']
 })
 export class SabrShellLayoutComponent implements OnInit, OnChanges {
-  @Input() appTitle = 'SABR';
+  @Input() appTitle = 'PrometheusHUB';
   @Input() appSubtitle = '';
   @Input() redesignV1 = false;
   @Input() darkModeEnabled = false;

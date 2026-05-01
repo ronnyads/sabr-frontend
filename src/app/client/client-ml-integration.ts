@@ -328,7 +328,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
         next: (result: MarketplaceMarkPaidResult) => {
           this.riskConfirmation = null;
           const suffix = result.alreadyPaid ? ' (pedido ja estava confirmado).' : '.';
-          this.toastr.success(`Pedido marcado como pago no SABR${suffix}`, 'Mercado Livre');
+          this.toastr.success(`Pedido marcado como pago no PrometheusHUB${suffix}`, 'Mercado Livre');
           this.loadStatusAndData();
         },
         error: (error: HttpErrorResponse) => {

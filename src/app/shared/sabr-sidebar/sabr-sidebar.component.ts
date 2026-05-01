@@ -20,7 +20,7 @@ export interface SabrMenuItem {
   styleUrls: ['./sabr-sidebar.component.scss']
 })
 export class SabrSidebarComponent {
-  @Input() title = 'SABR';
+  @Input() title = 'PrometheusHUB';
   @Input() subtitle = '';
   @Input() redesignV1 = false;
   @Input() menuItems: SabrMenuItem[] = [];

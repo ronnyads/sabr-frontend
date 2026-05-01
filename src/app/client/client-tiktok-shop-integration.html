@@ -37,7 +37,7 @@
   <div class="sabr-card panel connect-panel" *ngIf="!loading && !error && !connected">
     <h3>Autorizar TikTok Shop</h3>
     <p class="connect-desc">
-      Clique abaixo para abrir a autorização oficial do TikTok Shop e conectar a sua conta ao SABR.
+      Clique abaixo para abrir a autorização oficial do TikTok Shop e conectar a sua conta ao PrometheusHUB.
     </p>
     <button nbButton status="success" [disabled]="connecting" (click)="connect()">
       <nb-icon icon="external-link-outline"></nb-icon>
@@ -162,7 +162,7 @@
         <div class="mapping-form-row">
           <input nbInput placeholder="Product ID do TikTok" [(ngModel)]="newMapping.tikTokItemId" fieldSize="small" />
           <input nbInput placeholder="SKU ID do TikTok (variação)" [(ngModel)]="newMapping.tikTokSkuId" fieldSize="small" />
-          <input nbInput placeholder="SKU SABR" [(ngModel)]="newMapping.sabrVariantSku" fieldSize="small" />
+          <input nbInput placeholder="SKU PrometheusHUB" [(ngModel)]="newMapping.sabrVariantSku" fieldSize="small" />
           <button
             nbButton
             status="primary"
@@ -188,7 +188,7 @@
       <div class="sabr-card" *ngIf="!mappingsLoading && !mappingsError">
         <div class="empty-state" *ngIf="mappings.length === 0">
           <nb-icon icon="link-2-outline"></nb-icon>
-          <p>Nenhum mapeamento criado. Adicione acima para vincular produtos TikTok aos SKUs do SABR.</p>
+          <p>Nenhum mapeamento criado. Adicione acima para vincular produtos TikTok aos SKUs do PrometheusHUB.</p>
         </div>
 
         <table class="sabr-table" *ngIf="mappings.length > 0">
@@ -196,7 +196,7 @@
             <tr>
               <th>Product ID TikTok</th>
               <th>SKU ID TikTok</th>
-              <th>SKU SABR</th>
+              <th>SKU PrometheusHUB</th>
               <th>Criado em</th>
               <th></th>
             </tr>
@@ -242,7 +242,7 @@
 
         <div class="mapping-form-row">
           <div class="form-field-group" style="flex: 1">
-            <label>SKUs SABR (um por linha)</label>
+            <label>SKUs PrometheusHUB (um por linha)</label>
             <textarea
               nbInput
               [(ngModel)]="publishSkuInput"
@@ -294,7 +294,7 @@
         <table class="sabr-table">
           <thead>
             <tr>
-              <th>SKU SABR</th>
+              <th>SKU PrometheusHUB</th>
               <th>Produto</th>
               <th>Imagens</th>
               <th>Elegível</th>
@@ -338,7 +338,7 @@
         <table class="sabr-table">
           <thead>
             <tr>
-              <th>SKU SABR</th>
+              <th>SKU PrometheusHUB</th>
               <th>Product ID TikTok</th>
               <th>Status</th>
               <th>Mensagem</th>
@@ -380,7 +380,7 @@
           <thead>
             <tr>
               <th>Produto</th>
-              <th>SKU SABR</th>
+              <th>SKU PrometheusHUB</th>
               <th>Product ID TikTok</th>
               <th>SKU ID TikTok</th>
               <th>Publicado em</th>

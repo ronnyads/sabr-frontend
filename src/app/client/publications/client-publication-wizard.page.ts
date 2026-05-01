@@ -4182,7 +4182,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     this.errorMessage = null;
     this.missingVariantBlocked = true;
     this.missingVariantMessage =
-      'Catalogo incompleto: este SKU ainda nao tem variante cadastrada no SABR. Estamos corrigindo automaticamente. Tente novamente em alguns minutos.';
+      'Catalogo incompleto: este SKU ainda nao tem variante cadastrada no PrometheusHUB. Estamos corrigindo automaticamente. Tente novamente em alguns minutos.';
   }
 
   private clearMissingVariantBlock(): void {
