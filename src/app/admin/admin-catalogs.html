@@ -5,8 +5,7 @@
 
   <app-page-header
     [title]="'Catalogos'"
-    [subtitle]="'Gerencie catalogos e seus vinculos por tenant.'"
-    [badgeText]="'Tenant: ' + tenantId"
+    [subtitle]="'Catálogos globais da plataforma.'"
     [actionsTemplate]="headerActions"
   ></app-page-header>
 
@@ -92,7 +91,7 @@
       [empty]="empty"
       [errorMessage]="errorMessage"
       emptyTitle="Nenhum catalogo encontrado"
-      emptyDescription="Crie catalogos para organizar SKUs por tenant."
+      emptyDescription="Crie catálogos para organizar SKUs da plataforma."
       (retry)="retry()"
     ></app-ui-state>
 

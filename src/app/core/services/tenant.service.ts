@@ -3,7 +3,7 @@ import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TenantService {
-  private readonly reserved = ['admin', 'www', 'api'];
+  private readonly reserved = ['admin', 'www', 'api', 'app'];
   private readonly devStorageKey = 'sabr.dev.tenant.slug';
   private readonly hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   private cachedSlug: string | null | undefined;
@@ -13,6 +13,7 @@ export class TenantService {
   }
 
   // Slug derivado do host em producao. Em dev (localhost/127), usa fallback local.
+  // Em producao, permite sobrepor com tenantSlug do usuario autenticado (quando disponivel).
   get slug(): string | null {
     if (this.cachedSlug !== undefined) return this.cachedSlug;
 
@@ -39,9 +40,9 @@ export class TenantService {
     return this.cachedSlug;
   }
 
-  // Apenas em dev: permite sobrepor dinamicamente o tenant para chamadas API.
+  // Permite sobrepor dinamicamente o tenant para chamadas API (dev e producao).
+  // Em producao, usado para sincronizar o tenantSlug do usuario autenticado.
   setDevSlug(slug: string | null): void {
-    if (!this.isLocalhost(this.hostname)) return;
     const normalized = slug?.trim().toLowerCase() ?? null;
     this.cachedSlug = normalized;
     this.persistDevTenant(normalized);
@@ -70,8 +71,20 @@ export class TenantService {
       return null;
     }
 
-    const value = window.sessionStorage.getItem(this.devStorageKey)?.trim().toLowerCase();
-    return value || null;
+    const key = this.devStorageKey;
+    let value: string | null | undefined;
+
+    try {
+      value = window.sessionStorage.getItem(key);
+    } catch {}
+
+    if (!value) {
+      try {
+        value = window.localStorage.getItem(key);
+      } catch {}
+    }
+
+    return value?.trim().toLowerCase() || null;
   }
 
   private persistDevTenant(value: string | null): void {
@@ -79,11 +92,28 @@ export class TenantService {
       return;
     }
 
+    const key = this.devStorageKey;
+
     if (!value) {
-      window.sessionStorage.removeItem(this.devStorageKey);
+      try {
+        window.sessionStorage.removeItem(key);
+      } catch {}
+      try {
+        window.localStorage.removeItem(key);
+      } catch {}
       return;
     }
 
-    window.sessionStorage.setItem(this.devStorageKey, value);
+    let stored = false;
+    try {
+      window.sessionStorage.setItem(key, value);
+      stored = true;
+    } catch {}
+
+    if (!stored) {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch {}
+    }
   }
 }

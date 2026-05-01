@@ -55,6 +55,9 @@ export interface ListingDraftUpsertRequest {
   variationAxes?: string[] | null;
   variations?: ListingDraftVariationRequest[] | null;
   clearFields?: string[] | null;
+  warrantyType?: string | null;
+  warrantyTime?: string | null;
+  freeShipping?: boolean;
 }
 
 export interface ListingDraftResult {
@@ -312,6 +315,17 @@ export interface MarketplaceFeesEstimateResult {
   source?: string | null;
 }
 
+export interface ListingDraftAiGenerateRequest {
+  draftId: string;
+  feature: string;
+}
+
+export interface AiGenerateResponse {
+  feature: string;
+  result: string;
+  structured?: Record<string, unknown> | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PublicationsService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
@@ -320,26 +334,26 @@ export class PublicationsService {
   constructor(private readonly http: HttpClient) {}
 
   upsertDraft(request: ListingDraftUpsertRequest): Observable<ListingDraftResult> {
-    return this.http.post<ListingDraftResult>(`${this.apiBaseUrl}/api/v1/client/listings/drafts/upsert`, request);
+    return this.http.post<ListingDraftResult>(`${this.apiBaseUrl}/client/listings/drafts/upsert`, request);
   }
 
   getDraft(request: ListingDraftGetRequest): Observable<ListingDraftGetResult> {
-    return this.http.post<ListingDraftGetResult>(`${this.apiBaseUrl}/api/v1/client/listings/drafts/get`, request);
+    return this.http.post<ListingDraftGetResult>(`${this.apiBaseUrl}/client/listings/drafts/get`, request);
   }
 
   validateDraft(draftId: string): Observable<ListingDraftValidateResult> {
-    return this.http.post<ListingDraftValidateResult>(`${this.apiBaseUrl}/api/v1/client/listings/drafts/validate`, { draftId });
+    return this.http.post<ListingDraftValidateResult>(`${this.apiBaseUrl}/client/listings/drafts/validate`, { draftId });
   }
 
   publishDraft(draftId: string, rowVersion: string): Observable<ListingDraftPublishResult> {
-    return this.http.post<ListingDraftPublishResult>(`${this.apiBaseUrl}/api/v1/client/listings/drafts/publish`, {
+    return this.http.post<ListingDraftPublishResult>(`${this.apiBaseUrl}/client/listings/drafts/publish`, {
       draftId,
       rowVersion
     });
   }
 
   queryPublications(request: ListingPublicationsQueryRequest): Observable<ListingPublicationsQueryResult> {
-    return this.http.post<ListingPublicationsQueryResult>(`${this.apiBaseUrl}/api/v1/client/listings/publications/query`, request);
+    return this.http.post<ListingPublicationsQueryResult>(`${this.apiBaseUrl}/client/listings/publications/query`, request);
   }
 
   getCategoryAttributes(request: MarketplaceCategoryAttributesRequest): Observable<MarketplaceCategoryAttributesResult> {
@@ -354,7 +368,7 @@ export class PublicationsService {
     }
 
     return this.http.post<MarketplaceCategoryAttributesResult>(
-      `${this.apiBaseUrl}/api/v1/client/marketplaces/categories/attributes`,
+      `${this.apiBaseUrl}/client/marketplaces/categories/attributes`,
       {
         ...request,
         siteId: normalizedSiteId,
@@ -365,7 +379,7 @@ export class PublicationsService {
 
   suggestCategories(request: MarketplaceCategorySuggestRequest): Observable<MarketplaceCategorySuggestResult> {
     return this.http.post<MarketplaceCategorySuggestResult>(
-      `${this.apiBaseUrl}/api/v1/client/marketplaces/categories/suggest`,
+      `${this.apiBaseUrl}/client/marketplaces/categories/suggest`,
       request
     );
   }
@@ -391,12 +405,16 @@ export class PublicationsService {
       return EMPTY;
     }
 
-    return this.http.post<MarketplaceFeesEstimateResult>(`${this.apiBaseUrl}/api/v1/client/marketplaces/fees/estimate`, {
+    return this.http.post<MarketplaceFeesEstimateResult>(`${this.apiBaseUrl}/client/marketplaces/fees/estimate`, {
       ...request,
       siteId: normalizedSiteId,
       categoryId: normalizedCategoryId,
       listingTypeId
     });
+  }
+
+  generateAiContent(request: ListingDraftAiGenerateRequest): Observable<AiGenerateResponse> {
+    return this.http.post<AiGenerateResponse>(`${this.apiBaseUrl}/client/listings/drafts/ai-generate`, request);
   }
 
   private normalizeSiteId(siteId?: string | null): string {

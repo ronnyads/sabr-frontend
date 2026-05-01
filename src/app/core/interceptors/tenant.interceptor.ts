@@ -4,30 +4,21 @@ import { environment } from '../../../environments/environment';
 import { TenantService } from '../services/tenant.service';
 
 export const tenantInterceptor: HttpInterceptorFn = (req, next) => {
-  if (environment.production) {
-    return next(req);
-  }
-
-  if (!req.url.startsWith('/api/')) {
+  if (!req.url.includes('/api/')) {
     return next(req);
   }
 
   const normalizedUrl = req.url.toLowerCase();
-  if (
-    normalizedUrl.includes('/api/v1/auth/login') ||
-    normalizedUrl.includes('/api/v1/auth/csrf')
-  ) {
+  if (normalizedUrl.includes('/api/v1/auth/login')) {
     return next(req);
   }
 
   const tenantService = inject(TenantService);
   const slug = tenantService.slug;
 
-  // Somente em dev/localhost aplicamos header X-Tenant (simulacao de subdominio).
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const isLocal = host === 'localhost' || host.startsWith('127.');
-
-  if (!isLocal || !slug) {
+  // In production, always send X-Tenant header when available (needed when using api.* domain).
+  // In dev/localhost, send X-Tenant header as a simulation of subdomain-based tenant resolution.
+  if (!slug) {
     return next(req);
   }
 

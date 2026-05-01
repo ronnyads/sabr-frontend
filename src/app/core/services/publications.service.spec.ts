@@ -45,7 +45,7 @@ describe('PublicationsService', () => {
         }
       });
 
-    httpMock.expectNone(`${environment.apiBaseUrl}/api/v1/client/marketplaces/fees/estimate`);
+    httpMock.expectNone(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
     expect(emitted).toBe(false);
     expect(completed).toBe(true);
   });
@@ -71,7 +71,7 @@ describe('PublicationsService', () => {
         }
       });
 
-    httpMock.expectNone(`${environment.apiBaseUrl}/api/v1/client/marketplaces/categories/attributes`);
+    httpMock.expectNone(`${environment.apiBaseUrl}/client/marketplaces/categories/attributes`);
     expect(emitted).toBe(false);
     expect(completed).toBe(true);
   });
@@ -90,7 +90,7 @@ describe('PublicationsService', () => {
       })
       .subscribe();
 
-    const req = httpMock.expectOne(`${environment.apiBaseUrl}/api/v1/client/marketplaces/fees/estimate`);
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body.categoryId).toBe('MLB1055');
     req.flush({
@@ -125,7 +125,7 @@ describe('PublicationsService', () => {
       })
       .subscribe();
 
-    const validReq = httpMock.expectOne(`${environment.apiBaseUrl}/api/v1/client/marketplaces/fees/estimate`);
+    const validReq = httpMock.expectOne(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
     expect(validReq.request.body.categoryId).toBe('MLA1055');
     validReq.flush({
       integrationId: 'integration-id',
@@ -157,6 +157,6 @@ describe('PublicationsService', () => {
       })
       .subscribe();
 
-    httpMock.expectNone(`${environment.apiBaseUrl}/api/v1/client/marketplaces/fees/estimate`);
+    httpMock.expectNone(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
   });
 });

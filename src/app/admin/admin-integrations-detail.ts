@@ -6,8 +6,21 @@ import { NbButtonModule, NbIconModule, NbToastrService } from '@nebular/theme';
 import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
 import {
   AdminIntegrationsHubService,
-  IntegrationClient
+  IntegrationClient,
+  IntegrationProviderSlug
 } from '../core/services/admin-integrations-hub.service';
+
+type ProviderConfig = {
+  name: string;
+  supportsClientDetails: boolean;
+};
+
+const PROVIDER_CONFIG: Record<IntegrationProviderSlug, ProviderConfig> = {
+  mercadolivre: { name: 'Mercado Livre', supportsClientDetails: true },
+  tinyerp: { name: 'Tiny ERP', supportsClientDetails: true },
+  shopify: { name: 'Shopify', supportsClientDetails: false },
+  tiktokshop: { name: 'TikTok Shop', supportsClientDetails: true }
+};
 
 @Component({
   selector: 'app-admin-integrations-detail',
@@ -17,7 +30,7 @@ import {
   styleUrls: ['./admin-integrations-detail.scss']
 })
 export class AdminIntegrationsDetail implements OnInit, OnDestroy {
-  provider = '';
+  provider: IntegrationProviderSlug = 'mercadolivre';
   providerName = '';
 
   clients: IntegrationClient[] = [];
@@ -42,8 +55,8 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.provider = this.route.snapshot.paramMap.get('provider') ?? '';
-    this.providerName = this.provider === 'mercadolivre' ? 'Mercado Livre' : 'Tiny ERP';
+    this.provider = this.resolveProvider(this.route.snapshot.paramMap.get('provider'));
+    this.providerName = PROVIDER_CONFIG[this.provider].name;
 
     this.searchSubject$
       .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -64,12 +77,8 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
-    const obs =
-      this.provider === 'mercadolivre'
-        ? this.service.listMlClients(this.skip, this.limit, this.search)
-        : this.service.listTinyClients(this.skip, this.limit, this.search);
-
-    obs
+    this.service
+      .listClients(this.provider, this.skip, this.limit, this.search)
       .pipe(
         finalize(() => (this.loading = false)),
         takeUntil(this.destroy$)
@@ -98,13 +107,19 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
   }
 
   prevPage(): void {
-    if (this.skip === 0) return;
+    if (this.skip === 0) {
+      return;
+    }
+
     this.skip = Math.max(0, this.skip - this.limit);
     this.load();
   }
 
   nextPage(): void {
-    if (this.skip + this.limit >= this.total) return;
+    if (this.skip + this.limit >= this.total) {
+      return;
+    }
+
     this.skip += this.limit;
     this.load();
   }
@@ -116,12 +131,8 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
   resetIntegration(client: IntegrationClient): void {
     this.resetting[client.clientId] = true;
 
-    const obs =
-      this.provider === 'mercadolivre'
-        ? this.service.disconnectMl(client.clientId)
-        : this.service.disconnectTiny(client.clientId);
-
-    obs
+    this.service
+      .disconnect(this.provider, client.clientId)
       .pipe(
         finalize(() => (this.resetting[client.clientId] = false)),
         takeUntil(this.destroy$)
@@ -129,16 +140,24 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           delete this.confirmReset[client.clientId];
-          this.toastr.success(`Integração de ${client.clientName} removida com sucesso.`, 'Reset concluído');
+          this.toastr.success(`Integracao de ${client.clientName} removida com sucesso.`, 'Reset concluido');
           this.load();
         },
         error: () => {
-          this.toastr.danger(`Falha ao resetar integração de ${client.clientName}.`, 'Erro');
+          this.toastr.danger(`Falha ao resetar integracao de ${client.clientName}.`, 'Erro');
         }
       });
   }
 
+  canViewDetails(): boolean {
+    return PROVIDER_CONFIG[this.provider].supportsClientDetails;
+  }
+
   viewDetails(client: IntegrationClient): void {
+    if (!this.canViewDetails()) {
+      return;
+    }
+
     void this.router.navigate([
       '/t',
       client.tenantSlug,
@@ -151,5 +170,13 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
 
   back(): void {
     void this.router.navigate(['/integrations']);
+  }
+
+  private resolveProvider(provider: string | null): IntegrationProviderSlug {
+    if (provider === 'tinyerp' || provider === 'shopify' || provider === 'tiktokshop') {
+      return provider;
+    }
+
+    return 'mercadolivre';
   }
 }

@@ -1,6 +1,14 @@
+const runtimeApiBase =
+  (typeof window !== 'undefined' && (window as any).__API_BASE_URL__) || undefined;
+const resolvedApiBase =
+  runtimeApiBase && !`${runtimeApiBase}`.includes('__API_BASE_URL__')
+    ? runtimeApiBase
+    : 'https://api.marketplaceonline.site/api/v1';
+
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://sabr-api-dev.fly.dev/api/v1',
+  // CI deve substituir __API_BASE_URL__ ou injetar window.__API_BASE_URL__; mantemos fallback seguro.
+  apiBaseUrl: resolvedApiBase,
   devTenant: '',
   authDebugConsole: false,
   dataCache: {
@@ -17,11 +25,11 @@ export const environment = {
   ui: {
     publicationsEnabled: false,
     mlLegacyPublishBlock: false,
-    redesignShellV1: false,
-    redesignClientDashboardV1: false,
-    redesignAdminDashboardV1: false,
-    redesignLoginV1: false,
-    redesignOnboardingV1: false,
-    darkModeV1: false
+    redesignShellV1: true,
+    redesignClientDashboardV1: true,
+    redesignAdminDashboardV1: true,
+    redesignLoginV1: true,
+    redesignOnboardingV1: true,
+    darkModeV1: true
   }
 };

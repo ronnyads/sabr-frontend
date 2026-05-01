@@ -4,19 +4,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 :root {
-  // ── Brand ──────────────────────────────────────────────────────────────────
-  --sabr-primary:        #3b82f6;
-  --sabr-primary-strong: #60a5fa;
-  --sabr-primary-weak:   rgba(59, 130, 246, 0.12);
-  --sabr-accent:         #00E5A0;
-  --sabr-accent-weak:    rgba(0, 229, 160, 0.12);
-  --sabr-secondary:      #8b5cf6;
+  // ── Brand — Prometheus Fire ────────────────────────────────────────────────
+  --sabr-primary:        #7C3AED;   // indigo (era #3b82f6 azul Tailwind)
+  --sabr-primary-strong: #8B5CF6;   // violet-500
+  --sabr-primary-weak:   rgba(124, 58, 237, 0.12);
+  --sabr-accent:         #F59E0B;   // amber/fogo (Prometheus = portador do fogo)
+  --sabr-accent-weak:    rgba(245, 158, 11, 0.12);
+  --sabr-secondary:      #06B6D4;   // cyan (tech, contraste com amber quente)
 
   // ── Background — PRETO PURO ────────────────────────────────────────────────
   --sabr-bg:             #000000;
   --sabr-bg-strong:      #000000;
-  --sabr-bg-accent:      rgba(59, 130, 246, 0.06);
-  --sabr-bg-accent-alt:  rgba(0, 229, 160, 0.04);
+  --sabr-bg-accent:      rgba(124, 58, 237, 0.06);   // indigo accent (era azul)
+  --sabr-bg-accent-alt:  rgba(245, 158, 11, 0.04);   // amber accent (era verde)
 
   // ── Surface — cinzas muito escuros sobre o preto ───────────────────────────
   --sabr-surface:        #0d0d0d;
@@ -34,7 +34,7 @@
 
   // ── Semantic ───────────────────────────────────────────────────────────────
   --sabr-success:        #22c55e;
-  --sabr-info:           #3b82f6;
+  --sabr-info:           #38BDF8;   // sky-400 (era #3b82f6, mesmo que primary — agora distinto)
   --sabr-warning:        #f59e0b;
   --sabr-danger:         #ef4444;
 
@@ -42,11 +42,11 @@
   --sabr-shadow-color:   #000;
   --sabr-shadow-soft:    0 1px 4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04);
   --sabr-shadow-hover:   0 4px 20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --sabr-shadow-glow:    0 0 24px rgba(59, 130, 246, 0.25);
+  --sabr-shadow-glow:    0 0 24px rgba(124, 58, 237, 0.25);  // indigo glow (era azul)
 
-  // ── Gradients ──────────────────────────────────────────────────────────────
-  --sabr-gradient-brand: linear-gradient(135deg, #3b82f6 0%, #00E5A0 100%);
-  --sabr-gradient-bg:    linear-gradient(160deg, rgba(59,130,246,0.04) 0%, rgba(0,229,160,0.02) 100%);
+  // ── Gradients — Prometheus Fire ────────────────────────────────────────────
+  --sabr-gradient-brand: linear-gradient(135deg, #312e81 0%, #7C3AED 100%);  // deep indigo → indigo
+  --sabr-gradient-bg:    linear-gradient(160deg, rgba(124,58,237,0.04) 0%, rgba(124,58,237,0.02) 100%);
 
   // ── Radius ─────────────────────────────────────────────────────────────────
   --sabr-radius-card:    16px;
@@ -99,58 +99,75 @@
   --sabr-transition-fast:   100ms ease;
   --sabr-transition-base:   160ms ease;
   --sabr-transition-slow:   260ms ease;
+
+  // ── Focus — novo token para borda de foco em inputs ──────────────────────
+  --sabr-border-focus:   var(--sabr-primary);
 }
 
-// ── Light mode — ultra-moderno branco limpo ───────────────────────────────────
+// ── Light mode — Prometheus Fire + WCAG AA contraste ────────────────────────
 :root[data-theme='light'] {
-  --sabr-bg:             #ffffff;
-  --sabr-bg-strong:      #f8fafc;
-  --sabr-bg-accent:      rgba(37, 99, 235, 0.06);
-  --sabr-bg-accent-alt:  rgba(0, 201, 125, 0.05);
+  --sabr-bg:             #f4f6f9;   // off-white cool
+  --sabr-bg-strong:      #edf0f5;
+  --sabr-bg-accent:      rgba(109, 40, 217, 0.06);      // indigo accent
+  --sabr-bg-accent-alt:  rgba(217, 119, 6, 0.05);       // amber accent
 
+  // Hierarquia de surface — cards brancos sobre fundo cinzento
   --sabr-surface:        #ffffff;
   --sabr-surface-soft:   #f1f5f9;
-  --sabr-surface-raised: #ffffff;
+  --sabr-surface-raised: #ffffff;  // cards elevados ficam brancos sobre --sabr-bg off-white
 
   --sabr-text:           #0f172a;
   --sabr-text-muted:     #64748b;
-  --sabr-text-subtle:    #94a3b8;
+  --sabr-text-subtle:    #64748b;  // era #94a3b8 (ratio 3.1:1) → agora 5.0:1 WCAG AA
 
-  --sabr-border:         rgba(15, 23, 42, 0.08);
-  --sabr-border-strong:  rgba(15, 23, 42, 0.14);
+  // Borders — mais visíveis para inputs de formulário
+  --sabr-border:         rgba(15, 23, 42, 0.12);  // era 0.08 — mais visível
+  --sabr-border-strong:  rgba(15, 23, 42, 0.20);  // era 0.14 — inputs claramente delimitados
 
   --sabr-shadow-soft:    0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
   --sabr-shadow-hover:   0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
-  --sabr-shadow-glow:    0 0 24px rgba(37, 99, 235, 0.15);
+  --sabr-shadow-glow:    0 0 24px rgba(109, 40, 217, 0.15);  // indigo glow (era azul)
 
-  --sabr-primary:        #2563eb;
-  --sabr-primary-strong: #1d4ed8;
-  --sabr-primary-weak:   rgba(37, 99, 235, 0.08);
-  --sabr-secondary:      #6366f1;
+  // Brand — Prometheus Fire em light
+  --sabr-primary:        #6D28D9;   // indigo (era #2563eb azul)
+  --sabr-primary-strong: #5B21B6;
+  --sabr-primary-weak:   rgba(109, 40, 217, 0.08);
+  --sabr-secondary:      #0891B2;   // cyan
 
-  --sabr-accent:         #059669;
-  --sabr-accent-weak:    rgba(5, 150, 105, 0.10);
+  --sabr-accent:         #D97706;   // amber escuro (legível em branco)
+  --sabr-accent-weak:    rgba(217, 119, 6, 0.10);
+
+  --sabr-info:           #0284C7;   // sky-600
 
   --sabr-success:        #059669;
   --sabr-warning:        #d97706;
   --sabr-danger:         #dc2626;
 
-  --sabr-gradient-brand: linear-gradient(135deg, #2563eb 0%, #059669 100%);
+  --sabr-gradient-brand: linear-gradient(135deg, #1e1b4b 0%, #6D28D9 100%);  // dark navy indigo → indigo
+  --sabr-border-focus:   var(--sabr-primary);
 }
 
-// ── Legacy dark alias ─────────────────────────────────────────────────────────
+// ── Dark alias — Prometheus Fire ──────────────────────────────────────────
 :root[data-theme='dark'] {
-  --sabr-primary:        #3b82f6;
-  --sabr-primary-strong: #60a5fa;
-  --sabr-primary-weak:   rgba(59, 130, 246, 0.12);
+  --sabr-primary:        #7C3AED;
+  --sabr-primary-strong: #8B5CF6;
+  --sabr-primary-weak:   rgba(124, 58, 237, 0.12);
+  --sabr-accent:         #F59E0B;
+  --sabr-accent-weak:    rgba(245, 158, 11, 0.12);
+  --sabr-secondary:      #06B6D4;
+  --sabr-info:           #38BDF8;
   --sabr-bg:             #000000;
   --sabr-bg-strong:      #000000;
+  --sabr-bg-accent:      rgba(124, 58, 237, 0.06);
   --sabr-surface:        #0d0d0d;
   --sabr-surface-soft:   #141414;
   --sabr-surface-raised: #1a1a1a;
   --sabr-text:           #f8fafc;
-  --sabr-text-muted:     #94a3b8;
+  --sabr-text-muted:     #cbd5e1;
+  --sabr-text-subtle:    #94a3b8;
   --sabr-border:         rgba(255, 255, 255, 0.06);
   --sabr-border-strong:  rgba(255, 255, 255, 0.12);
-  --sabr-gradient-brand: linear-gradient(135deg, #3b82f6 0%, #00E5A0 100%);
+  --sabr-shadow-glow:    0 0 24px rgba(124, 58, 237, 0.25);
+  --sabr-gradient-brand: linear-gradient(135deg, #312e81 0%, #7C3AED 100%);
+  --sabr-border-focus:   var(--sabr-primary);
 }

@@ -5,7 +5,7 @@
 
   <app-page-header
     [title]="'Integracoes - Mercado Livre'"
-    [subtitle]="'Leitura por tenant/client selecionado.'"
+    [subtitle]="'Integração Mercado Livre do cliente selecionado.'"
     [actionsTemplate]="headerActions"
   ></app-page-header>
 
@@ -21,7 +21,7 @@
 
     <div class="status-grid" *ngIf="status">
       <div class="status-item">
-        <small>Tenant</small>
+        <small>Cliente (slug)</small>
         <strong>{{ tenantId }}</strong>
       </div>
       <div class="status-item">
@@ -62,6 +62,7 @@
             <th>Nickname</th>
             <th>Token expira em</th>
             <th>Ultimo sync</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -70,9 +71,20 @@
             <td>{{ connection.nickname || '-' }}</td>
             <td>{{ connection.tokenExpiresAt | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td>{{ connection.lastSyncAt ? (connection.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</td>
+            <td>
+              <button nbButton size="small" status="danger" (click)="forceDisconnect(connection.sellerId)">
+                Desconectar
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="footer-actions" *ngIf="status && status.connected">
+      <button nbButton status="danger" (click)="forceDisconnect()">
+        Desconectar TODOS os sellers
+      </button>
     </div>
   </div>
 </section>

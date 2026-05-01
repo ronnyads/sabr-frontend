@@ -65,26 +65,26 @@ export class AdminCategoriesService {
       params = params.set('isActive', isActive);
     }
 
-    return this.http.get<PagedResult<AdminCategoryResult>>(`${this.apiBaseUrl}/api/v1/admin/categories`, { params });
+    return this.http.get<PagedResult<AdminCategoryResult>>(`${this.apiBaseUrl}/admin/categories`, { params });
   }
 
   tree(): Observable<AdminCategoryTreeNode[]> {
-    return this.http.get<AdminCategoryTreeNode[]>(`${this.apiBaseUrl}/api/v1/admin/categories/tree`);
+    return this.http.get<AdminCategoryTreeNode[]>(`${this.apiBaseUrl}/admin/categories/tree`);
   }
 
   getById(categoryId: string): Observable<AdminCategoryDetailResult> {
-    return this.http.get<AdminCategoryDetailResult>(`${this.apiBaseUrl}/api/v1/admin/categories/${encodeURIComponent(categoryId)}`);
+    return this.http.get<AdminCategoryDetailResult>(`${this.apiBaseUrl}/admin/categories/${encodeURIComponent(categoryId)}`);
   }
 
   create(request: AdminCategoryUpsertRequest): Observable<AdminCategoryDetailResult> {
-    return this.http.post<AdminCategoryDetailResult>(`${this.apiBaseUrl}/api/v1/admin/categories`, request);
+    return this.http.post<AdminCategoryDetailResult>(`${this.apiBaseUrl}/admin/categories`, request);
   }
 
   update(categoryId: string, request: AdminCategoryUpsertRequest): Observable<AdminCategoryDetailResult> {
-    return this.http.put<AdminCategoryDetailResult>(`${this.apiBaseUrl}/api/v1/admin/categories/${encodeURIComponent(categoryId)}`, request);
+    return this.http.put<AdminCategoryDetailResult>(`${this.apiBaseUrl}/admin/categories/${encodeURIComponent(categoryId)}`, request);
   }
 
   deactivate(categoryId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/api/v1/admin/categories/${encodeURIComponent(categoryId)}`);
+    return this.http.delete<void>(`${this.apiBaseUrl}/admin/categories/${encodeURIComponent(categoryId)}`);
   }
 }

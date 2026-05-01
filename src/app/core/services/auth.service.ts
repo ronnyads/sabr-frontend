@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, finalize, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AUTH_REALM, AuthRealm } from '../tokens/auth-realm';
 import { normalizeRole } from '../utils/role-labels';
@@ -28,6 +28,7 @@ export interface AuthLoginResponse {
   expiresAt: string;
   accountType: 'admin' | 'client';
   user: AuthUser;
+  refreshToken?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -36,6 +37,9 @@ export class AuthService {
   private accessToken: string | null = null;
   private user: AuthUser | null = null;
   private accountType: 'admin' | 'client' | null = null;
+  private refreshToken: string | null = null;
+  private expiresAt: string | null = null;
+  private refreshInProgress$: Observable<AuthLoginResponse> | null = null;
   private readonly apiBaseUrl = environment.apiBaseUrl;
 
   constructor(
@@ -63,36 +67,63 @@ export class AuthService {
     return !!this.accessToken;
   }
 
+  isTokenFresh(): boolean {
+    if (!this.accessToken || !this.expiresAt) return false;
+    const expiry = new Date(this.expiresAt).getTime();
+    const bufferMs = 5 * 60 * 1000;
+    return expiry - Date.now() > bufferMs;
+  }
+
   login(email: string, password: string): Observable<AuthLoginResponse> {
     const payload = { email, password };
     return this.http
-      .post<AuthLoginResponse>(`${this.apiBaseUrl}${this.authBasePath()}/login`, payload)
+      .post<AuthLoginResponse>(`${this.apiBaseUrl}${this.authBasePath()}/login`, payload, {
+        withCredentials: true
+      })
       .pipe(tap((response) => this.setSession(response)));
   }
 
   refresh(): Observable<AuthLoginResponse> {
-    return this.http
-      .post<AuthLoginResponse>(`${this.apiBaseUrl}${this.authBasePath()}/refresh`, {})
-      .pipe(tap((response) => this.setSession(response)));
+    if (this.refreshInProgress$) return this.refreshInProgress$;
+
+    this.refreshInProgress$ = this.http
+      .post<AuthLoginResponse>(
+        `${this.apiBaseUrl}${this.authBasePath()}/refresh`,
+        this.refreshToken ? { refreshToken: this.refreshToken } : {},
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((response) => this.setSession(response)),
+        finalize(() => {
+          this.refreshInProgress$ = null;
+        }),
+        shareReplay(1)
+      );
+
+    return this.refreshInProgress$;
   }
 
   logout(): Observable<void> {
     return this.http
-      .post<void>(`${this.apiBaseUrl}${this.authBasePath()}/logout`, {})
+      .post<void>(`${this.apiBaseUrl}${this.authBasePath()}/logout`, {}, { withCredentials: true })
       .pipe(tap(() => this.clearSession()));
   }
 
   changePassword(newPassword: string): Observable<{ success: boolean }> {
     return this.http.post<{ success: boolean }>(
-      `${this.apiBaseUrl}/api/v1/auth/change-password`,
+      `${this.apiBaseUrl}/auth/change-password`,
       { newPassword }
     );
   }
 
   clearSession(): void {
+    console.log('[AuthService] clearSession called - Clearing all auth data');
+    console.trace('[AuthService] clearSession stack trace');
     this.accessToken = null;
     this.user = null;
     this.accountType = null;
+    this.refreshToken = null;
+    this.expiresAt = null;
     this.tenantService.clearDevSlug();
     this.clearPersistedSession();
   }
@@ -115,6 +146,8 @@ export class AuthService {
     const raw = response as any;
     const rawUser = raw?.user ?? raw?.User ?? null;
     const accessToken = raw?.accessToken ?? raw?.AccessToken ?? null;
+    this.refreshToken = raw?.refreshToken ?? raw?.RefreshToken ?? null;
+    this.expiresAt = raw?.expiresAt ?? raw?.ExpiresAt ?? null;
     const accountTypeRaw =
       raw?.accountType ??
       raw?.AccountType ??
@@ -151,12 +184,17 @@ export class AuthService {
     this.accessToken = accessToken;
     this.user = normalizedUser;
     this.accountType = resolvedAccountType;
+    console.log('[AuthService] setSession - Token set:', !!accessToken, 'Email:', normalizedUser?.email);
+    if (!this.refreshToken) {
+      console.warn('[AuthService] refreshToken is null after setSession!', { raw });
+    }
     this.syncTenantContext(normalizedUser);
     this.persistSession();
   }
 
   private authBasePath(): string {
-    return this.realm === 'admin' ? '/api/v1/admin/auth' : '/api/v1/auth';
+    // apiBaseUrl já contém /api/v1, então retornar apenas o sufixo
+    return this.realm === 'admin' ? '/admin/auth' : '/auth';
   }
 
   private normalizeAccountType(value: unknown): 'admin' | 'client' | null {
@@ -181,19 +219,62 @@ export class AuthService {
       return;
     }
 
-    try {
-      const raw = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
-      if (!raw) {
-        return;
-      }
+    let raw: string | null = null;
+    let restoredFrom = 'none';
 
+    // LAYER 1: Try sessionStorage first
+    try {
+      const testKey = '__auth_test_' + Date.now();
+      window.sessionStorage.setItem(testKey, '1');
+      window.sessionStorage.removeItem(testKey);
+      raw = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+      if (raw) {
+        restoredFrom = 'sessionStorage';
+        console.log('[AuthService] hydrateSession - Restored from sessionStorage');
+      }
+    } catch (e) {
+      console.warn('[AuthService] hydrateSession - sessionStorage unavailable:', (e as Error).message);
+    }
+
+    // LAYER 2: Try localStorage if sessionStorage didn't work
+    if (!raw) {
+      try {
+        raw = window.localStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+        if (raw) {
+          restoredFrom = 'localStorage';
+          console.log('[AuthService] hydrateSession - Restored from localStorage (fallback)');
+        }
+      } catch (e) {
+        console.warn('[AuthService] hydrateSession - localStorage unavailable:', (e as Error).message);
+      }
+    }
+
+    // LAYER 3: Try memory fallback if neither storage worked
+    if (!raw) {
+      const memSession = (window as any).__authSession__;
+      if (memSession) {
+        raw = JSON.stringify(memSession);
+        restoredFrom = 'memory';
+        console.log('[AuthService] hydrateSession - Restored from memory fallback (window.__authSession__)');
+      }
+    }
+
+    console.log('[AuthService] hydrateSession - Found stored session:', !!raw, '- Source:', restoredFrom);
+    if (!raw) {
+      return;
+    }
+
+    try {
       const parsed = JSON.parse(raw) as {
         accessToken?: string | null;
         user?: AuthUser | null;
         accountType?: 'admin' | 'client' | null;
+        refreshToken?: string | null;
+        expiresAt?: string | null;
       };
 
       if (!parsed || !parsed.accessToken || !parsed.user || !parsed.accountType) {
+        console.log('[AuthService] hydrateSession - Invalid parsed data:', { token: !!parsed?.accessToken, user: !!parsed?.user, accountType: !!parsed?.accountType });
         this.clearPersistedSession();
         return;
       }
@@ -201,18 +282,22 @@ export class AuthService {
       this.accessToken = parsed.accessToken;
       this.user = parsed.user;
       this.accountType = parsed.accountType;
+      this.refreshToken = parsed.refreshToken ?? null;
+      this.expiresAt = parsed.expiresAt ?? null;
+      console.log('[AuthService] hydrateSession - Session fully restored:', { email: parsed.user.email, accountType: parsed.accountType, restoredFrom });
       this.syncTenantContext(parsed.user);
-    } catch {
+    } catch (e) {
+      console.error('[AuthService] hydrateSession - Error parsing session:', e);
       this.clearPersistedSession();
     }
   }
-
   private persistSession(): void {
     if (typeof window === 'undefined') {
       return;
     }
 
     if (!this.accessToken || !this.user || !this.accountType) {
+      console.log('[AuthService] persistSession - Missing required fields:', { token: !!this.accessToken, user: !!this.user, accountType: !!this.accountType });
       this.clearPersistedSession();
       return;
     }
@@ -220,9 +305,55 @@ export class AuthService {
     const payload = {
       accessToken: this.accessToken,
       user: this.user,
-      accountType: this.accountType
+      accountType: this.accountType,
+      refreshToken: this.refreshToken,
+      expiresAt: this.expiresAt
     };
-    window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, JSON.stringify(payload));
+
+    const json = JSON.stringify(payload);
+    let stored = false;
+    let storageType = 'none';
+
+    // LAYER 1: ALWAYS store in memory as ultimate fallback
+    (window as any).__authSession__ = payload;
+    console.log('[AuthService] persistSession - Stored in memory (always available)');
+
+    // LAYER 2: Try sessionStorage
+    try {
+      const testKey = '__auth_test_' + Date.now();
+      window.sessionStorage.setItem(testKey, '1');
+      window.sessionStorage.removeItem(testKey);
+      window.sessionStorage.setItem(AuthService.SESSION_STORAGE_KEY, json);
+      const verify = window.sessionStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+      if (verify) {
+        stored = true;
+        storageType = 'sessionStorage';
+        console.log('[AuthService] persistSession - Stored in sessionStorage:', { email: this.user.email, accountType: this.accountType, size: json.length });
+      }
+    } catch (e) {
+      console.warn('[AuthService] persistSession - sessionStorage failed:', { errorName: (e as any).name, message: (e as Error).message });
+    }
+
+    // LAYER 3: If sessionStorage failed, try localStorage
+    if (!stored) {
+      try {
+        window.localStorage.setItem(AuthService.SESSION_STORAGE_KEY, json);
+        const verify = window.localStorage.getItem(AuthService.SESSION_STORAGE_KEY);
+        if (verify) {
+          stored = true;
+          storageType = 'localStorage';
+          console.log('[AuthService] persistSession - Stored in localStorage (fallback):', { email: this.user.email, accountType: this.accountType });
+        }
+      } catch (e) {
+        console.warn('[AuthService] persistSession - localStorage failed:', { errorName: (e as any).name, message: (e as Error).message });
+      }
+    }
+
+    if (!stored) {
+      console.warn('[AuthService] persistSession - Both storage layers failed. Session persists ONLY in memory (window.__authSession__). Will be lost on page reload.');
+    } else {
+      console.log('[AuthService] persistSession - Successfully persisted via:', storageType);
+    }
   }
 
   private clearPersistedSession(): void {
@@ -230,7 +361,26 @@ export class AuthService {
       return;
     }
 
-    window.sessionStorage.removeItem(AuthService.SESSION_STORAGE_KEY);
+    // Clear from all 3 storage layers
+    try {
+      window.sessionStorage.removeItem(AuthService.SESSION_STORAGE_KEY);
+    } catch (e) {
+      // Ignore errors
+    }
+
+    try {
+      window.localStorage.removeItem(AuthService.SESSION_STORAGE_KEY);
+    } catch (e) {
+      // Ignore errors
+    }
+
+    try {
+      delete (window as any).__authSession__;
+    } catch (e) {
+      // Ignore errors
+    }
+
+    console.log('[AuthService] clearPersistedSession - Cleared from all storage layers');
   }
 
   private syncTenantContext(user: AuthUser | null): void {

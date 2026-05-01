@@ -9,7 +9,7 @@
     <nb-icon icon="more-vertical-outline"></nb-icon>
   </button>
 
-  <div class="menu-panel" *ngIf="open" role="menu">
+  <div class="menu-panel" *ngIf="open" role="menu" [style.top.px]="menuTop" [style.right.px]="menuRight">
     <button
       type="button"
       *ngFor="let action of actions"

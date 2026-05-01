@@ -36,17 +36,20 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-      const tenantId = (params.get('tenantId') ?? '').trim().toLowerCase();
+      const routeTenant = (params.get('tenantId') ?? '').trim().toLowerCase();
+      const contextTenant = (this.tenantContext.get()?.tenantId ?? '').trim().toLowerCase();
+      const tenantId = routeTenant || contextTenant;
       const clientId = (params.get('clientId') ?? '').trim();
+
       if (!tenantId || !clientId) {
-        this.toastr.warning('Tenant e clientId sao obrigatorios.', 'Contexto ausente');
+        this.toastr.warning('Cliente obrigatório para acessar integrações.', 'Contexto ausente');
         void this.router.navigate(['/clients']);
         return;
       }
 
       this.tenantId = tenantId;
       this.clientId = clientId;
-      this.tenantContext.set(this.tenantId, undefined, this.clientId);
+      this.tenantContext.set(tenantId, undefined, clientId);
       this.loadStatus();
     });
   }
@@ -76,6 +79,33 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
         error: (error: HttpErrorResponse) => {
           this.status = null;
           this.errorMessage = this.buildErrorMessage('Falha ao carregar status da integracao.', error);
+        }
+      });
+  }
+
+  forceDisconnect(sellerId?: string): void {
+    const message = sellerId
+      ? `Desconectar seller ${sellerId} permanentemente?`
+      : 'Desconectar TODOS os sellers permanentemente?';
+    if (!confirm(message)) return;
+
+    this.integrationService
+      .forceDisconnect(this.tenantId, this.clientId, sellerId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastr.success(
+            'Integracao desconectada com sucesso.',
+            'Force Disconnect'
+          );
+          this.loadStatus();
+        },
+        error: (error: HttpErrorResponse) => {
+          const message = this.buildErrorMessage(
+            'Falha ao desconectar integracao.',
+            error
+          );
+          this.toastr.danger(message, 'Force Disconnect');
         }
       });
   }

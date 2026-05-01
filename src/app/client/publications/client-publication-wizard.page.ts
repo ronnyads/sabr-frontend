@@ -56,6 +56,9 @@ interface WizardState {
   publishMode: string;
   selectedVariantSkus: string[];
   variationAxes: string[];
+  warrantyType?: string | null;
+  warrantyTime?: string | null;
+  freeShipping?: boolean;
 }
 
 interface PublicationRouterStatePrefill {
@@ -139,7 +142,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     { id: 'content', label: 'conteudo' },
     { id: 'attributes', label: 'atributos' },
     { id: 'pricing', label: 'precos' },
-    { id: 'fiscal', label: 'fiscal e imagens' },
+    { id: 'fiscal', label: 'fiscal, envio e imagens' },
     { id: 'review', label: 'revisao' }
   ];
   currentStepIndex = 0;
@@ -152,6 +155,10 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   loadingSnapshot = false;
   loadingCategorySuggest = false;
   loadingEstimate = false;
+  loadingAiTitle = false;
+  loadingAiDescription = false;
+  loadingAiWarranty = false;
+  loadingAiShipping = false;
   errorMessage: string | null = null;
   missingVariantBlocked = false;
   missingVariantMessage: string | null = null;
@@ -255,7 +262,10 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     attributes: [],
     publishMode: 'SingleVariant',
     selectedVariantSkus: [],
-    variationAxes: []
+    variationAxes: [],
+    warrantyType: null,
+    warrantyTime: null,
+    freeShipping: false
   };
 
   private readonly autosave$ = new Subject<void>();
@@ -4178,6 +4188,104 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   private clearMissingVariantBlock(): void {
     this.missingVariantBlocked = false;
     this.missingVariantMessage = null;
+  }
+
+  generateAiTitle(): void {
+    if (!this.draftId) {
+      this.toastr.warning('Salve o draft primeiro', 'IA');
+      return;
+    }
+    this.loadingAiTitle = true;
+    this.publicationsService
+      .generateAiContent({ draftId: this.draftId, feature: 'ml_title' })
+      .pipe(finalize(() => (this.loadingAiTitle = false)))
+      .subscribe({
+        next: (response) => {
+          if (response.result) {
+            this.state.title = response.result.substring(0, 60);
+            this.onFieldChanged();
+            this.toastr.success('Título gerado com sucesso', 'IA');
+          }
+        },
+        error: (error) => {
+          this.toastr.danger('Erro ao gerar título. Tente novamente.', 'IA');
+          this.debugWizardEvent('ai_generate_error', { feature: 'ml_title', error: error.message });
+        }
+      });
+  }
+
+  generateAiDescription(): void {
+    if (!this.draftId) {
+      this.toastr.warning('Salve o draft primeiro', 'IA');
+      return;
+    }
+    this.loadingAiDescription = true;
+    this.publicationsService
+      .generateAiContent({ draftId: this.draftId, feature: 'ml_description' })
+      .pipe(finalize(() => (this.loadingAiDescription = false)))
+      .subscribe({
+        next: (response) => {
+          if (response.result) {
+            this.state.description = response.result.substring(0, 3000);
+            this.onFieldChanged();
+            this.toastr.success('Descrição melhorada com sucesso', 'IA');
+          }
+        },
+        error: (error) => {
+          this.toastr.danger('Erro ao melhorar descrição. Tente novamente.', 'IA');
+          this.debugWizardEvent('ai_generate_error', { feature: 'ml_description', error: error.message });
+        }
+      });
+  }
+
+  generateAiWarranty(): void {
+    if (!this.draftId) {
+      this.toastr.warning('Salve o draft primeiro', 'IA');
+      return;
+    }
+    this.loadingAiWarranty = true;
+    this.publicationsService
+      .generateAiContent({ draftId: this.draftId, feature: 'ml_sale_terms' })
+      .pipe(finalize(() => (this.loadingAiWarranty = false)))
+      .subscribe({
+        next: (response) => {
+          if (response.structured) {
+            this.state.warrantyType = response.structured['warrantyType'] as string;
+            this.state.warrantyTime = response.structured['warrantyTime'] as string;
+            this.onFieldChanged();
+            this.toastr.success('Garantia sugerida com sucesso', 'IA');
+          }
+        },
+        error: (error) => {
+          this.toastr.danger('Erro ao sugerir garantia. Tente novamente.', 'IA');
+          this.debugWizardEvent('ai_generate_error', { feature: 'ml_sale_terms', error: error.message });
+        }
+      });
+  }
+
+  generateAiShipping(): void {
+    if (!this.draftId) {
+      this.toastr.warning('Salve o draft primeiro', 'IA');
+      return;
+    }
+    this.loadingAiShipping = true;
+    this.publicationsService
+      .generateAiContent({ draftId: this.draftId, feature: 'ml_shipping' })
+      .pipe(finalize(() => (this.loadingAiShipping = false)))
+      .subscribe({
+        next: (response) => {
+          if (response.structured) {
+            this.state.freeShipping = response.structured['freeShipping'] as boolean;
+            this.onFieldChanged();
+            const reason = response.structured['reason'] as string || '';
+            this.toastr.info(`Frete grátis: ${this.state.freeShipping ? 'recomendado' : 'não recomendado'}. ${reason}`, 'IA');
+          }
+        },
+        error: (error) => {
+          this.toastr.danger('Erro ao analisar frete. Tente novamente.', 'IA');
+          this.debugWizardEvent('ai_generate_error', { feature: 'ml_shipping', error: error.message });
+        }
+      });
   }
 }
 

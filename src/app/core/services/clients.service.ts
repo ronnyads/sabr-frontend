@@ -56,37 +56,37 @@ export class ClientsService {
     if (status) params = params.set('status', status);
     if (search) params = params.set('search', search);
     // Platform list of tenants (current model is 1 client per tenant).
-    return this.http.get<ClientListResponse>(`${this.apiBaseUrl}/api/v1/admin/tenants`, { params });
+    return this.http.get<ClientListResponse>(`${this.apiBaseUrl}/admin/tenants`, { params });
   }
 
   create(payload: ClientSeedRequest): Observable<ClientSeedResult> {
     // Create tenant + initial client seed.
-    return this.http.post<ClientSeedResult>(`${this.apiBaseUrl}/api/v1/admin/tenants`, payload);
+    return this.http.post<ClientSeedResult>(`${this.apiBaseUrl}/admin/tenants`, payload);
   }
 
   approve(tenantId: string, clientId: string): Observable<ClientApprovalResult> {
     return this.http.post<ClientApprovalResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/clients/${clientId}/approve`,
+      `${this.apiBaseUrl}/admin/tenants/${tenantId}/clients/${clientId}/approve`,
       {}
     );
   }
 
   reject(tenantId: string, clientId: string, reason: string): Observable<void> {
     return this.http.post<void>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/clients/${clientId}/reject`,
+      `${this.apiBaseUrl}/admin/tenants/${tenantId}/clients/${clientId}/reject`,
       { reason }
     );
   }
 
   deactivate(tenantId: string, clientId: string): Observable<{ success: boolean }> {
     return this.http.delete<{ success: boolean }>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/clients/${clientId}`
+      `${this.apiBaseUrl}/admin/tenants/${tenantId}/clients/${clientId}`
     );
   }
 
   resetPassword(tenantId: string, clientId: string): Observable<{ temporaryPassword: string }> {
     return this.http.post<{ temporaryPassword: string }>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/clients/${clientId}/reset-password`,
+      `${this.apiBaseUrl}/admin/tenants/${tenantId}/clients/${clientId}/reset-password`,
       {}
     );
   }

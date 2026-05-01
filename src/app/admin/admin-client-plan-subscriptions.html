@@ -2,7 +2,7 @@
   <nb-card-header class="page-header">
     <div>
       <h3>Assinatura de Planos do Cliente</h3>
-      <p>Tenant: <strong>{{ tenantId }}</strong> | Cliente: <strong>{{ clientId }}</strong></p>
+      <p>Cliente: <strong>{{ clientId }}</strong></p>
     </div>
     <button nbButton status="primary" size="small" [disabled]="saving || loading" (click)="save()">Salvar</button>
   </nb-card-header>
@@ -17,7 +17,7 @@
       [empty]="empty"
       [errorMessage]="errorMessage"
       emptyTitle="Nenhum plano ativo disponivel"
-      emptyDescription="Ative planos no tenant para vincular ao cliente."
+      emptyDescription="Ative planos para vincular ao cliente."
       (retry)="retry()"
     ></app-ui-state>
 

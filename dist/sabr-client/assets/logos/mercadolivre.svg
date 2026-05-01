@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80">
+  <!-- Yellow oval -->
+  <ellipse cx="42" cy="40" rx="40" ry="36" fill="#FFE600" stroke="#2D3277" stroke-width="3.5"/>
+
+  <!-- White hands (simplified handshake) -->
+  <!-- Left hand body -->
+  <path d="M16 44 C16 36, 24 30, 34 31 L44 33 L50 36 L44 39 L30 38 C26 39, 22 43, 22 48 Z" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.5"/>
+  <!-- Right hand body -->
+  <path d="M68 44 C68 36, 60 30, 50 31 L40 33 L34 36 L40 39 L54 38 C58 39, 62 43, 62 48 Z" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.5"/>
+  <!-- Fingers left side (3 fingers) -->
+  <rect x="14" y="32" width="12" height="6" rx="3" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.2"/>
+  <rect x="17" y="26" width="12" height="7" rx="3" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.2"/>
+  <rect x="24" y="21" width="12" height="7" rx="3" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.2"/>
+  <!-- Fingers right side -->
+  <rect x="58" y="32" width="12" height="6" rx="3" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.2"/>
+  <rect x="55" y="26" width="12" height="7" rx="3" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.2"/>
+  <rect x="48" y="21" width="12" height="7" rx="3" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.2"/>
+  <!-- Clasp center -->
+  <ellipse cx="42" cy="37" rx="10" ry="7" fill="#FFFFFF" stroke="#2D3277" stroke-width="1.5"/>
+
+  <!-- Text: mercado -->
+  <text x="96" y="35" font-family="'Proxima Nova', Arial, Helvetica, sans-serif" font-size="19" font-weight="900" fill="#2D3277">mercado</text>
+  <!-- Text: livre -->
+  <text x="96" y="62" font-family="'Proxima Nova', Arial, Helvetica, sans-serif" font-size="19" font-weight="900" fill="#2D3277">livre</text>
+</svg>

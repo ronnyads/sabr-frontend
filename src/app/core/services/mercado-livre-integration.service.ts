@@ -152,27 +152,27 @@ export class MercadoLivreIntegrationService {
 
   status(): Observable<MercadoLivreIntegrationStatusResult> {
     return this.http.get<MercadoLivreIntegrationStatusResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/status`
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/status`
     );
   }
 
   connectUrl(returnUrl?: string | null): Observable<MercadoLivreConnectUrlResult> {
     return this.http.post<MercadoLivreConnectUrlResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/connect-url`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/connect-url`,
       { returnUrl: returnUrl ?? null }
     );
   }
 
   disconnect(sellerId?: string | null): Observable<void> {
     return this.http.post<void>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/disconnect`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/disconnect`,
       { sellerId: sellerId ?? null }
     );
   }
 
   syncNow(sellerId?: string | null): Observable<MercadoLivreSyncNowResult> {
     return this.http.post<MercadoLivreSyncNowResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/sync-now`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/sync-now`,
       { sellerId: sellerId ?? null }
     );
   }
@@ -185,20 +185,20 @@ export class MercadoLivreIntegrationService {
     }
 
     return this.http.get<MercadoLivreListingMapResult[]>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/mappings`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/mappings`,
       { params }
     );
   }
 
   createMapping(request: MercadoLivreCreateMappingRequest): Observable<MercadoLivreListingMapResult> {
     return this.http.post<MercadoLivreListingMapResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/mappings`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/mappings`,
       request
     );
   }
 
   deleteMapping(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/mappings/${id}`);
+    return this.http.delete<void>(`${this.apiBaseUrl}/client/integrations/mercadolivre/mappings/${id}`);
   }
 
   listOrders(options?: {
@@ -222,28 +222,28 @@ export class MercadoLivreIntegrationService {
       params = params.set('logisticType', logisticType);
     }
 
-    return this.http.get<PagedResult<MarketplaceOrderListItemResult>>(`${this.apiBaseUrl}/api/v1/client/orders/marketplace`, {
+    return this.http.get<PagedResult<MarketplaceOrderListItemResult>>(`${this.apiBaseUrl}/client/orders/marketplace`, {
       params
     });
   }
 
   markPaid(orderId: string, force = false): Observable<MarketplaceMarkPaidResult> {
     return this.http.post<MarketplaceMarkPaidResult>(
-      `${this.apiBaseUrl}/api/v1/client/orders/${orderId}/mark-paid`,
+      `${this.apiBaseUrl}/client/orders/${orderId}/mark-paid`,
       { force }
     );
   }
 
   validatePublish(request: MercadoLivrePublishValidateRequest): Observable<MercadoLivrePublishValidateResult> {
     return this.http.post<MercadoLivrePublishValidateResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/publish/validate`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/publish/validate`,
       request
     );
   }
 
   publish(request: MercadoLivrePublishRequest): Observable<MercadoLivrePublishResult> {
     return this.http.post<MercadoLivrePublishResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/publish`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/publish`,
       request
     );
   }
@@ -256,14 +256,14 @@ export class MercadoLivreIntegrationService {
     }
 
     return this.http.get<MercadoLivreListListingsResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/listings`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/listings`,
       { params }
     );
   }
 
   reconcile(sellerId?: string | null): Observable<MercadoLivreSyncNowResult> {
     return this.http.post<MercadoLivreSyncNowResult>(
-      `${this.apiBaseUrl}/api/v1/client/integrations/mercadolivre/reconcile`,
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/reconcile`,
       { sellerId: sellerId ?? null }
     );
   }

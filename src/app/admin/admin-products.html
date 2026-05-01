@@ -309,10 +309,9 @@
 
         <nb-tab tabTitle="Catalogos">
           <div class="catalog-panel">
-            <p class="helper" *ngIf="tenantMissingForCatalogTab">Selecione um tenant em Clientes para vincular catalogos.</p>
             <p class="helper" *ngIf="catalogsLoading">Carregando catalogos...</p>
 
-            <div class="picker-list" *ngIf="!tenantMissingForCatalogTab && !catalogsLoading">
+            <div class="picker-list" *ngIf="!catalogsLoading">
               <label *ngFor="let catalog of catalogs">
                 <input
                   type="checkbox"

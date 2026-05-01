@@ -143,9 +143,7 @@ export class AdminProducts implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.tenantSlug = this.tenantContext.get()?.tenantId ?? null;
-    if (this.tenantSlug) {
-      this.loadCatalogs();
-    }
+    this.loadCatalogs();
     this.loadCategories();
 
     this.form.controls.requiresAnatel.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((enabled) => {
@@ -191,11 +189,7 @@ export class AdminProducts implements OnInit, OnDestroy {
     return !!this.form.controls.isActive.value && this.selectedCatalogIds.length === 0;
   }
 
-  get tenantMissingForCatalogTab(): boolean {
-    return !this.tenantSlug;
-  }
-
-  productTrackBy(_: number, item: AdminProductResult): string {
+productTrackBy(_: number, item: AdminProductResult): string {
     return item.sku;
   }
 
@@ -291,25 +285,34 @@ export class AdminProducts implements OnInit, OnDestroy {
     });
     this.form.controls.sku.disable({ emitEvent: false });
 
-    this.currentImages = [...(product.images ?? [])];
+    this.currentImages = [];
+    this.productsService
+      .getBySku(product.sku)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (full) => {
+          this.currentImages = [...(full.images ?? [])];
+        },
+        error: () => {
+          this.currentImages = [];
+        }
+      });
     this.loadVariants(product.sku);
-    if (this.tenantSlug) {
-      this.catalogsLoading = true;
-      this.productsService
-        .getCatalogLinks(this.tenantSlug, product.sku)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (links) => {
-            this.catalogsLoading = false;
-            this.selectedCatalogIds = [...(links.catalogIds ?? [])];
-          },
-          error: (error: HttpErrorResponse) => {
-            this.catalogsLoading = false;
-            this.selectedCatalogIds = [];
-            this.toastr.danger(this.buildErrorMessage('Falha ao carregar catalogos vinculados.', error), 'Erro');
-          }
-        });
-    }
+    this.catalogsLoading = true;
+    this.productsService
+      .getCatalogLinks(product.sku)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (links) => {
+          this.catalogsLoading = false;
+          this.selectedCatalogIds = [...(links.catalogIds ?? [])];
+        },
+        error: (error: HttpErrorResponse) => {
+          this.catalogsLoading = false;
+          this.selectedCatalogIds = [];
+          this.toastr.danger(this.buildErrorMessage('Falha ao carregar catalogos vinculados.', error), 'Erro');
+        }
+      });
   }
 
   cancelForm(): void {
@@ -341,11 +344,6 @@ export class AdminProducts implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.form.controls.isActive.value && !this.tenantSlug) {
-      this.formError = 'Selecione um tenant em Clientes para ativar o produto e vincular catalogos.';
-      return;
-    }
-
     if (this.form.controls.isActive.value && this.selectedCatalogIds.length === 0) {
       this.formError = 'Produto ativo precisa de pelo menos um catalogo vinculado.';
       return;
@@ -354,7 +352,6 @@ export class AdminProducts implements OnInit, OnDestroy {
     const raw = this.form.getRawValue();
     const sku = normalizeSkuUppercase(raw.sku);
     const intendedActive = !!raw.isActive;
-    const tenantSlug = this.tenantSlug;
     const baseRequest = {
       name: raw.name.trim(),
       brand: raw.brand.trim(),
@@ -370,7 +367,7 @@ export class AdminProducts implements OnInit, OnDestroy {
       requiresAnatel: !!raw.requiresAnatel,
       anatelHomologationNumber: raw.anatelHomologationNumber.trim() || null,
       anatelDocumentId: raw.anatelDocumentId.trim() || null,
-      tenantSlug: tenantSlug,
+      tenantSlug: this.tenantSlug,
       costPriceCents: parseBrlToCents(raw.costPriceBrl),
       catalogPriceCents: parseBrlToCents(raw.catalogPriceBrl)
     };
@@ -576,23 +573,19 @@ export class AdminProducts implements OnInit, OnDestroy {
   }
 
   private afterBaseSave(sku: string, intendedActive: boolean): void {
-    if (!this.tenantSlug) {
-      this.finishSave(intendedActive ? 'Produto salvo como inativo (sem tenant selecionado).' : 'Produto salvo com sucesso.');
-      return;
-    }
-
+    const catalogIds = [...new Set(this.selectedCatalogIds)];
     this.productsService
-      .replaceCatalogLinks(this.tenantSlug, sku, [...new Set(this.selectedCatalogIds)])
+      .replaceCatalogLinks(sku, catalogIds)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          if (!intendedActive) {
+          if (!intendedActive || catalogIds.length === 0) {
             this.finishSave('Produto salvo com sucesso.');
             return;
           }
 
           this.productsService
-            .update(sku, { isActive: true, tenantSlug: this.tenantSlug })
+            .update(sku, { isActive: true })
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: () => this.finishSave('Produto salvo com sucesso.'),
@@ -641,14 +634,9 @@ export class AdminProducts implements OnInit, OnDestroy {
   }
 
   private loadCatalogs(): void {
-    if (!this.tenantSlug) {
-      this.catalogs = [];
-      return;
-    }
-
     this.catalogsLoading = true;
     this.catalogsService
-      .list(this.tenantSlug, 0, 200, undefined, true)
+      .list(0, 200, undefined, true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -658,7 +646,7 @@ export class AdminProducts implements OnInit, OnDestroy {
         error: (error: HttpErrorResponse) => {
           this.catalogsLoading = false;
           this.catalogs = [];
-          this.toastr.danger(this.buildErrorMessage('Falha ao carregar catalogos do tenant.', error), 'Erro');
+          this.toastr.danger(this.buildErrorMessage('Falha ao carregar catálogos do cliente.', error), 'Erro');
         }
       });
   }

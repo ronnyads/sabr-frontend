@@ -34,6 +34,6 @@ export class CepService {
   constructor(private http: HttpClient) {}
 
   lookup(cep: string): Observable<CepLookupResult> {
-    return this.http.get<CepLookupResult>(`${this.apiBaseUrl}/api/v1/utils/cep/${cep}`);
+    return this.http.get<CepLookupResult>(`${this.apiBaseUrl}/utils/cep/${cep}`);
   }
 }

@@ -1,0 +1,403 @@
+<section class="sabr-page tiktok-shop-integration-page">
+  <div class="page-header">
+    <div class="page-title">
+      <div class="provider-logo">
+        <img src="assets/logos/tiktokshop.svg" alt="TikTok Shop" class="provider-logo-img" />
+      </div>
+      <div>
+        <h1>TikTok Shop</h1>
+        <p class="subtitle">Gerencie sua integração TikTok Shop: pedidos, mapeamentos e conexão.</p>
+      </div>
+    </div>
+    <div class="header-actions" *ngIf="connected">
+      <button nbButton status="primary" size="small" [disabled]="syncing" (click)="syncNow()">
+        <nb-icon icon="sync-outline"></nb-icon>
+        {{ syncing ? 'Sincronizando...' : 'Sincronizar agora' }}
+      </button>
+      <button nbButton status="danger" size="small" [disabled]="disconnecting" (click)="disconnect()">
+        {{ disconnecting ? 'Desconectando...' : 'Desconectar' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading inicial -->
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Carregando...</span>
+  </div>
+
+  <!-- Erro de status -->
+  <div class="state-error" *ngIf="!loading && error">
+    <nb-icon icon="alert-circle-outline"></nb-icon>
+    <p>{{ error }}</p>
+    <button nbButton size="small" (click)="loadStatus()">Tentar novamente</button>
+  </div>
+
+  <!-- Não conectado -->
+  <div class="sabr-card panel connect-panel" *ngIf="!loading && !error && !connected">
+    <h3>Autorizar TikTok Shop</h3>
+    <p class="connect-desc">
+      Clique abaixo para abrir a autorização oficial do TikTok Shop e conectar a sua conta ao SABR.
+    </p>
+    <button nbButton status="success" [disabled]="connecting" (click)="connect()">
+      <nb-icon icon="external-link-outline"></nb-icon>
+      {{ connecting ? 'Redirecionando...' : 'Autorizar no TikTok Shop' }}
+    </button>
+  </div>
+
+  <!-- Conectado — tabs -->
+  <nb-tabset *ngIf="!loading && !error && connected">
+
+    <!-- Tab: Conexão -->
+    <nb-tab tabTitle="Conexão" tabIcon="checkmark-circle-outline">
+      <div class="sabr-card panel">
+        <div class="status-grid">
+          <div class="status-item">
+            <small>Loja</small>
+            <strong>{{ status?.shopName || 'TikTok Shop' }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Conectado em</small>
+            <strong>{{ status?.connectedAt ? (status?.connectedAt | date:'dd/MM/yyyy HH:mm') : '-' }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Token expira em</small>
+            <strong>{{ status?.tokenExpiresAt ? (status?.tokenExpiresAt | date:'dd/MM/yyyy HH:mm') : '-' }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Último sync</small>
+            <strong>{{ status?.lastSyncAt ? (status?.lastSyncAt | date:'dd/MM/yyyy HH:mm') : 'Ainda não iniciado' }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Pedidos importados</small>
+            <strong>{{ status?.ordersCount ?? 0 }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Mapeamentos ativos</small>
+            <strong>{{ status?.mappingsCount ?? 0 }}</strong>
+          </div>
+        </div>
+      </div>
+    </nb-tab>
+
+    <!-- Tab: Pedidos -->
+    <nb-tab tabTitle="Pedidos" tabIcon="shopping-cart-outline">
+      <div class="tab-toolbar">
+        <div class="filter-row">
+          <select [(ngModel)]="ordersStatusFilter" (change)="onOrdersFilterChange()" class="status-select">
+            <option value="">Todos os status</option>
+            <option value="UNPAID">Não pago</option>
+            <option value="ON_HOLD">Em espera</option>
+            <option value="AWAITING_SHIPMENT">Aguardando envio</option>
+            <option value="AWAITING_COLLECTION">Aguardando coleta</option>
+            <option value="IN_TRANSIT">Em trânsito</option>
+            <option value="DELIVERED">Entregue</option>
+            <option value="COMPLETED">Concluído</option>
+            <option value="CANCELLED">Cancelado</option>
+            <option value="RETURN_REQUESTED">Devolução solicitada</option>
+            <option value="RETURNED">Devolvido</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="state-loading" *ngIf="ordersLoading">
+        <div class="spinner"></div>
+        <span>Carregando pedidos...</span>
+      </div>
+
+      <div class="state-error" *ngIf="!ordersLoading && ordersError">
+        <nb-icon icon="alert-circle-outline"></nb-icon>
+        <p>{{ ordersError }}</p>
+        <button nbButton size="small" (click)="loadOrders()">Tentar novamente</button>
+      </div>
+
+      <div class="sabr-card" *ngIf="!ordersLoading && !ordersError">
+        <div class="empty-state" *ngIf="orders.length === 0">
+          <nb-icon icon="shopping-bag-outline"></nb-icon>
+          <p>Nenhum pedido encontrado. Use "Sincronizar agora" para importar pedidos do TikTok Shop.</p>
+        </div>
+
+        <table class="sabr-table" *ngIf="orders.length > 0">
+          <thead>
+            <tr>
+              <th>ID TikTok</th>
+              <th>Status</th>
+              <th>Itens</th>
+              <th>Não mapeado</th>
+              <th>Importado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of orders">
+              <td class="order-id">{{ order.mlOrderId }}</td>
+              <td><span class="status-badge status-{{ order.status | lowercase }}">{{ order.status }}</span></td>
+              <td>{{ order.totalItems }}</td>
+              <td>
+                <nb-icon *ngIf="order.hasUnmappedItems" icon="alert-triangle-outline" status="warning" title="Tem itens sem SKU mapeado"></nb-icon>
+                <nb-icon *ngIf="!order.hasUnmappedItems" icon="checkmark-outline" status="success"></nb-icon>
+              </td>
+              <td>{{ order.importedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination" *ngIf="ordersTotal > ordersLimit">
+          <button nbButton size="tiny" [disabled]="ordersSkip === 0" (click)="ordersPrevPage()">
+            <nb-icon icon="arrow-ios-back-outline"></nb-icon>
+          </button>
+          <span>Página {{ ordersCurrentPage }} de {{ ordersTotalPages }}</span>
+          <button nbButton size="tiny" [disabled]="ordersSkip + ordersLimit >= ordersTotal" (click)="ordersNextPage()">
+            <nb-icon icon="arrow-ios-forward-outline"></nb-icon>
+          </button>
+        </div>
+      </div>
+    </nb-tab>
+
+    <!-- Tab: Mapeamentos -->
+    <nb-tab tabTitle="Mapeamentos" tabIcon="link-2-outline">
+
+      <!-- Formulário novo mapeamento -->
+      <div class="sabr-card panel mapping-form">
+        <h4>Novo mapeamento</h4>
+        <div class="mapping-form-row">
+          <input nbInput placeholder="Product ID do TikTok" [(ngModel)]="newMapping.tikTokItemId" fieldSize="small" />
+          <input nbInput placeholder="SKU ID do TikTok (variação)" [(ngModel)]="newMapping.tikTokSkuId" fieldSize="small" />
+          <input nbInput placeholder="SKU SABR" [(ngModel)]="newMapping.sabrVariantSku" fieldSize="small" />
+          <button
+            nbButton
+            status="primary"
+            size="small"
+            [disabled]="savingMapping || !newMapping.tikTokItemId.trim() || !newMapping.sabrVariantSku.trim()"
+            (click)="saveMapping()">
+            {{ savingMapping ? 'Salvando...' : 'Adicionar' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="state-loading" *ngIf="mappingsLoading">
+        <div class="spinner"></div>
+        <span>Carregando mapeamentos...</span>
+      </div>
+
+      <div class="state-error" *ngIf="!mappingsLoading && mappingsError">
+        <nb-icon icon="alert-circle-outline"></nb-icon>
+        <p>{{ mappingsError }}</p>
+        <button nbButton size="small" (click)="loadMappings()">Tentar novamente</button>
+      </div>
+
+      <div class="sabr-card" *ngIf="!mappingsLoading && !mappingsError">
+        <div class="empty-state" *ngIf="mappings.length === 0">
+          <nb-icon icon="link-2-outline"></nb-icon>
+          <p>Nenhum mapeamento criado. Adicione acima para vincular produtos TikTok aos SKUs do SABR.</p>
+        </div>
+
+        <table class="sabr-table" *ngIf="mappings.length > 0">
+          <thead>
+            <tr>
+              <th>Product ID TikTok</th>
+              <th>SKU ID TikTok</th>
+              <th>SKU SABR</th>
+              <th>Criado em</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of mappings">
+              <td>{{ m.tikTokItemId }}</td>
+              <td>{{ m.tikTokSkuId || '-' }}</td>
+              <td>{{ m.sabrVariantSku }}</td>
+              <td>{{ m.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <button
+                  nbButton
+                  status="danger"
+                  size="tiny"
+                  ghost
+                  [disabled]="deletingMappingId === m.id"
+                  (click)="deleteMapping(m.id)">
+                  <nb-icon icon="trash-2-outline"></nb-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </nb-tab>
+
+    <!-- Tab: Publicar -->
+    <nb-tab tabTitle="Publicar" tabIcon="cloud-upload-outline">
+
+      <div class="sabr-card panel mapping-form">
+        <h4>Publicar produtos no TikTok Shop</h4>
+
+        <div class="mapping-form-row">
+          <div class="form-field-group">
+            <label>Categoria TikTok</label>
+            <select [(ngModel)]="selectedCategoryId" class="status-select" [disabled]="categoriesLoading">
+              <option value="">{{ categoriesLoading ? 'Carregando...' : 'Selecione uma categoria' }}</option>
+              <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.localName }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mapping-form-row">
+          <div class="form-field-group" style="flex: 1">
+            <label>SKUs SABR (um por linha)</label>
+            <textarea
+              nbInput
+              [(ngModel)]="publishSkuInput"
+              placeholder="Ex:&#10;SKU001&#10;SKU002"
+              rows="4"
+              style="width: 100%; resize: vertical;"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="mapping-form-row">
+          <button
+            nbButton
+            status="info"
+            size="small"
+            [disabled]="publishValidating || !publishSkuInput.trim() || !selectedCategoryId"
+            (click)="validatePublish()">
+            {{ publishValidating ? 'Validando...' : 'Validar SKUs' }}
+          </button>
+
+          <button
+            nbButton
+            status="primary"
+            size="small"
+            [disabled]="publishing || !validateResult || validateResult.eligible === 0"
+            (click)="publish()">
+            {{ publishing ? 'Publicando...' : 'Publicar elegíveis' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Resultado da validação -->
+      <div class="sabr-card" *ngIf="validateResult">
+        <div class="status-grid" style="margin-bottom: 12px">
+          <div class="status-item">
+            <small>Total</small>
+            <strong>{{ validateResult.total }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Elegíveis</small>
+            <strong style="color: var(--color-success-500)">{{ validateResult.eligible }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Inelegíveis</small>
+            <strong style="color: var(--color-danger-500)">{{ validateResult.ineligible }}</strong>
+          </div>
+        </div>
+
+        <table class="sabr-table">
+          <thead>
+            <tr>
+              <th>SKU SABR</th>
+              <th>Produto</th>
+              <th>Imagens</th>
+              <th>Elegível</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of validateResult.items">
+              <td>{{ item.sabrVariantSku }}</td>
+              <td>{{ item.productName || '-' }}</td>
+              <td>{{ item.imageCount }}</td>
+              <td>
+                <nb-icon
+                  [icon]="item.eligible ? 'checkmark-circle-outline' : 'close-circle-outline'"
+                  [status]="item.eligible ? 'success' : 'danger'">
+                </nb-icon>
+              </td>
+              <td>{{ item.reasons.join(', ') || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Resultado da publicação -->
+      <div class="sabr-card" *ngIf="publishResult" style="margin-top: 12px">
+        <div class="status-grid" style="margin-bottom: 12px">
+          <div class="status-item">
+            <small>Publicados</small>
+            <strong style="color: var(--color-success-500)">{{ publishResult.published }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Já mapeados</small>
+            <strong>{{ publishResult.alreadyMapped }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Falhas</small>
+            <strong style="color: var(--color-danger-500)">{{ publishResult.failed }}</strong>
+          </div>
+        </div>
+
+        <table class="sabr-table">
+          <thead>
+            <tr>
+              <th>SKU SABR</th>
+              <th>Product ID TikTok</th>
+              <th>Status</th>
+              <th>Mensagem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of publishResult.items">
+              <td>{{ item.sabrVariantSku }}</td>
+              <td>{{ item.tikTokItemId || '-' }}</td>
+              <td><span class="status-badge status-{{ item.status | lowercase }}">{{ item.status }}</span></td>
+              <td>{{ item.message || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </nb-tab>
+
+    <!-- Tab: Listings -->
+    <nb-tab tabTitle="Listings" tabIcon="list-outline" (click)="loadListings()">
+
+      <div class="state-loading" *ngIf="listingsLoading">
+        <div class="spinner"></div>
+        <span>Carregando listings...</span>
+      </div>
+
+      <div class="state-error" *ngIf="!listingsLoading && listingsError">
+        <nb-icon icon="alert-circle-outline"></nb-icon>
+        <p>{{ listingsError }}</p>
+        <button nbButton size="small" (click)="loadListings()">Tentar novamente</button>
+      </div>
+
+      <div class="sabr-card" *ngIf="!listingsLoading && !listingsError">
+        <div class="empty-state" *ngIf="listings.length === 0">
+          <nb-icon icon="cloud-upload-outline"></nb-icon>
+          <p>Nenhum produto publicado ainda. Use a tab "Publicar" para enviar produtos ao TikTok Shop.</p>
+        </div>
+
+        <table class="sabr-table" *ngIf="listings.length > 0">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>SKU SABR</th>
+              <th>Product ID TikTok</th>
+              <th>SKU ID TikTok</th>
+              <th>Publicado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let listing of listings">
+              <td>{{ listing.productName || '-' }}</td>
+              <td>{{ listing.sabrVariantSku }}</td>
+              <td class="order-id">{{ listing.tikTokItemId }}</td>
+              <td>{{ listing.tikTokSkuId || '-' }}</td>
+              <td>{{ listing.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </nb-tab>
+
+  </nb-tabset>
+</section>

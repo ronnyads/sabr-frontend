@@ -44,27 +44,27 @@ export class PlatformUsersService {
 
   list(skip = 0, limit = 50): Observable<PlatformUserListResponse> {
     const params = new HttpParams().set('skip', skip).set('limit', limit);
-    return this.http.get<PlatformUserListResponse>(`${this.apiBaseUrl}/api/v1/admin/users`, { params });
+    return this.http.get<PlatformUserListResponse>(`${this.apiBaseUrl}/admin/users`, { params });
   }
 
   get(id: string): Observable<PlatformUserResult> {
-    return this.http.get<PlatformUserResult>(`${this.apiBaseUrl}/api/v1/admin/users/${id}`);
+    return this.http.get<PlatformUserResult>(`${this.apiBaseUrl}/admin/users/${id}`);
   }
 
   create(payload: PlatformUserCreateRequest): Observable<PlatformUserResult> {
-    return this.http.post<PlatformUserResult>(`${this.apiBaseUrl}/api/v1/admin/users`, payload);
+    return this.http.post<PlatformUserResult>(`${this.apiBaseUrl}/admin/users`, payload);
   }
 
   update(id: string, payload: PlatformUserUpdateRequest): Observable<PlatformUserResult> {
-    return this.http.put<PlatformUserResult>(`${this.apiBaseUrl}/api/v1/admin/users/${id}`, payload);
+    return this.http.put<PlatformUserResult>(`${this.apiBaseUrl}/admin/users/${id}`, payload);
   }
 
   setStatus(id: string, isActive: boolean): Observable<{ success: boolean }> {
-    return this.http.patch<{ success: boolean }>(`${this.apiBaseUrl}/api/v1/admin/users/${id}/status`, { isActive });
+    return this.http.patch<{ success: boolean }>(`${this.apiBaseUrl}/admin/users/${id}/status`, { isActive });
   }
 
   resetPassword(id: string, temporaryPassword: string): Observable<{ success: boolean }> {
-    return this.http.post<{ success: boolean }>(`${this.apiBaseUrl}/api/v1/admin/users/${id}/reset-password`, {
+    return this.http.post<{ success: boolean }>(`${this.apiBaseUrl}/admin/users/${id}/reset-password`, {
       temporaryPassword
     });
   }

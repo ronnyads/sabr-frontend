@@ -48,25 +48,25 @@ export class UsersService {
   list(tenantId: string, skip = 0, limit = 50): Observable<UserListResponse> {
     const params = new HttpParams().set('skip', skip).set('limit', limit);
     return this.http.get<UserListResponse>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/users`,
+      `${this.apiBaseUrl}/admin/tenants/${tenantId}/users`,
       { params }
     );
   }
 
   create(tenantId: string, payload: UserCreateRequest): Observable<UserResult> {
-    return this.http.post<UserResult>(`${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/users`, payload);
+    return this.http.post<UserResult>(`${this.apiBaseUrl}/admin/tenants/${tenantId}/users`, payload);
   }
 
   update(tenantId: string, userId: string, payload: UserUpdateRequest): Observable<UserResult> {
     return this.http.put<UserResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/users/${userId}`,
+      `${this.apiBaseUrl}/admin/tenants/${tenantId}/users/${userId}`,
       payload
     );
   }
 
   deactivate(tenantId: string, userId: string): Observable<{ success: boolean }> {
     return this.http.delete<{ success: boolean }>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${tenantId}/users/${userId}`
+      `${this.apiBaseUrl}/admin/tenants/${tenantId}/users/${userId}`
     );
   }
 }

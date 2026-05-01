@@ -10,6 +10,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { requestIdInterceptor } from './core/interceptors/request-id.interceptor';
 import { adminTenantInterceptor } from './core/interceptors/admin-tenant.interceptor';
+import { apiCredentialsInterceptor } from './core/interceptors/api-credentials.interceptor';
 import { CsrfService } from './core/services/csrf.service';
 import { AuthDebugLogService } from './core/services/auth-debug-log.service';
 import { AUTH_REALM } from './core/tokens/auth-realm';
@@ -41,7 +42,13 @@ export const appConfigAdmin: ApplicationConfig = {
     provideAnimations(),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     provideHttpClient(
-      withInterceptors([requestIdInterceptor, adminTenantInterceptor, authInterceptor, errorInterceptor]),
+      withInterceptors([
+        apiCredentialsInterceptor,
+        requestIdInterceptor,
+        adminTenantInterceptor,
+        authInterceptor,
+        errorInterceptor
+      ]),
       withXsrfConfiguration({
         cookieName: 'XSRF-ADMIN',
         headerName: 'X-XSRF-ADMIN'

@@ -23,6 +23,8 @@ export class RowActionsMenuComponent {
   @Output() actionClick = new EventEmitter<string>();
 
   open = false;
+  menuTop = 0;
+  menuRight = 0;
 
   constructor(private readonly hostRef: ElementRef<HTMLElement>) {}
 
@@ -44,6 +46,11 @@ export class RowActionsMenuComponent {
 
   toggle(event: Event): void {
     event.stopPropagation();
+    if (!this.open) {
+      const rect = this.hostRef.nativeElement.getBoundingClientRect();
+      this.menuTop = rect.bottom + 6;
+      this.menuRight = window.innerWidth - rect.right;
+    }
     this.open = !this.open;
   }
 

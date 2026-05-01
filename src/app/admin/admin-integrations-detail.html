@@ -17,26 +17,22 @@
     />
   </div>
 
-  <!-- Loading state -->
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
     <span>Carregando clientes...</span>
   </div>
 
-  <!-- Error state -->
   <div class="state-error" *ngIf="!loading && error">
     <nb-icon icon="alert-circle-outline"></nb-icon>
     <p>{{ error }}</p>
     <button nbButton size="small" (click)="load()">Tentar novamente</button>
   </div>
 
-  <!-- Empty state -->
   <div class="state-empty" *ngIf="!loading && !error && clients.length === 0">
     <nb-icon icon="inbox-outline"></nb-icon>
     <p>Nenhum cliente encontrado.</p>
   </div>
 
-  <!-- Table -->
   <div class="table-wrap" *ngIf="!loading && !error && clients.length > 0">
     <table class="clients-table">
       <thead>
@@ -45,9 +41,9 @@
           <th>Tenant</th>
           <th>Status</th>
           <th>Conectado em</th>
-          <th>Último sync</th>
+          <th>Ultimo sync</th>
           <th>Info</th>
-          <th>Ações</th>
+          <th>Acoes</th>
         </tr>
       </thead>
       <tbody>
@@ -63,16 +59,16 @@
               {{ client.isConnected ? 'Conectado' : 'Desconectado' }}
             </span>
           </td>
-          <td>{{ client.connectedAt ? (client.connectedAt | date:'dd/MM/yy HH:mm') : '—' }}</td>
-          <td>{{ client.lastSyncAt ? (client.lastSyncAt | date:'dd/MM/yy HH:mm') : '—' }}</td>
-          <td>{{ client.sellerOrCompanyInfo ?? '—' }}</td>
+          <td>{{ client.connectedAt ? (client.connectedAt | date:'dd/MM/yy HH:mm') : '-' }}</td>
+          <td>{{ client.lastSyncAt ? (client.lastSyncAt | date:'dd/MM/yy HH:mm') : '-' }}</td>
+          <td>{{ client.sellerOrCompanyInfo ?? '-' }}</td>
           <td class="actions-cell" (click)="$event.stopPropagation()">
             <button
               *ngIf="client.isConnected && !confirmReset[client.clientId]"
               nbButton
               status="danger"
               size="tiny"
-              title="Resetar integração"
+              title="Resetar integracao"
               (click)="toggleConfirmReset(client.clientId)"
             >
               <nb-icon icon="close-circle-outline"></nb-icon>
@@ -88,10 +84,10 @@
               >
                 {{ resetting[client.clientId] ? 'Aguarde...' : 'Sim' }}
               </button>
-              <button nbButton status="basic" size="tiny" (click)="toggleConfirmReset(client.clientId)">Não</button>
+              <button nbButton status="basic" size="tiny" (click)="toggleConfirmReset(client.clientId)">Nao</button>
             </ng-container>
             <button
-              *ngIf="client.isConnected"
+              *ngIf="client.isConnected && canViewDetails()"
               nbButton
               status="info"
               size="tiny"
@@ -106,12 +102,11 @@
     </table>
   </div>
 
-  <!-- Pagination -->
   <div class="pagination" *ngIf="total > limit">
     <button nbButton size="small" outline (click)="prevPage()" [disabled]="skip === 0 || loading">
       <nb-icon icon="chevron-left-outline"></nb-icon>
     </button>
-    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <span class="page-info">Pagina {{ currentPage }} de {{ totalPages }}</span>
     <button nbButton size="small" outline (click)="nextPage()" [disabled]="skip + limit >= total || loading">
       <nb-icon icon="chevron-right-outline"></nb-icon>
     </button>

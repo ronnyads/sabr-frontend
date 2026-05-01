@@ -8,7 +8,6 @@ export type BillingPeriod = 'Monthly' | 'Quarterly' | 'Semiannual' | 'Annual';
 
 export interface AdminPlanResult {
   id: string;
-  tenantId: string;
   name: string;
   billingPeriod: BillingPeriod;
   isActive: boolean;
@@ -19,7 +18,6 @@ export interface AdminPlanResult {
 
 export interface AdminPlanDetailResult {
   id: string;
-  tenantId: string;
   name: string;
   billingPeriod: BillingPeriod;
   isActive: boolean;
@@ -41,7 +39,6 @@ export class AdminPlansService {
   constructor(private http: HttpClient) {}
 
   list(
-    tenantId: string,
     skip = 0,
     limit = 20,
     search?: string,
@@ -56,40 +53,40 @@ export class AdminPlansService {
     }
 
     return this.http.get<PagedResult<AdminPlanResult>>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/plans`,
+      `${this.apiBaseUrl}/admin/plans`,
       { params }
     );
   }
 
-  getById(tenantId: string, planId: string): Observable<AdminPlanDetailResult> {
+  getById(planId: string): Observable<AdminPlanDetailResult> {
     return this.http.get<AdminPlanDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/plans/${planId}`
+      `${this.apiBaseUrl}/admin/plans/${planId}`
     );
   }
 
-  create(tenantId: string, request: AdminPlanUpsertRequest): Observable<AdminPlanDetailResult> {
+  create(request: AdminPlanUpsertRequest): Observable<AdminPlanDetailResult> {
     return this.http.post<AdminPlanDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/plans`,
+      `${this.apiBaseUrl}/admin/plans`,
       request
     );
   }
 
-  update(tenantId: string, planId: string, request: AdminPlanUpsertRequest): Observable<AdminPlanDetailResult> {
+  update(planId: string, request: AdminPlanUpsertRequest): Observable<AdminPlanDetailResult> {
     return this.http.put<AdminPlanDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/plans/${planId}`,
+      `${this.apiBaseUrl}/admin/plans/${planId}`,
       request
     );
   }
 
-  deactivate(tenantId: string, planId: string): Observable<void> {
+  deactivate(planId: string): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/plans/${planId}`
+      `${this.apiBaseUrl}/admin/plans/${planId}`
     );
   }
 
-  replaceCatalogs(tenantId: string, planId: string, catalogIds: string[]): Observable<AdminPlanDetailResult> {
+  replaceCatalogs(planId: string, catalogIds: string[]): Observable<AdminPlanDetailResult> {
     return this.http.put<AdminPlanDetailResult>(
-      `${this.apiBaseUrl}/api/v1/admin/tenants/${encodeURIComponent(tenantId)}/plans/${planId}/catalogs`,
+      `${this.apiBaseUrl}/admin/plans/${planId}/catalogs`,
       { catalogIds }
     );
   }

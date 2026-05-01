@@ -39,20 +39,20 @@ export class ClientDocumentsService {
   list(clientId: string, skip = 0, limit = 200): Observable<ClientDocumentListResponse> {
     const params = new HttpParams().set('skip', skip).set('limit', limit);
     return this.http.get<ClientDocumentListResponse>(
-      `${this.apiBaseUrl}/api/v1/client-documents/${clientId}`,
+      `${this.apiBaseUrl}/client-documents/${clientId}`,
       { params }
     );
   }
 
   get(clientId: string, documentId: string): Observable<ClientDocumentResult> {
     return this.http.get<ClientDocumentResult>(
-      `${this.apiBaseUrl}/api/v1/client-documents/${clientId}/${documentId}`
+      `${this.apiBaseUrl}/client-documents/${clientId}/${documentId}`
     );
   }
 
   download(clientId: string, documentId: string): Observable<Blob> {
     return this.http.get(
-      `${this.apiBaseUrl}/api/v1/client-documents/${clientId}/${documentId}/download`,
+      `${this.apiBaseUrl}/client-documents/${clientId}/${documentId}/download`,
       { responseType: 'blob' }
     );
   }
@@ -63,21 +63,21 @@ export class ClientDocumentsService {
     formData.append('file', file);
 
     return this.http.post<ClientDocumentUploadResponse>(
-      `${this.apiBaseUrl}/api/v1/client-documents/${clientId}`,
+      `${this.apiBaseUrl}/client-documents/${clientId}`,
       formData
     );
   }
 
   requestReview(clientId: string, documentId: string): Observable<{ documentId: string; status: number }> {
     return this.http.post<{ documentId: string; status: number }>(
-      `${this.apiBaseUrl}/api/v1/client-documents/${clientId}/${documentId}/request`,
+      `${this.apiBaseUrl}/client-documents/${clientId}/${documentId}/request`,
       {}
     );
   }
 
   approve(clientId: string, documentId: string, reviewedByUserId?: string): Observable<{ documentId: string; status: number }> {
     return this.http.post<{ documentId: string; status: number }>(
-      `${this.apiBaseUrl}/api/v1/client-documents/${clientId}/${documentId}/approve`,
+      `${this.apiBaseUrl}/client-documents/${clientId}/${documentId}/approve`,
       {
         reviewedByUserId: reviewedByUserId ?? null
       }
@@ -86,7 +86,7 @@ export class ClientDocumentsService {
 
   reject(clientId: string, documentId: string, reason: string, reviewedByUserId?: string): Observable<{ documentId: string; status: number }> {
     return this.http.post<{ documentId: string; status: number }>(
-      `${this.apiBaseUrl}/api/v1/client-documents/${clientId}/${documentId}/reject`,
+      `${this.apiBaseUrl}/client-documents/${clientId}/${documentId}/reject`,
       {
         reviewedByUserId: reviewedByUserId ?? null,
         reason

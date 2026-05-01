@@ -27,6 +27,6 @@ export class DocumentLookupService {
   constructor(private http: HttpClient) {}
 
   lookup(documentDigits: string): Observable<DocumentLookupResponse> {
-    return this.http.get<DocumentLookupResponse>(`${this.apiBaseUrl}/api/v1/utils/doc/${documentDigits}`);
+    return this.http.get<DocumentLookupResponse>(`${this.apiBaseUrl}/utils/doc/${documentDigits}`);
   }
 }

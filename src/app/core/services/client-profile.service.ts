@@ -63,10 +63,10 @@ export class ClientProfileService {
   constructor(private http: HttpClient) {}
 
   getProfile(): Observable<ClientProfileView> {
-    return this.http.get<ClientProfileView>(`${this.apiBaseUrl}/api/v1/client/profile`);
+    return this.http.get<ClientProfileView>(`${this.apiBaseUrl}/client/profile`);
   }
 
   updateProfile(payload: ClientProfileUpdateRequest): Observable<ClientProfileResult> {
-    return this.http.put<ClientProfileResult>(`${this.apiBaseUrl}/api/v1/client/profile`, payload);
+    return this.http.put<ClientProfileResult>(`${this.apiBaseUrl}/client/profile`, payload);
   }
 }

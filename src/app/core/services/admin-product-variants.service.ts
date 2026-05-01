@@ -44,27 +44,27 @@ export class AdminProductVariantsService {
 
   list(sku: string): Observable<AdminProductVariantResult[]> {
     return this.http.get<AdminProductVariantResult[]>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}/variants`
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/variants`
     );
   }
 
   create(sku: string, request: AdminProductVariantCreateRequest): Observable<AdminProductVariantResult> {
     return this.http.post<AdminProductVariantResult>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}/variants`,
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/variants`,
       request
     );
   }
 
   update(sku: string, variantSku: string, request: AdminProductVariantUpdateRequest): Observable<AdminProductVariantResult> {
     return this.http.put<AdminProductVariantResult>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}/variants/${encodeURIComponent(variantSku)}`,
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/variants/${encodeURIComponent(variantSku)}`,
       request
     );
   }
 
   deactivate(sku: string, variantSku: string): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiBaseUrl}/api/v1/admin/products/${encodeURIComponent(sku)}/variants/${encodeURIComponent(variantSku)}`
+      `${this.apiBaseUrl}/admin/products/${encodeURIComponent(sku)}/variants/${encodeURIComponent(variantSku)}`
     );
   }
 }

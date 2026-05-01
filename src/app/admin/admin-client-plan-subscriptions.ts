@@ -51,18 +51,22 @@ export class AdminClientPlanSubscriptions implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-      const tenantId = (params.get('tenantId') ?? '').trim().toLowerCase();
+      const routeTenant = (params.get('tenantId') ?? '').trim().toLowerCase();
+      const contextTenant = (this.tenantContext.get()?.tenantId ?? '').trim().toLowerCase();
+      const tenantId = routeTenant || contextTenant;
       const clientId = (params.get('clientId') ?? '').trim();
 
       if (!tenantId || !clientId) {
-        this.toastr.warning('Tenant e cliente sao obrigatorios para gerenciar assinaturas.', 'Contexto ausente');
+        this.toastr.warning('Cliente obrigatório para gerenciar assinaturas.', 'Contexto ausente');
         void this.router.navigate(['/clients']);
         return;
       }
 
       this.tenantId = tenantId;
       this.clientId = clientId;
-      this.tenantContext.set(this.tenantId);
+      if (routeTenant) {
+        this.tenantContext.set(tenantId);
+      }
       this.loadData();
     });
   }
@@ -159,7 +163,7 @@ export class AdminClientPlanSubscriptions implements OnInit, OnDestroy {
     this.errorMessage = null;
 
     forkJoin({
-      plans: this.plansService.list(this.tenantId, 0, 200, undefined, true),
+      plans: this.plansService.list(0, 200, undefined, true),
       subscriptions: this.subscriptionsService.getCurrent(this.tenantId, this.clientId)
     })
       .pipe(takeUntil(this.destroy$))

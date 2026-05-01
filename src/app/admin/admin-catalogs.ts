@@ -79,6 +79,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
   formError: string | null = null;
   editingCatalogId: string | null = null;
   saving = false;
+  openCreateOnLoad = false;
 
   linksMode: LinkMode = null;
   linksCatalog: AdminCatalogDetailResult | null = null;
@@ -111,7 +112,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const routeTenant = (params.get('tenantId') ?? '').trim().toLowerCase();
       if (!routeTenant) {
-        this.toastr.warning('Selecione um cliente/tenant antes de abrir Catalogos.', 'Tenant obrigatorio');
+        this.toastr.warning('Selecione um cliente antes de abrir Catálogos.', 'Cliente obrigatório');
         void this.router.navigate(['/clients']);
         return;
       }
@@ -120,6 +121,11 @@ export class AdminCatalogs implements OnInit, OnDestroy {
       this.tenantContext.set(this.tenantId);
       this.skip = 0;
       this.closeLinks();
+      const action = this.route.snapshot.queryParamMap.get('action');
+      this.openCreateOnLoad = action === 'new';
+      if (this.openCreateOnLoad) {
+        void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+      }
       this.loadCatalogs();
     });
 
@@ -262,7 +268,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
   }
 
   saveCatalog(): void {
-    if (this.form.invalid || this.saving || !this.tenantId) {
+    if (this.form.invalid || this.saving) {
       this.form.markAllAsTouched();
       return;
     }
@@ -278,8 +284,8 @@ export class AdminCatalogs implements OnInit, OnDestroy {
     this.formError = null;
 
     const request$ = this.editingCatalogId
-      ? this.catalogsService.update(this.tenantId, this.editingCatalogId, request)
-      : this.catalogsService.create(this.tenantId, request);
+      ? this.catalogsService.update(this.editingCatalogId, request)
+      : this.catalogsService.create(request);
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
@@ -296,7 +302,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
   }
 
   deactivate(catalog: AdminCatalogResult): void {
-    if (!this.tenantId || !catalog.isActive) {
+    if (!catalog.isActive) {
       return;
     }
 
@@ -305,7 +311,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
     }
 
     this.catalogsService
-      .deactivate(this.tenantId, catalog.id)
+      .deactivate(catalog.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -319,17 +325,13 @@ export class AdminCatalogs implements OnInit, OnDestroy {
   }
 
   openProductsLinks(catalog: AdminCatalogResult): void {
-    if (!this.tenantId) {
-      return;
-    }
-
     this.linksMode = 'products';
     this.linksCatalog = null;
     this.linksError = null;
     this.linksLoading = true;
 
     forkJoin({
-      detail: this.catalogsService.getById(this.tenantId, catalog.id),
+      detail: this.catalogsService.getById(catalog.id),
       products: this.productsService.list(0, 200, undefined, true)
     })
       .pipe(takeUntil(this.destroy$))
@@ -348,18 +350,14 @@ export class AdminCatalogs implements OnInit, OnDestroy {
   }
 
   openPlansLinks(catalog: AdminCatalogResult): void {
-    if (!this.tenantId) {
-      return;
-    }
-
     this.linksMode = 'plans';
     this.linksCatalog = null;
     this.linksError = null;
     this.linksLoading = true;
 
     forkJoin({
-      detail: this.catalogsService.getById(this.tenantId, catalog.id),
-      plans: this.plansService.list(this.tenantId, 0, 200, undefined, true)
+      detail: this.catalogsService.getById(catalog.id),
+      plans: this.plansService.list(0, 200, undefined, true)
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -422,7 +420,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
   }
 
   saveLinks(): void {
-    if (!this.tenantId || !this.linksCatalog || !this.linksMode || this.linksSaving) {
+    if (!this.linksCatalog || !this.linksMode || this.linksSaving) {
       return;
     }
 
@@ -431,7 +429,6 @@ export class AdminCatalogs implements OnInit, OnDestroy {
 
     const request$ = this.linksMode === 'products'
       ? this.catalogsService.replaceProducts(
-          this.tenantId,
           this.linksCatalog.id,
           [...new Set(this.selectedProductSkus.map((item) => normalizeSkuUppercase(item)))]
         )
@@ -492,7 +489,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
     const isActive = activeFilter === 'all' ? null : activeFilter === 'active';
 
     this.catalogsService
-      .list(this.tenantId, this.skip, this.limit, this.searchControl.value, isActive)
+      .list(this.skip, this.limit, this.searchControl.value, isActive)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -500,6 +497,10 @@ export class AdminCatalogs implements OnInit, OnDestroy {
           this.rebuildCatalogActions();
           this.total = response.total ?? 0;
           this.loading = false;
+          if (this.openCreateOnLoad) {
+            this.openCreateOnLoad = false;
+            this.openCreate();
+          }
         },
         error: (error: HttpErrorResponse) => {
           this.loading = false;

@@ -87,35 +87,35 @@ export class AdminOrdersService {
     if (options?.provider) params = params.set('provider', options.provider);
     if (options?.from) params = params.set('from', options.from);
     if (options?.to) params = params.set('to', options.to);
-    return this.http.get<PagedResult<AdminOrderListItem>>(`${this.apiBaseUrl}/api/v1/admin/orders`, { params });
+    return this.http.get<PagedResult<AdminOrderListItem>>(`${this.apiBaseUrl}/admin/orders`, { params });
   }
 
   getOrder(orderId: string): Observable<AdminOrderDetail> {
-    return this.http.get<AdminOrderDetail>(`${this.apiBaseUrl}/api/v1/admin/orders/${orderId}`);
+    return this.http.get<AdminOrderDetail>(`${this.apiBaseUrl}/admin/orders/${orderId}`);
   }
 
   confirmPayment(orderId: string, force = false): Observable<any> {
-    return this.http.post<any>(`${this.apiBaseUrl}/api/v1/admin/orders/${orderId}/confirm-payment`, { force });
+    return this.http.post<any>(`${this.apiBaseUrl}/admin/orders/${orderId}/confirm-payment`, { force });
   }
 
   cancelOrder(orderId: string, reason?: string | null): Observable<OrderActionResult> {
-    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/api/v1/admin/orders/${orderId}/cancel`, { reason: reason ?? null });
+    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/cancel`, { reason: reason ?? null });
   }
 
   processRefund(orderId: string): Observable<OrderActionResult> {
-    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/api/v1/admin/orders/${orderId}/refund`, {});
+    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/refund`, {});
   }
 
   getLabel(orderId: string): Observable<Blob> {
-    return this.http.get(`${this.apiBaseUrl}/api/v1/admin/orders/${orderId}/label`, { responseType: 'blob' });
+    return this.http.get(`${this.apiBaseUrl}/admin/orders/${orderId}/label`, { responseType: 'blob' });
   }
 
   dispatch(orderId: string): Observable<OrderActionResult> {
-    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/api/v1/admin/orders/${orderId}/dispatch`, {});
+    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/dispatch`, {});
   }
 
   listFulfillment(skip = 0, limit = 20): Observable<PagedResult<AdminFulfillmentOrderResult>> {
     const params = new HttpParams().set('skip', skip).set('limit', limit);
-    return this.http.get<PagedResult<AdminFulfillmentOrderResult>>(`${this.apiBaseUrl}/api/v1/admin/fulfillment`, { params });
+    return this.http.get<PagedResult<AdminFulfillmentOrderResult>>(`${this.apiBaseUrl}/admin/fulfillment`, { params });
   }
 }
