@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-client-ml-callback',
@@ -26,7 +27,7 @@ export class ClientMlCallback implements OnInit {
     }
 
     // Chama o backend POST para processar o callback
-    this.http.post<{ status: string }>('/api/v1/client/integrations/mercadolivre/callback', {
+    this.http.post<{ status: string }>(`${environment.apiBaseUrl}/client/integrations/mercadolivre/callback`, {
       code,
       state
     }).subscribe({
