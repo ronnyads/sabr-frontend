@@ -47,7 +47,8 @@ export class ClientOrders implements OnInit, OnDestroy {
   readonly providerOptions = [
     { value: '', label: 'Todos os canais' },
     { value: '1', label: 'Mercado Livre' },
-    { value: '2', label: 'Tiny ERP' }
+    { value: '2', label: 'Tiny ERP' },
+    { value: '3', label: 'TikTok Shop' }
   ];
 
   readonly statusOptions = [
@@ -137,13 +138,33 @@ export class ClientOrders implements OnInit, OnDestroy {
   providerLabel(provider: number): string {
     if (provider === 1) return 'ML';
     if (provider === 2) return 'Tiny';
+    if (provider === 3) return 'TikTok';
     return '';
   }
 
   providerClass(provider: number): string {
     if (provider === 1) return 'badge-info';
     if (provider === 2) return 'badge-purple';
+    if (provider === 3) return 'badge-tiktok';
     return 'badge-neutral';
+  }
+
+  markPaid(orderId: string): void {
+    this.actionLoading[orderId + '_pay'] = true;
+    this.ordersService.markPaid(orderId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastr.success('Pagamento confirmado com sucesso.', 'Pedidos');
+          this.load();
+        },
+        error: (err: any) => {
+          const msg = err?.error?.message ?? 'Erro ao confirmar pagamento.';
+          this.toastr.danger(msg, 'Erro');
+          this.actionLoading[orderId + '_pay'] = false;
+        },
+        complete: () => { this.actionLoading[orderId + '_pay'] = false; }
+      });
   }
 
   isUrgent(order: any): boolean {

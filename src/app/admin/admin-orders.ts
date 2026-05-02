@@ -46,7 +46,8 @@ export class AdminOrders implements OnInit, OnDestroy {
   readonly providerOptions = [
     { value: '', label: 'Todos os canais' },
     { value: '1', label: 'Mercado Livre' },
-    { value: '2', label: 'Tiny ERP' }
+    { value: '2', label: 'Tiny ERP' },
+    { value: '3', label: 'TikTok Shop' }
   ];
 
   readonly statusOptions = [
@@ -118,12 +119,14 @@ export class AdminOrders implements OnInit, OnDestroy {
   providerLabel(provider: number): string {
     if (provider === 1) return 'ML';
     if (provider === 2) return 'Tiny';
+    if (provider === 3) return 'TikTok';
     return '';
   }
 
   providerClass(provider: number): string {
     if (provider === 1) return 'badge-info';
     if (provider === 2) return 'badge-purple';
+    if (provider === 3) return 'badge-tiktok';
     return 'badge-neutral';
   }
 

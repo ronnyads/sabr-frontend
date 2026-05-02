@@ -90,7 +90,15 @@
         </div>
 
         <!-- Action buttons -->
-        <div class="order-actions" *ngIf="order.canCancel || order.canRefund">
+        <div class="order-actions" *ngIf="order.status === 'paid' || order.canCancel || order.canRefund">
+          <button
+            nbButton status="success" size="small"
+            *ngIf="order.status === 'paid'"
+            [disabled]="actionLoading[order.id + '_pay']"
+            (click)="markPaid(order.id); $event.stopPropagation()">
+            <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+            {{ actionLoading[order.id + '_pay'] ? 'Confirmando...' : 'Confirmar Pagamento' }}
+          </button>
           <button
             nbButton status="danger" size="small" outline
             *ngIf="order.canCancel"

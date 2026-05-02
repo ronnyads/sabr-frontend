@@ -77,4 +77,11 @@ export class MarketplaceOrdersService {
       { reason: reason ?? null }
     );
   }
+
+  markPaid(orderId: string, force = false): Observable<OrderActionResult> {
+    return this.http.post<OrderActionResult>(
+      `${this.apiBaseUrl}/client/orders/marketplace/${orderId}/mark-paid`,
+      { force }
+    );
+  }
 }
