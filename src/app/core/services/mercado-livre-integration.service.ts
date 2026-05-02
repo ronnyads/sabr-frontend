@@ -170,6 +170,13 @@ export class MercadoLivreIntegrationService {
     );
   }
 
+  reset(): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/reset`,
+      {}
+    );
+  }
+
   syncNow(sellerId?: string | null): Observable<MercadoLivreSyncNowResult> {
     return this.http.post<MercadoLivreSyncNowResult>(
       `${this.apiBaseUrl}/client/integrations/mercadolivre/sync-now`,

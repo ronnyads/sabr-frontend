@@ -57,6 +57,9 @@
       <button nbButton status="danger" size="small" [disabled]="disconnecting || !connected" (click)="disconnect()">
         {{ disconnecting ? 'Desconectando...' : 'Desconectar' }}
       </button>
+      <button nbButton status="warning" size="small" [disabled]="resetting" (click)="openResetConfirm()">
+        {{ resetting ? 'Limpando...' : 'Limpar integracao' }}
+      </button>
       <label class="seller-select" *ngIf="status && status.connections.length > 0">
         <span>Seller ativo</span>
         <select [value]="selectedSellerId" (change)="onSellerChanged($any($event.target).value)">
@@ -261,6 +264,20 @@
       <div class="pager-actions">
         <button nbButton size="small" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
         <button nbButton size="small" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="risk-overlay" *ngIf="showResetConfirm">
+    <div class="risk-modal">
+      <h4>Limpar integracao Mercado Livre</h4>
+      <p>Isso vai apagar <strong>todos os dados</strong> da integracao: pedidos, itens, mapeamentos, listings e tokens de conexao.</p>
+      <p>Esta acao nao pode ser desfeita. Deseja continuar?</p>
+      <div class="risk-actions">
+        <button nbButton status="basic" size="small" (click)="cancelReset()" [disabled]="resetting">Cancelar</button>
+        <button nbButton status="danger" size="small" (click)="confirmReset()" [disabled]="resetting">
+          {{ resetting ? 'Limpando...' : 'Sim, limpar tudo' }}
+        </button>
       </div>
     </div>
   </div>

@@ -17,6 +17,9 @@
       <button nbButton status="danger" size="small" [disabled]="disconnecting" (click)="disconnect()">
         {{ disconnecting ? 'Desconectando...' : 'Desconectar' }}
       </button>
+      <button nbButton status="warning" size="small" [disabled]="resetting" (click)="openResetConfirm()">
+        {{ resetting ? 'Limpando...' : 'Limpar integracao' }}
+      </button>
     </div>
   </div>
 
@@ -400,4 +403,18 @@
     </nb-tab>
 
   </nb-tabset>
+
+  <div class="risk-overlay" *ngIf="showResetConfirm">
+    <div class="risk-modal">
+      <h4>Limpar integracao TikTok Shop</h4>
+      <p>Isso vai apagar <strong>todos os dados</strong> da integracao: pedidos, itens, mapeamentos e token de conexao.</p>
+      <p>Esta acao nao pode ser desfeita. Deseja continuar?</p>
+      <div class="risk-actions">
+        <button nbButton status="basic" size="small" (click)="cancelReset()" [disabled]="resetting">Cancelar</button>
+        <button nbButton status="danger" size="small" (click)="confirmReset()" [disabled]="resetting">
+          {{ resetting ? 'Limpando...' : 'Sim, limpar tudo' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </section>

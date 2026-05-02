@@ -36,6 +36,10 @@ export class TinyIntegrationService {
     return this.http.post<void>(`${this.base}/disconnect`, {});
   }
 
+  reset(): Observable<void> {
+    return this.http.post<void>(`${this.base}/reset`, {});
+  }
+
   syncNow(): Observable<TinySyncResult> {
     return this.http.post<TinySyncResult>(`${this.base}/sync-now`, {});
   }

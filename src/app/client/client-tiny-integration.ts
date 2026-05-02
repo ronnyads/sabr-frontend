@@ -17,6 +17,8 @@ export class ClientTinyIntegration implements OnInit, OnDestroy {
   connecting = false;
   syncing = false;
   disconnecting = false;
+  resetting = false;
+  showResetConfirm = false;
   error: string | null = null;
   status: TinyIntegrationStatus | null = null;
 
@@ -105,6 +107,39 @@ export class ClientTinyIntegration implements OnInit, OnDestroy {
         },
         error: (err: HttpErrorResponse) => {
           this.toastr.danger(this.buildErrorMessage('Falha ao desconectar o Tiny ERP.', err), 'Erro');
+        }
+      });
+  }
+
+  openResetConfirm(): void {
+    this.showResetConfirm = true;
+  }
+
+  cancelReset(): void {
+    this.showResetConfirm = false;
+  }
+
+  confirmReset(): void {
+    if (this.resetting) {
+      return;
+    }
+
+    this.showResetConfirm = false;
+    this.resetting = true;
+    this.service
+      .reset()
+      .pipe(
+        finalize(() => (this.resetting = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: () => {
+          this.toastr.success('Integracao Tiny ERP limpa com sucesso.', 'Tiny ERP');
+          this.status = null;
+          this.loadStatus();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.toastr.danger(this.buildErrorMessage('Falha ao limpar integracao Tiny ERP.', err), 'Erro');
         }
       });
   }

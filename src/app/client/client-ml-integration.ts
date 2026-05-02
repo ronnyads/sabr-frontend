@@ -41,6 +41,8 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   syncing = false;
   reconciling = false;
   disconnecting = false;
+  resetting = false;
+  showResetConfirm = false;
   creatingMapping = false;
 
   statusError: string | null = null;
@@ -144,6 +146,43 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
         error: (error: HttpErrorResponse) => {
           this.logTraceableHttpError('connect_url', error);
           this.toastr.danger(this.buildErrorMessage('Falha ao iniciar OAuth do Mercado Livre.', error), 'Erro');
+        }
+      });
+  }
+
+  openResetConfirm(): void {
+    this.showResetConfirm = true;
+  }
+
+  cancelReset(): void {
+    this.showResetConfirm = false;
+  }
+
+  confirmReset(): void {
+    if (this.resetting) {
+      return;
+    }
+
+    this.showResetConfirm = false;
+    this.resetting = true;
+    this.integrationService
+      .reset()
+      .pipe(
+        finalize(() => (this.resetting = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: () => {
+          this.toastr.success('Integracao Mercado Livre limpa com sucesso.', 'Mercado Livre');
+          this.status = null;
+          this.mappings = [];
+          this.orders = [];
+          this.listings = [];
+          this.selectedSellerId = '';
+          this.loadStatusAndData();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.toastr.danger(this.buildErrorMessage('Falha ao limpar integracao.', error), 'Erro');
         }
       });
   }

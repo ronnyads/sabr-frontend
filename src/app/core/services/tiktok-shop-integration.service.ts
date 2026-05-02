@@ -124,6 +124,10 @@ export class TikTokShopIntegrationService {
     return this.http.post<void>(`${this.base}/disconnect`, {});
   }
 
+  reset(): Observable<void> {
+    return this.http.post<void>(`${this.base}/reset`, {});
+  }
+
   syncNow(): Observable<TikTokShopSyncResult> {
     return this.http.post<TikTokShopSyncResult>(`${this.base}/sync-now`, {});
   }

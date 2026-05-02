@@ -38,6 +38,8 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   loading = false;
   connecting = false;
   disconnecting = false;
+  resetting = false;
+  showResetConfirm = false;
   syncing = false;
   error: string | null = null;
   status: TikTokShopIntegrationStatus | null = null;
@@ -168,6 +170,37 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         },
         error: (err: HttpErrorResponse) => {
           this.toastr.danger(this.buildErrorMessage('Falha ao desconectar TikTok Shop.', err), 'TikTok Shop');
+        }
+      });
+  }
+
+  openResetConfirm(): void {
+    this.showResetConfirm = true;
+  }
+
+  cancelReset(): void {
+    this.showResetConfirm = false;
+  }
+
+  confirmReset(): void {
+    if (this.resetting) {
+      return;
+    }
+
+    this.showResetConfirm = false;
+    this.resetting = true;
+    this.service
+      .reset()
+      .pipe(finalize(() => (this.resetting = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.status = null;
+          this.orders = [];
+          this.mappings = [];
+          this.toastr.success('Integracao TikTok Shop limpa com sucesso.', 'TikTok Shop');
+        },
+        error: (err: HttpErrorResponse) => {
+          this.toastr.danger(this.buildErrorMessage('Falha ao limpar integracao TikTok Shop.', err), 'Erro');
         }
       });
   }
