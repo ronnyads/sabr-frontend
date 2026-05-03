@@ -16,6 +16,7 @@ export const adminRoutes: Routes = [
 
       // Platform users (Admin/SuperAdmin/Finance)
       { path: 'users', loadComponent: () => import('./admin/platform-users').then((m) => m.PlatformUsers) },
+      { path: 'suppliers', loadComponent: () => import('./admin/admin-suppliers').then((m) => m.AdminSuppliers) },
       { path: 'products', loadComponent: () => import('./admin/admin-products').then((m) => m.AdminProducts) },
       {
         path: 'categories',
@@ -85,6 +86,7 @@ export const adminRoutes: Routes = [
         path: 'admin/users',
         loadComponent: () => import('./admin/platform-users').then((m) => m.PlatformUsers)
       },
+      { path: 'admin/suppliers', loadComponent: () => import('./admin/admin-suppliers').then((m) => m.AdminSuppliers) },
       {
         path: 'admin/products',
         loadComponent: () => import('./admin/admin-products').then((m) => m.AdminProducts)

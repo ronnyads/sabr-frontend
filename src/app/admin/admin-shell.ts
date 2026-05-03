@@ -32,6 +32,7 @@ export class AdminShell implements OnInit, AfterViewInit, OnDestroy {
     { label: 'Clientes', icon: 'people-outline', link: '/clients' },
     // Platform users (Admin/SuperAdmin/Finance).
     { label: 'Usuarios do Sistema', icon: 'person-outline', link: '/users' },
+    { label: 'Fornecedores', icon: 'briefcase-outline', link: '/suppliers' },
     { label: 'Produtos', icon: 'cube-outline', link: '/products' },
     { label: 'Categorias', icon: 'pricetags-outline', link: '/categories' },
     { label: 'Catalogos', icon: 'grid-outline', link: '/catalogs' },

@@ -1,0 +1,91 @@
+<nb-card class="users-card">
+  <nb-card-header class="card-header">
+    <div>
+      <h3>Fornecedores</h3>
+      <p>Gerencie os fornecedores da plataforma.</p>
+    </div>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Novo Fornecedor</button>
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="form-wrapper" *ngIf="formOpen">
+      <form [formGroup]="form">
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Nome *</label>
+            <input nbInput fullWidth formControlName="name" placeholder="Nome do responsável" />
+          </div>
+          <div class="input-group">
+            <label>Email *</label>
+            <input nbInput fullWidth formControlName="email" placeholder="email@empresa.com" />
+          </div>
+          <div class="input-group">
+            <label>Senha *</label>
+            <input nbInput fullWidth type="password" formControlName="password" placeholder="Mínimo 8 caracteres" />
+          </div>
+          <div class="input-group">
+            <label>Empresa</label>
+            <input nbInput fullWidth formControlName="companyName" placeholder="Razão social" />
+          </div>
+          <div class="input-group">
+            <label>CNPJ / CPF</label>
+            <input nbInput fullWidth formControlName="document" placeholder="00.000.000/0000-00" />
+          </div>
+          <div class="input-group">
+            <label>Telefone</label>
+            <input nbInput fullWidth formControlName="phone" placeholder="(11) 99999-9999" />
+          </div>
+        </div>
+
+        <p class="error" *ngIf="formError">{{ formError }}</p>
+
+        <div class="form-actions">
+          <button nbButton status="basic" size="small" type="button" (click)="cancelForm()">Cancelar</button>
+          <button nbButton status="primary" size="small" type="button" (click)="saveSupplier()">Criar</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <nb-spinner size="medium"></nb-spinner>
+      <span>Carregando...</span>
+    </div>
+
+    <p class="error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
+
+    <div class="empty" *ngIf="!loading && !errorMessage && suppliers.length === 0">
+      Nenhum fornecedor cadastrado.
+    </div>
+
+    <table class="users-table" *ngIf="!loading && suppliers.length > 0">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Empresa</th>
+          <th>Documento</th>
+          <th>Status</th>
+          <th>Último login</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of suppliers">
+          <td>{{ s.name }}</td>
+          <td>{{ s.email }}</td>
+          <td>{{ s.companyName || '-' }}</td>
+          <td>{{ s.document || '-' }}</td>
+          <td>
+            <span class="status" [class.active]="s.isActive">{{ statusLabel(s) }}</span>
+          </td>
+          <td>{{ s.lastLoginAt ? (s.lastLoginAt | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
+          <td class="actions">
+            <button nbButton size="tiny" [status]="s.isActive ? 'danger' : 'success'" (click)="toggleStatus(s)">
+              {{ s.isActive ? 'Suspender' : 'Ativar' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </nb-card-body>
+</nb-card>
