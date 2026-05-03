@@ -19,12 +19,18 @@
         window.__API_BASE_URL__ = fallback;
       }
 
-      // Apply theme immediately to avoid black flash before Angular loads
+      // Apply theme immediately — external styles.css loads async (media=print trick),
+      // so the [data-theme='light'] override isn't available yet. Inject light vars inline.
       var persistedTheme = null;
       try { persistedTheme = localStorage.getItem('phub.ui.theme.v1'); } catch(e) {}
       var theme = (persistedTheme === 'dark' || persistedTheme === 'light') ? persistedTheme : 'light';
       document.documentElement.setAttribute('data-theme', theme);
       document.documentElement.style.colorScheme = theme;
+      if (theme === 'light') {
+        var s = document.createElement('style');
+        s.textContent = ':root{--phub-bg:#f4f6f9;--phub-bg-strong:#edf0f5;--phub-surface:#ffffff;--phub-surface-soft:#f1f5f9;--phub-surface-raised:#ffffff;--phub-text:#0f172a;--phub-text-muted:#64748b;--phub-text-subtle:#64748b;--phub-border:rgba(15,23,42,.12);--phub-border-strong:rgba(15,23,42,.20);--phub-shadow-soft:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);--phub-shadow-hover:0 4px 16px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06);--phub-primary:#6D28D9;--phub-primary-strong:#5B21B6;--phub-primary-weak:rgba(109,40,217,.08);--phub-secondary:#0891B2;--phub-accent:#D97706;--phub-accent-weak:rgba(217,119,6,.10);}';
+        document.head.appendChild(s);
+      }
     })();
   </script>
 </head>
