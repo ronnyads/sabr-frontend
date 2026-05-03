@@ -1,0 +1,45 @@
+<section class="phub-page supplier-dashboard-page">
+  <div class="phub-page-header">
+    <div>
+      <h2>Dashboard</h2>
+      <p class="phub-subtitle">Visão geral da sua conta de fornecedor.</p>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <nb-spinner size="small"></nb-spinner>
+    <span>Carregando dados...</span>
+  </div>
+
+  <div class="kpi-grid" *ngIf="!loading">
+    <div class="kpi-card">
+      <span class="kpi-label">Total de Produtos</span>
+      <span class="kpi-value">{{ totalProducts }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Em Revisão</span>
+      <span class="kpi-value kpi-warning">{{ pendingProducts }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Aprovados</span>
+      <span class="kpi-value kpi-success">{{ approvedProducts }}</span>
+    </div>
+    <div class="kpi-card kpi-card--highlight" *ngIf="wallet">
+      <span class="kpi-label">Saldo Disponível</span>
+      <span class="kpi-value">R$ {{ (wallet.availableBalanceCents / 100) | number:'1.2-2' }}</span>
+    </div>
+    <div class="kpi-card" *ngIf="wallet">
+      <span class="kpi-label">Saldo Pendente</span>
+      <span class="kpi-value kpi-muted">R$ {{ (wallet.pendingBalanceCents / 100) | number:'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <div class="quick-actions phub-card panel" *ngIf="!loading">
+    <h4>Ações Rápidas</h4>
+    <div class="action-buttons">
+      <a nbButton status="primary" size="small" routerLink="/products">Gerenciar Produtos</a>
+      <a nbButton status="basic" size="small" routerLink="/wallet">Ver Carteira</a>
+      <a nbButton status="basic" size="small" routerLink="/withdrawals">Solicitar Saque</a>
+    </div>
+  </div>
+</section>

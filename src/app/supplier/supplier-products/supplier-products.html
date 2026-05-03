@@ -1,0 +1,114 @@
+<section class="phub-page supplier-products-page">
+  <div class="phub-page-header">
+    <div>
+      <h2>Meus Produtos</h2>
+      <p class="phub-subtitle">Gerencie seus produtos e envie para aprovação.</p>
+    </div>
+    <button nbButton status="primary" size="small" (click)="openCreate()">Novo Produto</button>
+  </div>
+
+  <div class="phub-card panel" *ngIf="formOpen">
+    <h4>{{ editingId ? 'Editar Produto' : 'Novo Produto' }}</h4>
+    <form [formGroup]="form" class="editor-grid">
+      <div class="field">
+        <label>Nome *</label>
+        <input nbInput fullWidth formControlName="name" placeholder="Nome do produto" />
+      </div>
+      <div class="field">
+        <label>Marca</label>
+        <input nbInput fullWidth formControlName="brand" placeholder="Marca" />
+      </div>
+      <div class="field">
+        <label>Descrição</label>
+        <input nbInput fullWidth formControlName="description" placeholder="Descrição" />
+      </div>
+      <div class="field">
+        <label>NCM</label>
+        <input nbInput fullWidth formControlName="ncm" placeholder="NCM" />
+      </div>
+      <div class="field">
+        <label>EAN</label>
+        <input nbInput fullWidth formControlName="ean" placeholder="EAN/GTIN" />
+      </div>
+      <div class="field">
+        <label>Preço de Custo (centavos) *</label>
+        <input nbInput fullWidth type="number" formControlName="costPriceCents" placeholder="ex: 1990" />
+      </div>
+      <div class="field">
+        <label>Largura (cm)</label>
+        <input nbInput fullWidth type="number" formControlName="widthCm" />
+      </div>
+      <div class="field">
+        <label>Altura (cm)</label>
+        <input nbInput fullWidth type="number" formControlName="heightCm" />
+      </div>
+      <div class="field">
+        <label>Comprimento (cm)</label>
+        <input nbInput fullWidth type="number" formControlName="lengthCm" />
+      </div>
+      <div class="field">
+        <label>Peso (kg)</label>
+        <input nbInput fullWidth type="number" formControlName="weightKg" />
+      </div>
+    </form>
+    <div class="editor-actions">
+      <button nbButton status="basic" size="small" [disabled]="saving" (click)="cancelForm()">Cancelar</button>
+      <button nbButton status="primary" size="small" [disabled]="saving || form.invalid" (click)="save()">
+        {{ saving ? 'Salvando...' : (editingId ? 'Salvar' : 'Criar') }}
+      </button>
+    </div>
+  </div>
+
+  <div class="phub-card panel">
+    <div class="loading" *ngIf="loading">
+      <nb-spinner size="small"></nb-spinner>
+      <span>Carregando produtos...</span>
+    </div>
+    <p class="error" *ngIf="error">{{ error }}</p>
+
+    <div class="table-wrapper" *ngIf="!loading && !error">
+      <p class="empty-state" *ngIf="products.length === 0">Nenhum produto cadastrado. Clique em "Novo Produto" para começar.</p>
+
+      <table class="data-table" *ngIf="products.length > 0">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Marca</th>
+            <th>Preço de Custo</th>
+            <th>Status</th>
+            <th>Atualizado em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of products; trackBy: trackProduct">
+            <td>{{ p.name }}</td>
+            <td>{{ p.brand || '-' }}</td>
+            <td>R$ {{ (p.costPriceCents / 100) | number:'1.2-2' }}</td>
+            <td>
+              <span class="phub-badge"
+                [class.phub-badge-success]="p.status === 'Approved'"
+                [class.phub-badge-warning]="p.status === 'PendingReview' || p.status === 'AdjustmentRequested'"
+                [class.phub-badge-danger]="p.status === 'Rejected'"
+                [class.phub-badge-muted]="p.status === 'Draft' || p.status === 'Inactive'">
+                {{ statusLabel(p.status) }}
+              </span>
+            </td>
+            <td>{{ p.updatedAt | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <button nbButton size="tiny" status="basic"
+                *ngIf="p.status === 'Draft' || p.status === 'AdjustmentRequested'"
+                (click)="openEdit(p)">Editar</button>
+              <button nbButton size="tiny" status="primary"
+                *ngIf="p.status === 'Draft' || p.status === 'AdjustmentRequested'"
+                (click)="submit(p)" style="margin-left: 4px;">Enviar</button>
+              <button nbButton size="tiny" status="danger"
+                *ngIf="p.status === 'Draft'"
+                (click)="remove(p)" style="margin-left: 4px;">Remover</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

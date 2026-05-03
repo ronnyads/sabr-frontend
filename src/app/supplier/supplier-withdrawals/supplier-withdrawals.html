@@ -1,0 +1,80 @@
+<section class="phub-page supplier-withdrawals-page">
+  <div class="phub-page-header">
+    <div>
+      <h2>Saques</h2>
+      <p class="phub-subtitle">Solicite saques do seu saldo disponível.</p>
+    </div>
+    <button nbButton status="primary" size="small" (click)="openForm()" [disabled]="availableCents <= 0">
+      Solicitar Saque
+    </button>
+  </div>
+
+  <div class="phub-card panel balance-banner" *ngIf="summary">
+    <span>Disponível para saque:</span>
+    <strong>R$ {{ (availableCents / 100) | number:'1.2-2' }}</strong>
+  </div>
+
+  <div class="phub-card panel" *ngIf="formOpen">
+    <h4>Novo Saque</h4>
+    <form [formGroup]="form" class="editor-grid">
+      <div class="field">
+        <label>Valor a sacar (centavos) *</label>
+        <input nbInput fullWidth type="number" formControlName="requestedAmountCents"
+          [max]="availableCents" placeholder="ex: 5000 = R$ 50,00" />
+        <small class="hint">Máximo disponível: R$ {{ (availableCents / 100) | number:'1.2-2' }}</small>
+      </div>
+    </form>
+    <div class="editor-actions">
+      <button nbButton status="basic" size="small" [disabled]="saving" (click)="cancelForm()">Cancelar</button>
+      <button nbButton status="primary" size="small" [disabled]="saving || form.invalid" (click)="request()">
+        {{ saving ? 'Solicitando...' : 'Solicitar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="phub-card panel">
+    <h4>Histórico de Saques</h4>
+    <div class="loading" *ngIf="loading">
+      <nb-spinner size="small"></nb-spinner>
+      <span>Carregando...</span>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <p class="empty-state" *ngIf="withdrawals.length === 0">Nenhum saque solicitado ainda.</p>
+
+      <table class="data-table" *ngIf="withdrawals.length > 0">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Valor Solicitado</th>
+            <th>Taxa</th>
+            <th>Valor Líquido</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let w of withdrawals; trackBy: trackWithdrawal">
+            <td>{{ w.requestedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>R$ {{ (w.requestedAmountCents / 100) | number:'1.2-2' }}</td>
+            <td>R$ {{ (w.feeAmountCents / 100) | number:'1.2-2' }}</td>
+            <td>R$ {{ (w.netAmountCents / 100) | number:'1.2-2' }}</td>
+            <td>
+              <span class="phub-badge"
+                [class.phub-badge-success]="w.status === 'Completed'"
+                [class.phub-badge-warning]="w.status === 'Pending' || w.status === 'Processing' || w.status === 'Approved'"
+                [class.phub-badge-danger]="w.status === 'Rejected' || w.status === 'Failed'">
+                {{ statusLabel(w.status) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination" *ngIf="total > pageSize">
+        <button nbButton size="tiny" status="basic" [disabled]="!hasPrevious" (click)="previousPage()">Anterior</button>
+        <span>Página {{ page }}</span>
+        <button nbButton size="tiny" status="basic" [disabled]="!hasNext" (click)="nextPage()">Próxima</button>
+      </div>
+    </div>
+  </div>
+</section>

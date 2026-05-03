@@ -1,0 +1,87 @@
+<section class="phub-page supplier-wallet-page">
+  <div class="phub-page-header">
+    <div>
+      <h2>Carteira</h2>
+      <p class="phub-subtitle">Seu saldo e histórico de movimentações.</p>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <nb-spinner size="small"></nb-spinner>
+    <span>Carregando saldo...</span>
+  </div>
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <div class="phub-card panel balance-cards" *ngIf="summary && !loading">
+    <div class="balance-card">
+      <span class="balance-label">Pendente</span>
+      <span class="balance-value">R$ {{ (summary.pendingBalanceCents / 100) | number:'1.2-2' }}</span>
+      <span class="balance-hint">Aguardando liquidação</span>
+    </div>
+    <div class="balance-card">
+      <span class="balance-label">Bloqueado</span>
+      <span class="balance-value">R$ {{ (summary.blockedBalanceCents / 100) | number:'1.2-2' }}</span>
+      <span class="balance-hint">Em processamento de saque</span>
+    </div>
+    <div class="balance-card balance-card--available">
+      <span class="balance-label">Disponível</span>
+      <span class="balance-value">R$ {{ (summary.availableBalanceCents / 100) | number:'1.2-2' }}</span>
+      <span class="balance-hint">Pronto para saque</span>
+    </div>
+  </div>
+
+  <div class="phub-card panel">
+    <h4>Histórico de Movimentações</h4>
+
+    <div class="loading" *ngIf="loadingEntries">
+      <nb-spinner size="small"></nb-spinner>
+      <span>Carregando...</span>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loadingEntries">
+      <p class="empty-state" *ngIf="entries.length === 0">Nenhuma movimentação encontrada.</p>
+
+      <table class="data-table" *ngIf="entries.length > 0">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Saldo Após</th>
+            <th>Status</th>
+            <th>Referência</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of entries; trackBy: trackEntry">
+            <td>{{ e.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <span class="phub-badge" [class.phub-badge-success]="e.type === 'Credit'" [class.phub-badge-danger]="e.type === 'Debit'">
+                {{ e.type === 'Credit' ? 'Crédito' : 'Débito' }}
+              </span>
+            </td>
+            <td [class.text-success]="e.type === 'Credit'" [class.text-danger]="e.type === 'Debit'">
+              {{ e.type === 'Credit' ? '+' : '-' }}R$ {{ (e.amountCents / 100) | number:'1.2-2' }}
+            </td>
+            <td>R$ {{ (e.balanceAfterCents / 100) | number:'1.2-2' }}</td>
+            <td>
+              <span class="phub-badge"
+                [class.phub-badge-success]="e.status === 'Available' || e.status === 'Withdrawn'"
+                [class.phub-badge-warning]="e.status === 'Pending' || e.status === 'Withdrawing'"
+                [class.phub-badge-muted]="e.status === 'Reversed' || e.status === 'Refunded'">
+                {{ entryStatusLabel(e.status) }}
+              </span>
+            </td>
+            <td>{{ e.referenceType || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination" *ngIf="total > pageSize">
+        <button nbButton size="tiny" status="basic" [disabled]="!hasPrevious" (click)="previousPage()">Anterior</button>
+        <span>Página {{ page }}</span>
+        <button nbButton size="tiny" status="basic" [disabled]="!hasNext" (click)="nextPage()">Próxima</button>
+      </div>
+    </div>
+  </div>
+</section>
