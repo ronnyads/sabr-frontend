@@ -145,8 +145,9 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
 
   connect(): void {
     this.connecting = true;
+    const returnUrl = window.location.origin + '/client/integrations/tiktokshop';
     this.service
-      .connectUrl('/client/integrations/tiktokshop')
+      .connectUrl(returnUrl)
       .pipe(finalize(() => (this.connecting = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => { window.location.href = result.url; },
