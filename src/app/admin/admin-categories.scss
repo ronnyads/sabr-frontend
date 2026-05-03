@@ -1,6 +1,6 @@
 .admin-page-card {
   border-radius: 16px;
-  box-shadow: var(--sabr-shadow-soft);
+  box-shadow: var(--phub-shadow-soft);
 }
 
 .page-header {
@@ -13,12 +13,12 @@
     margin: 0;
     font-size: 28px;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 
   p {
     margin: 4px 0 0;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     font-size: 14px;
   }
 }
@@ -33,9 +33,9 @@
 .editor {
   margin-bottom: 16px;
   padding: 16px;
-  border: 1px solid var(--sabr-border);
+  border: 1px solid var(--phub-border);
   border-radius: 12px;
-  background: var(--sabr-surface-soft);
+  background: var(--phub-surface-soft);
 }
 
 .editor-grid {
@@ -53,18 +53,18 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     font-weight: 600;
   }
 }
 
 .field-help {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 12px;
 }
 
 .field-error {
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
   font-size: 12px;
 }
 
@@ -91,17 +91,17 @@
   height: 42px;
   width: 42px;
   border-radius: 10px;
-  border: 1px solid var(--sabr-border);
-  background: var(--sabr-surface-raised);
+  border: 1px solid var(--phub-border);
+  background: var(--phub-surface-raised);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .icon-preview-unknown {
-  border-color: var(--sabr-warning);
-  color: var(--sabr-warning);
+  border-color: var(--phub-warning);
+  color: var(--phub-warning);
 }
 
 .field-full {
@@ -117,7 +117,7 @@
     gap: 8px;
     text-transform: none;
     font-size: 14px;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 }
 
@@ -130,7 +130,7 @@
 
 .error {
   margin: 0;
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
   font-size: 13px;
 }
 
@@ -145,17 +145,17 @@
   th,
   td {
     padding: 12px;
-    border-bottom: 1px solid var(--sabr-border);
+    border-bottom: 1px solid var(--phub-border);
     text-align: left;
     font-size: 14px;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 
   th {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     font-weight: 600;
   }
 
@@ -175,12 +175,12 @@
 
 .badge-active {
   background: rgba(34, 197, 94, 0.12);
-  color: var(--sabr-success);
+  color: var(--phub-success);
 }
 
 .badge-inactive {
   background: rgba(148, 163, 184, 0.10);
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .actions {
@@ -201,7 +201,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: 10px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 13px;
 }
 

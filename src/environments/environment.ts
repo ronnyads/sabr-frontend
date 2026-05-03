@@ -7,7 +7,7 @@ export const environment = {
     runtimeApiBase && runtimeApiBase !== '__API_BASE_URL__'
       ? runtimeApiBase
       : 'https://api.marketplaceonline.site/api/v1',
-  devTenant: 'sabr',
+  devTenant: 'phub',
   authDebugConsole: true,
   dataCache: {
     listTtlMs: 30_000

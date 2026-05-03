@@ -2,11 +2,11 @@
   display: block;
 }
 
-:host ::ng-deep nb-layout.sabr-layout-host .layout {
+:host ::ng-deep nb-layout.phub-layout-host .layout {
   min-height: 100vh;
 }
 
-:host ::ng-deep nb-layout.sabr-layout-host nb-layout-column {
+:host ::ng-deep nb-layout.phub-layout-host nb-layout-column {
   padding: 0 !important;
 }
 

@@ -1,4 +1,4 @@
-@use './styles/sabr-tokens';
+@use './styles/phub-tokens';
 @import url('@nebular/theme/styles/prebuilt/default.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=Outfit:wght@600;700;800;900&display=swap');
 
@@ -7,16 +7,16 @@
 // Forçar cor de texto global para todos os elementos Nebular
 .nb-theme-default,
 .nb-theme-default * {
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 // nb-card fundo e texto
 nb-card,
 nb-card.status-basic,
 .nb-theme-default nb-card {
-  background-color: var(--sabr-surface) !important;
-  border-color:     var(--sabr-border)  !important;
-  color:            var(--sabr-text)    !important;
+  background-color: var(--phub-surface) !important;
+  border-color:     var(--phub-border)  !important;
+  color:            var(--phub-text)    !important;
 }
 
 // Todos os elementos dentro do nb-card
@@ -29,61 +29,61 @@ nb-card small, nb-card strong {
 }
 
 nb-card-header {
-  background-color:    var(--sabr-surface-soft) !important;
-  border-bottom-color: var(--sabr-border)       !important;
-  color:               var(--sabr-text)         !important;
+  background-color:    var(--phub-surface-soft) !important;
+  border-bottom-color: var(--phub-border)       !important;
+  color:               var(--phub-text)         !important;
 }
 
 nb-card-footer {
-  background-color: var(--sabr-surface-soft) !important;
-  border-top-color: var(--sabr-border)       !important;
-  color:            var(--sabr-text)         !important;
+  background-color: var(--phub-surface-soft) !important;
+  border-top-color: var(--phub-border)       !important;
+  color:            var(--phub-text)         !important;
 }
 
 // nb-input — remover fundo branco, melhorar UX (altura, padding, border-radius, focus ring)
 nb-input,
 input[nbInput],
 textarea[nbInput] {
-  background-color: var(--sabr-surface-soft) !important;
-  border-color:     var(--sabr-border)       !important;
-  color:            var(--sabr-text)         !important;
+  background-color: var(--phub-surface-soft) !important;
+  border-color:     var(--phub-border)       !important;
+  color:            var(--phub-text)         !important;
   height:           44px !important;                                    // altura consistente
   padding:          0 14px !important;                                  // padding lateral uniforme
-  border-radius:    var(--sabr-radius-control) !important;              // arredondamento
+  border-radius:    var(--phub-radius-control) !important;              // arredondamento
   border-width:     1px !important;
   border-style:     solid !important;
-  transition:       border-color var(--sabr-transition-fast),
-                    box-shadow var(--sabr-transition-fast) !important;
+  transition:       border-color var(--phub-transition-fast),
+                    box-shadow var(--phub-transition-fast) !important;
 
-  &::placeholder { color: var(--sabr-text-subtle) !important; }
+  &::placeholder { color: var(--phub-text-subtle) !important; }
 
   &:focus {
-    border-color: var(--sabr-border-focus) !important;
-    box-shadow:   0 0 0 3px var(--sabr-primary-weak) !important;  // ring de foco visível
+    border-color: var(--phub-border-focus) !important;
+    box-shadow:   0 0 0 3px var(--phub-primary-weak) !important;  // ring de foco visível
   }
 }
 
 // nb-select trigger
 nb-select .select-button {
-  background-color: var(--sabr-surface-soft) !important;
-  border-color:     var(--sabr-border)       !important;
-  color:            var(--sabr-text)         !important;
+  background-color: var(--phub-surface-soft) !important;
+  border-color:     var(--phub-border)       !important;
+  color:            var(--phub-text)         !important;
 }
 
 // nb-button — texto branco em botões primary
 [nbButton].appearance-filled.status-primary { color: #fff !important; }
-[nbButton].appearance-outline               { color: var(--sabr-text) !important; }
+[nbButton].appearance-outline               { color: var(--phub-text) !important; }
 
 // Tabelas Nebular
 .nb-theme-default table th,
 .nb-theme-default table td {
-  color: var(--sabr-text) !important;
-  border-color: var(--sabr-border) !important;
+  color: var(--phub-text) !important;
+  border-color: var(--phub-border) !important;
 }
 
 // Paragrafos e textos gerais dentro das páginas admin/client
-.sabr-page p, .sabr-page span, .sabr-page small,
-.sabr-page h1, .sabr-page h2, .sabr-page h3, .sabr-page h4 {
+.phub-page p, .phub-page span, .phub-page small,
+.phub-page h1, .phub-page h2, .phub-page h3, .phub-page h4 {
   color: inherit;
 }
 
@@ -116,12 +116,12 @@ nb-layout.window-mode,
 .nb-theme-default nb-layout,
 .nb-theme-default nb-layout.window-mode {
   padding-top: 0 !important;
-  background:  var(--sabr-bg) !important;
+  background:  var(--phub-bg) !important;
 }
 
 nb-layout .layout,
 .nb-theme-default nb-layout .layout {
-  background:  var(--sabr-bg) !important;
+  background:  var(--phub-bg) !important;
   padding-top: 0 !important;
   min-height:  100vh;
 }
@@ -132,7 +132,7 @@ nb-layout.window-mode .scrollable-container,
 .nb-theme-default nb-layout.window-mode .scrollable-container {
   height:     100vh !important;
   box-shadow: none !important;
-  background: var(--sabr-bg) !important;
+  background: var(--phub-bg) !important;
 }
 
 // ─── Base ─────────────────────────────────────────────────────────────────────
@@ -143,39 +143,39 @@ nb-layout.window-mode .scrollable-container,
 html,
 body { height: 100%; }
 
-html { background: var(--sabr-bg) !important; }
+html { background: var(--phub-bg) !important; }
 
 // Override Nebular's .nb-theme-default body background (higher specificity than body alone)
 .nb-theme-default,
-.nb-theme-default body { background: var(--sabr-bg) !important; }
+.nb-theme-default body { background: var(--phub-bg) !important; }
 
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size:   var(--sabr-font-body-size);
-  line-height: var(--sabr-font-body-line);
-  font-weight: var(--sabr-font-body-weight);
-  color:       var(--sabr-text);
-  background:  var(--sabr-bg);
+  font-size:   var(--phub-font-body-size);
+  line-height: var(--phub-font-body-line);
+  font-weight: var(--phub-font-body-weight);
+  color:       var(--phub-text);
+  background:  var(--phub-bg);
   overflow-x:  hidden;
   -webkit-font-smoothing:  antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color var(--sabr-transition-slow), color var(--sabr-transition-slow);
+  transition: background-color var(--phub-transition-slow), color var(--phub-transition-slow);
 }
 
 h1, h2, h3, h4, h5, h6 {
   margin:         0;
-  color:          var(--sabr-text);
+  color:          var(--phub-text);
   font-family:    'Outfit', 'Inter', sans-serif;
   letter-spacing: -0.02em;
 }
 
-a { color: var(--sabr-primary); text-decoration: none; }
-a:hover { color: var(--sabr-primary-strong); }
+a { color: var(--phub-primary); text-decoration: none; }
+a:hover { color: var(--phub-primary-strong); }
 
 // ─── Focus ────────────────────────────────────────────────────────────────────
 :focus-visible {
-  outline:        2px solid var(--sabr-primary);
+  outline:        2px solid var(--phub-primary);
   outline-offset: 2px;
   border-radius:  4px;
 }
@@ -184,37 +184,37 @@ a:hover { color: var(--sabr-primary-strong); }
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background:    var(--sabr-border-strong);
+  background:    var(--phub-border-strong);
   border-radius: 99px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--sabr-text-subtle); }
+::-webkit-scrollbar-thumb:hover { background: var(--phub-text-subtle); }
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
-.sabr-page {
-  max-width: var(--sabr-content-max);
+.phub-page {
+  max-width: var(--phub-content-max);
   margin:    0 auto;
-  padding:   var(--sabr-space-lg);
+  padding:   var(--phub-space-lg);
 }
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
-.sabr-card {
-  border-radius: var(--sabr-radius-card);
-  border:        1px solid var(--sabr-border);
-  background:    var(--sabr-surface);
-  box-shadow:    var(--sabr-shadow-soft);
+.phub-card {
+  border-radius: var(--phub-radius-card);
+  border:        1px solid var(--phub-border);
+  background:    var(--phub-surface);
+  box-shadow:    var(--phub-shadow-soft);
 }
 
-.sabr-card-raised {
-  background: var(--sabr-surface-raised);
-  border:     1px solid var(--sabr-border-strong);
+.phub-card-raised {
+  background: var(--phub-surface-raised);
+  border:     1px solid var(--phub-border-strong);
 }
 
 // ─── Badges ───────────────────────────────────────────────────────────────────
-.sabr-badge {
+.phub-badge {
   display:     inline-flex;
   align-items: center;
   gap:         5px;
-  border-radius: var(--sabr-radius-pill);
+  border-radius: var(--phub-radius-pill);
   padding:     3px 10px;
   font-size:   11px;
   line-height: 16px;
@@ -222,75 +222,75 @@ a:hover { color: var(--sabr-primary-strong); }
   letter-spacing: 0.02em;
 }
 
-.sabr-badge-success {
-  background: var(--sabr-accent-weak);
-  color:      var(--sabr-accent);
+.phub-badge-success {
+  background: var(--phub-accent-weak);
+  color:      var(--phub-accent);
 }
 
-.sabr-badge-warning {
+.phub-badge-warning {
   background: rgba(245, 158, 11, 0.12);
-  color:      var(--sabr-warning);
+  color:      var(--phub-warning);
 }
 
-.sabr-badge-danger {
+.phub-badge-danger {
   background: rgba(240, 68, 56, 0.12);
-  color:      var(--sabr-danger);
+  color:      var(--phub-danger);
 }
 
-.sabr-badge-muted {
+.phub-badge-muted {
   background: rgba(148, 163, 184, 0.10);
-  color:      var(--sabr-text-muted);
+  color:      var(--phub-text-muted);
 }
 
-.sabr-badge-primary {
-  background: var(--sabr-primary-weak);
-  color:      var(--sabr-primary-strong);
+.phub-badge-primary {
+  background: var(--phub-primary-weak);
+  color:      var(--phub-primary-strong);
 }
 
 // ─── Divider ─────────────────────────────────────────────────────────────────
-.sabr-divider {
+.phub-divider {
   border:     none;
-  border-top: 1px solid var(--sabr-border);
-  margin:     var(--sabr-space-lg) 0;
+  border-top: 1px solid var(--phub-border);
+  margin:     var(--phub-space-lg) 0;
 }
 
 // ─── nb-select / nb-option overrides ─────────────────────────────────────────
 nb-option-list {
-  --nb-option-list-background-color: var(--sabr-surface-raised) !important;
-  background:    var(--sabr-surface-raised) !important;
-  border:        1px solid var(--sabr-border-strong) !important;
-  border-radius: var(--sabr-radius-control) !important;
-  box-shadow:    var(--sabr-shadow-hover) !important;
+  --nb-option-list-background-color: var(--phub-surface-raised) !important;
+  background:    var(--phub-surface-raised) !important;
+  border:        1px solid var(--phub-border-strong) !important;
+  border-radius: var(--phub-radius-control) !important;
+  box-shadow:    var(--phub-shadow-hover) !important;
   overflow:      hidden !important;
 }
 
 nb-option {
-  color:       var(--sabr-text) !important;
+  color:       var(--phub-text) !important;
   background:  transparent !important;
   font-family: 'Inter', sans-serif !important;
   font-size:   14px !important;
   font-weight: 500 !important;
   padding:     10px 14px !important;
   cursor:      pointer !important;
-  transition:  background var(--sabr-transition-fast) !important;
+  transition:  background var(--phub-transition-fast) !important;
 }
 
 nb-option:hover {
-  background: var(--sabr-primary-weak) !important;
-  color:      var(--sabr-primary-strong) !important;
+  background: var(--phub-primary-weak) !important;
+  color:      var(--phub-primary-strong) !important;
 }
 
 nb-option.selected {
-  color:       var(--sabr-primary-strong) !important;
+  color:       var(--phub-primary-strong) !important;
   font-weight: 600 !important;
 }
 
 // ─── Onboarding shell select ──────────────────────────────────────────────────
 .onboarding-shell nb-select .select-button {
-  background:    var(--sabr-surface-soft) !important;
-  border:        1px solid var(--sabr-border-strong) !important;
-  border-radius: var(--sabr-radius-control) !important;
-  color:         var(--sabr-text) !important;
+  background:    var(--phub-surface-soft) !important;
+  border:        1px solid var(--phub-border-strong) !important;
+  border-radius: var(--phub-radius-control) !important;
+  color:         var(--phub-text) !important;
   font-family:   'Inter', sans-serif !important;
   font-size:     14px !important;
   height:        44px !important;
@@ -300,23 +300,23 @@ nb-option.selected {
 
 .onboarding-shell nb-select .select-button:focus,
 .onboarding-shell nb-select .select-button:hover {
-  border-color: var(--sabr-primary) !important;  // fix: era rgba(45,111,255,0.40) hardcoded azul
-  background:   var(--sabr-primary-weak) !important;
+  border-color: var(--phub-primary) !important;  // fix: era rgba(45,111,255,0.40) hardcoded azul
+  background:   var(--phub-primary-weak) !important;
 }
 
-.onboarding-shell nb-select .chevron { color: var(--sabr-text-muted) !important; }
+.onboarding-shell nb-select .chevron { color: var(--phub-text-muted) !important; }
 
 // ─── Light theme — topbar e sidebar ──────────────────────────────────────────
-body.sabr-theme-light app-sabr-topbar header {
+body.phub-theme-light app-phub-topbar header {
   background:      rgba(255, 255, 255, 0.88) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border-bottom:   1px solid var(--sabr-border) !important;
-  box-shadow:      var(--sabr-shadow-soft) !important;
+  border-bottom:   1px solid var(--phub-border) !important;
+  box-shadow:      var(--phub-shadow-soft) !important;
 }
 
-body.sabr-theme-light app-sabr-sidebar aside {
-  background:      var(--sabr-surface) !important;
-  border-right:    1px solid var(--sabr-border) !important;
+body.phub-theme-light app-phub-sidebar aside {
+  background:      var(--phub-surface) !important;
+  border-right:    1px solid var(--phub-border) !important;
   box-shadow:      2px 0 12px rgba(15, 23, 42, 0.06) !important;
 }

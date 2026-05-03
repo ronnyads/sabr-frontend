@@ -1,4 +1,4 @@
-<section class="sabr-page publications-page">
+<section class="phub-page publications-page">
   <ng-template #headerActions>
     <button nbButton status="primary" size="small" (click)="openNewDraft()">Nova publicacao</button>
   </ng-template>
@@ -9,7 +9,7 @@
     [actionsTemplate]="headerActions"
   ></app-page-header>
 
-  <div class="sabr-card panel filters">
+  <div class="phub-card panel filters">
     <label>
       Seller
       <select [(ngModel)]="selectedSellerId">
@@ -40,7 +40,7 @@
     </div>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <app-ui-state
       [loading]="loading"
       [errorMessage]="errorMessage"
@@ -51,7 +51,7 @@
     ></app-ui-state>
 
     <div class="table-wrapper" *ngIf="!loading && !errorMessage && items.length > 0">
-      <table class="sabr-table">
+      <table class="phub-table">
         <thead>
           <tr>
             <th>Draft</th>

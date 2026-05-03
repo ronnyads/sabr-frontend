@@ -46,7 +46,7 @@ function reportWebVital(metric: Metric, realm: AppRealm): void {
   }
 
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('sabr:web-vital', { detail: payload }));
+    window.dispatchEvent(new CustomEvent('phub:web-vital', { detail: payload }));
   }
 }
 
@@ -82,7 +82,7 @@ export function initObservability(realm: AppRealm): void {
 
   if (shouldUseSentry()) {
     Sentry.setTag('realm', realm);
-    Sentry.setTag('app', 'sabr-frontend');
+    Sentry.setTag('app', 'phub-frontend');
   }
 
   initWebVitals(realm);

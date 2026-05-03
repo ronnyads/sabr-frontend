@@ -1,16 +1,16 @@
 // ─── Topbar — Modern Dark SaaS ────────────────────────────────────────────────
-.sabr-topbar {
+.phub-topbar {
   position:        fixed;
   top:             0;
-  left:            var(--sabr-sidebar-width);
+  left:            var(--phub-sidebar-width);
   right:           0;
   z-index:         20;
-  min-height:      var(--sabr-topbar-height);
+  min-height:      var(--phub-topbar-height);
   display:         flex;
   align-items:     center;
   justify-content: space-between;
   gap:             12px;
-  border-bottom:   1px solid var(--sabr-border);
+  border-bottom:   1px solid var(--phub-border);
   background:      rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -31,7 +31,7 @@
   font-weight:    700;
   letter-spacing: -0.02em;
   line-height:    1.2;
-  color:          var(--sabr-text);
+  color:          var(--phub-text);
 }
 
 // ─── Tenant pill ─────────────────────────────────────────────────────────────
@@ -39,10 +39,10 @@
   display:       inline-flex;
   align-items:   center;
   gap:           6px;
-  border-radius: var(--sabr-radius-pill);
-  border:        1px solid var(--sabr-border-strong);
-  background:    var(--sabr-primary-weak);
-  color:         var(--sabr-primary-strong);
+  border-radius: var(--phub-radius-pill);
+  border:        1px solid var(--phub-border-strong);
+  background:    var(--phub-primary-weak);
+  color:         var(--phub-primary-strong);
   min-height:    30px;
   padding:       0 12px;
   font-size:     12px;
@@ -62,11 +62,11 @@
   font-size:   13px;
   font-weight: 600;
   line-height: 1.2;
-  color:       var(--sabr-text);
+  color:       var(--phub-text);
 }
 
 .user-meta span {
-  color:       var(--sabr-text-muted);
+  color:       var(--phub-text-muted);
   font-size:   11px;
   line-height: 1.1;
 }
@@ -78,11 +78,11 @@
   display:     inline-flex;
   align-items: center;
   gap:         5px;
-  color:       var(--sabr-text-muted);
-  transition:  color var(--sabr-transition-fast);
+  color:       var(--phub-text-muted);
+  transition:  color var(--phub-transition-fast);
 }
 
-.theme-toggle:hover { color: var(--sabr-text); }
+.theme-toggle:hover { color: var(--phub-text); }
 
 .theme-toggle span {
   font-size:   12px;
@@ -90,18 +90,18 @@
 }
 
 // ─── Light theme ─────────────────────────────────────────────────────────────
-.sabr-topbar-light {
+.phub-topbar-light {
   background:    rgba(255, 255, 255, 0.88) !important;
-  border-bottom: 1px solid var(--sabr-border) !important;
-  box-shadow:    var(--sabr-shadow-soft) !important;
+  border-bottom: 1px solid var(--phub-border) !important;
+  box-shadow:    var(--phub-shadow-soft) !important;
 }
 
 // ─── v1 alias (retrocompatibilidade) ─────────────────────────────────────────
-.sabr-topbar-v1 { /* herda tudo do novo padrão */ }
+.phub-topbar-v1 { /* herda tudo do novo padrão */ }
 
 // ─── Mobile ───────────────────────────────────────────────────────────────────
 @media (max-width: 1023px) {
-  .sabr-topbar { left: 0; }
+  .phub-topbar { left: 0; }
 }
 
 @media (max-width: 760px) {

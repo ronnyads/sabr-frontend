@@ -4,7 +4,7 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class TenantService {
   private readonly reserved = ['admin', 'www', 'api', 'app'];
-  private readonly devStorageKey = 'sabr.dev.tenant.slug';
+  private readonly devStorageKey = 'phub.dev.tenant.slug';
   private readonly hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   private cachedSlug: string | null | undefined;
 

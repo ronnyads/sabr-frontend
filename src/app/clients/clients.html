@@ -1,4 +1,4 @@
-<section class="sabr-page clients-page">
+<section class="phub-page clients-page">
   <ng-template #headerActions>
     <button nbButton status="primary" size="small" (click)="openCreate()">Novo cliente</button>
   </ng-template>
@@ -18,7 +18,7 @@
     (clear)="clearToolbar()"
   ></app-search-toolbar>
 
-  <div class="sabr-card form-wrapper" *ngIf="formOpen">
+  <div class="phub-card form-wrapper" *ngIf="formOpen">
     <form [formGroup]="form">
       <div class="form-grid">
         <div class="input-group">
@@ -44,7 +44,7 @@
     </form>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <div class="loading" *ngIf="loading">
       <nb-spinner size="medium"></nb-spinner>
       <span>Carregando...</span>

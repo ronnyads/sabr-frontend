@@ -7,7 +7,7 @@
 .page-header h1 {
   margin: 0 0 4px;
   font-size: 1.4rem;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -32,7 +32,7 @@
 
 .panel h3 {
   margin: 0 0 14px;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 // Loading state
@@ -48,7 +48,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 0.9rem;
 }
 
@@ -113,8 +113,8 @@
 }
 
 .detail-item {
-  background: var(--sabr-surface-soft);
-  border: 1px solid var(--sabr-border);
+  background: var(--phub-surface-soft);
+  border: 1px solid var(--phub-border);
   border-radius: 10px;
   padding: 10px;
   display: flex;
@@ -123,12 +123,12 @@
 }
 
 .detail-item small {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 0.78rem;
 }
 
 .detail-item strong {
-  color: var(--sabr-text);
+  color: var(--phub-text);
   font-size: 0.9rem;
 }
 

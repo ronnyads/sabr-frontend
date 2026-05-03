@@ -13,7 +13,7 @@
     margin: 0;
     font-size: 28px;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 
   p {
@@ -35,7 +35,7 @@
   padding: 16px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  background: var(--sabr-surface-soft);
+  background: var(--phub-surface-soft);
 }
 
 .editor-grid {
@@ -53,7 +53,7 @@
   label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
   }
 }
 
@@ -100,7 +100,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 8px;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
 
   img {
     width: 100%;
@@ -116,7 +116,7 @@
     flex-direction: column;
     gap: 2px;
     font-size: 11px;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     margin-bottom: 8px;
   }
 
@@ -155,7 +155,7 @@
 .variant-row {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   padding: 12px;
 }
 
@@ -201,7 +201,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     padding: 8px 10px;
-    background: var(--sabr-surface);
+    background: var(--phub-surface);
     font-size: 13px;
     color: #1f2937;
   }
@@ -226,8 +226,8 @@
 
   th {
     font-weight: 700;
-    color: var(--sabr-text-muted);
-    background: var(--sabr-surface-soft);
+    color: var(--phub-text-muted);
+    background: var(--phub-surface-soft);
   }
 }
 
@@ -262,7 +262,7 @@
   gap: 12px;
 
   span {
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     font-size: 12px;
   }
 }

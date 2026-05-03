@@ -1,4 +1,4 @@
-<section class="sabr-page admin-plans-page">
+<section class="phub-page admin-plans-page">
   <ng-template #headerActions>
     <button nbButton status="primary" size="small" (click)="openCreate()">Novo Plano</button>
   </ng-template>
@@ -18,7 +18,7 @@
     (clear)="clearToolbar()"
   ></app-search-toolbar>
 
-  <div class="sabr-card panel" *ngIf="formOpen">
+  <div class="phub-card panel" *ngIf="formOpen">
     <form [formGroup]="form" class="editor-grid">
       <div class="field">
         <label>Nome</label>
@@ -52,7 +52,7 @@
     </div>
   </div>
 
-  <div class="sabr-card panel links-editor" *ngIf="linksOpen">
+  <div class="phub-card panel links-editor" *ngIf="linksOpen">
     <div class="links-header">
       <h4>
         Vincular Catalogos
@@ -82,7 +82,7 @@
     </ng-container>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <app-ui-state
       [loading]="loading"
       [empty]="empty"
@@ -109,7 +109,7 @@
             <td>{{ billingPeriodLabel(plan.billingPeriod) }}</td>
             <td>{{ plan.catalogCount }}</td>
             <td>
-              <span class="sabr-badge" [class.sabr-badge-success]="plan.isActive" [class.sabr-badge-muted]="!plan.isActive">
+              <span class="phub-badge" [class.phub-badge-success]="plan.isActive" [class.phub-badge-muted]="!plan.isActive">
                 {{ plan.isActive ? 'Ativo' : 'Inativo' }}
               </span>
             </td>

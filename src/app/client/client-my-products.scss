@@ -10,15 +10,15 @@
 
 .conflict-card {
   margin-bottom: 14px;
-  border: 1px solid var(--sabr-warning);
+  border: 1px solid var(--phub-warning);
   background: rgba(245, 158, 11, 0.08);
-  border-radius: var(--sabr-radius-card);
+  border-radius: var(--phub-radius-card);
   padding: 14px;
 }
 
 .conflict-card p {
   margin: 0 0 10px;
-  color: var(--sabr-warning);
+  color: var(--phub-warning);
 }
 
 .rows {
@@ -28,16 +28,16 @@
 }
 
 .row-card {
-  border: 1px solid var(--sabr-border);
+  border: 1px solid var(--phub-border);
   border-radius: 14px;
   padding: 14px;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: border-color var(--sabr-transition-fast);
+  transition: border-color var(--phub-transition-fast);
 
-  &:hover { border-color: var(--sabr-border-strong); }
+  &:hover { border-color: var(--phub-border-strong); }
 }
 
 .row-main {
@@ -51,7 +51,7 @@
   width: 96px;
   height: 96px;
   border-radius: 12px;
-  background: var(--sabr-surface-soft);
+  background: var(--phub-surface-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,28 +65,28 @@
 }
 
 .thumb span {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 0.75rem;
 }
 
 .row-info small {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .row-info h4 {
   margin: 4px 0;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .prices {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .prices strong {
-  color: var(--sabr-primary);
+  color: var(--phub-primary);
 }
 
 .marketplace-badges {
@@ -100,21 +100,21 @@
 .variant-readiness {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--sabr-success);
+  color: var(--phub-success);
   background: rgba(34, 197, 94, 0.12);
   border-radius: 999px;
   padding: 2px 8px;
 }
 
 .variant-readiness.missing {
-  color: var(--sabr-warning);
+  color: var(--phub-warning);
   background: rgba(245, 158, 11, 0.12);
 }
 
 .channel-label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .status-badge {
@@ -126,22 +126,22 @@
 
 .badge-none {
   background: rgba(148, 163, 184, 0.12);
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .badge-draft {
   background: rgba(245, 158, 11, 0.12);
-  color: var(--sabr-warning);
+  color: var(--phub-warning);
 }
 
 .badge-published {
   background: rgba(34, 197, 94, 0.12);
-  color: var(--sabr-success);
+  color: var(--phub-success);
 }
 
 .badge-error {
   background: rgba(239, 68, 68, 0.12);
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
 }
 
 .controls {
@@ -159,7 +159,7 @@
 .field label {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .actions {

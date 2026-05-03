@@ -53,7 +53,7 @@ export interface AuthLoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthServiceIntegrated implements OnDestroy {
-  private static readonly SESSION_STORAGE_KEY = 'sabr.auth.session.v1';
+  private static readonly SESSION_STORAGE_KEY = 'phub.auth.session.v1';
 
   // Keep these for backward compatibility, but they're now backed by SessionManager
   private accessToken: string | null = null;

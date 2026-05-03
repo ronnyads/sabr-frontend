@@ -1,11 +1,11 @@
-<section class="sabr-page tiny-integration-page">
+<section class="phub-page tiny-integration-page">
   <div class="page-header">
     <h1>Tiny ERP</h1>
     <p class="page-description">Gerencie sua integracao com o Tiny ERP</p>
   </div>
 
   <!-- Loading state -->
-  <div class="sabr-card panel loading-panel" *ngIf="loading">
+  <div class="phub-card panel loading-panel" *ngIf="loading">
     <div class="loading-content">
       <nb-icon icon="loader-outline" class="loading-icon"></nb-icon>
       <span>Verificando integracao...</span>
@@ -13,13 +13,13 @@
   </div>
 
   <!-- Error state -->
-  <div class="sabr-card panel error-panel" *ngIf="!loading && error">
+  <div class="phub-card panel error-panel" *ngIf="!loading && error">
     <p class="error-message">{{ error }}</p>
     <button nbButton status="basic" size="small" (click)="loadStatus()">Tentar novamente</button>
   </div>
 
   <!-- Connection card -->
-  <div class="sabr-card panel" *ngIf="!loading">
+  <div class="phub-card panel" *ngIf="!loading">
     <h3>Conexao</h3>
 
     <div class="connection-status" *ngIf="connected">
@@ -69,7 +69,7 @@
   </div>
 
   <!-- Sync card (only if connected) -->
-  <div class="sabr-card panel" *ngIf="!loading && connected">
+  <div class="phub-card panel" *ngIf="!loading && connected">
     <h3>Sincronizacao</h3>
 
     <div class="sync-info">
@@ -90,7 +90,7 @@
   </div>
 
   <!-- Note card -->
-  <div class="sabr-card panel info-card">
+  <div class="phub-card panel info-card">
     <nb-icon icon="info-outline" class="info-icon"></nb-icon>
     <p>
       A integracao Tiny ERP sincroniza pedidos e estoque automaticamente.

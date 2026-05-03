@@ -1,63 +1,63 @@
 // ─── Sidebar — Modern Dark SaaS ───────────────────────────────────────────────
-.sabr-sidebar {
+.phub-sidebar {
   position:        fixed;
   top:             0;
   left:            0;
   z-index:         30;
   display:         flex;
   height:          100vh;
-  width:           var(--sabr-sidebar-width);
+  width:           var(--phub-sidebar-width);
   flex-direction:  column;
   gap:             2px;
-  border-right:    1px solid var(--sabr-border);
-  background:      var(--sabr-surface);
+  border-right:    1px solid var(--phub-border);
+  background:      var(--phub-surface);
   padding:         16px 12px;
-  transition:      transform var(--sabr-transition-base);
+  transition:      transform var(--phub-transition-base);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
-.sabr-sidebar-header {
+.phub-sidebar-header {
   display:       flex;
   align-items:   center;
   gap:           10px;
   padding:       8px 6px 14px;
-  border-bottom: 1px solid var(--sabr-border);
+  border-bottom: 1px solid var(--phub-border);
   margin-bottom: 6px;
 }
 
-.sabr-logo-mark {
+.phub-logo-mark {
   display:         inline-flex;
   align-items:     center;
   justify-content: center;
   width:           34px;
   height:          34px;
   border-radius:   10px;
-  background:      var(--sabr-gradient-brand);
+  background:      var(--phub-gradient-brand);
   color:           #fff;
   flex-shrink:     0;
   box-shadow:      0 4px 14px rgba(124, 58, 237, 0.3);
 }
 
-.sabr-logo-text {
+.phub-logo-text {
   display:        flex;
   min-width:      0;
   flex-direction: column;
   gap:            1px;
 }
 
-.sabr-logo-text strong {
+.phub-logo-text strong {
   font-family:    'Outfit', sans-serif;
   font-size:      1rem;
   font-weight:    700;
   letter-spacing: -0.01em;
   line-height:    1.2;
-  color:          var(--sabr-text);
+  color:          var(--phub-text);
 }
 
-.sabr-logo-text span {
-  color:          var(--sabr-text-subtle);
+.phub-logo-text span {
+  color:          var(--phub-text-subtle);
   font-size:      0.68rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -67,7 +67,7 @@
 .close-btn { margin-left: auto; }
 
 // ─── Nav ──────────────────────────────────────────────────────────────────────
-.sabr-nav {
+.phub-nav {
   display:        flex;
   flex-direction: column;
   gap:            2px;
@@ -75,72 +75,72 @@
   overflow-y:     auto;
 }
 
-.sabr-nav a {
+.phub-nav a {
   display:         flex;
   align-items:     center;
   gap:             9px;
   min-height:      38px;
-  border-radius:   var(--sabr-radius-control);
+  border-radius:   var(--phub-radius-control);
   border:          1px solid transparent;
-  color:           var(--sabr-text-muted);
+  color:           var(--phub-text-muted);
   text-decoration: none;
   padding:         0 10px;
   font-size:       13.5px;
   font-weight:     500;
   cursor:          pointer;
-  transition:      background   var(--sabr-transition-fast),
-                   color        var(--sabr-transition-fast),
-                   border-color var(--sabr-transition-fast);
+  transition:      background   var(--phub-transition-fast),
+                   color        var(--phub-transition-fast),
+                   border-color var(--phub-transition-fast);
 }
 
-.sabr-nav a:hover {
+.phub-nav a:hover {
   background:   rgba(255, 255, 255, 0.05);
   border-color: transparent;
-  color:        var(--sabr-text);
+  color:        var(--phub-text);
 }
 
-.sabr-nav a.active {
-  background:   var(--sabr-primary-weak);
-  border-color: var(--sabr-primary-weak);
-  border-left:  3px solid var(--sabr-primary);
-  color:        var(--sabr-primary-strong);
+.phub-nav a.active {
+  background:   var(--phub-primary-weak);
+  border-color: var(--phub-primary-weak);
+  border-left:  3px solid var(--phub-primary);
+  color:        var(--phub-primary-strong);
   font-weight:  600;
   padding-left: 8px;
 }
 
-.sabr-nav a.disabled {
-  color:          var(--sabr-text-subtle);
+.phub-nav a.disabled {
+  color:          var(--phub-text-subtle);
   pointer-events: none;
   opacity:        0.5;
 }
 
 // ─── Profile wrap ─────────────────────────────────────────────────────────────
-.sabr-profile-wrap {
+.phub-profile-wrap {
   position:   relative;
   margin-top: auto;
 }
 
 // ─── Profile trigger ──────────────────────────────────────────────────────────
-.sabr-profile {
-  border-top:    1px solid var(--sabr-border);
+.phub-profile {
+  border-top:    1px solid var(--phub-border);
   padding:       10px 8px;
   display:       flex;
   align-items:   center;
   gap:           10px;
-  border-radius: var(--sabr-radius-sm);
+  border-radius: var(--phub-radius-sm);
   cursor:        pointer;
-  transition:    background var(--sabr-transition-fast);
+  transition:    background var(--phub-transition-fast);
   user-select:   none;
 
   &:hover,
-  &.active { background: var(--sabr-primary-weak); }
+  &.active { background: var(--phub-primary-weak); }
 }
 
 .avatar {
   width:           34px;
   height:          34px;
   border-radius:   50%;
-  background:      var(--sabr-gradient-brand);
+  background:      var(--phub-gradient-brand);
   color:           #fff;
   display:         inline-flex;
   align-items:     center;
@@ -164,11 +164,11 @@
   white-space:   nowrap;
   overflow:      hidden;
   text-overflow: ellipsis;
-  color:         var(--sabr-text);
+  color:         var(--phub-text);
 }
 
 .meta span {
-  color:         var(--sabr-text-muted);
+  color:         var(--phub-text-muted);
   font-size:     11.5px;
   line-height:   1.2;
   white-space:   nowrap;
@@ -180,9 +180,9 @@
 .profile-chevron {
   margin-left: auto;
   flex-shrink: 0;
-  color:       var(--sabr-text-subtle);
+  color:       var(--phub-text-subtle);
   font-size:   14px;
-  transition:  transform var(--sabr-transition-fast);
+  transition:  transform var(--phub-transition-fast);
 
   &.open { transform: rotate(180deg); }
 }
@@ -194,10 +194,10 @@
   left:          0;
   right:         0;
   z-index:       50;
-  background:    var(--sabr-surface-raised);
-  border:        1px solid var(--sabr-border-strong);
-  border-radius: var(--sabr-radius-control);
-  box-shadow:    var(--sabr-shadow-hover);
+  background:    var(--phub-surface-raised);
+  border:        1px solid var(--phub-border-strong);
+  border-radius: var(--phub-radius-control);
+  box-shadow:    var(--phub-shadow-hover);
   overflow:      hidden;
   animation:     popupIn 120ms ease-out;
 }
@@ -218,7 +218,7 @@
   width:           32px;
   height:          32px;
   border-radius:   50%;
-  background:      var(--sabr-gradient-brand);
+  background:      var(--phub-gradient-brand);
   color:           #fff;
   display:         inline-flex;
   align-items:     center;
@@ -237,7 +237,7 @@
   strong {
     font-size:     12px;
     font-weight:   600;
-    color:         var(--sabr-text);
+    color:         var(--phub-text);
     white-space:   nowrap;
     overflow:      hidden;
     text-overflow: ellipsis;
@@ -245,7 +245,7 @@
 
   span {
     font-size:     11px;
-    color:         var(--sabr-text-muted);
+    color:         var(--phub-text-muted);
     white-space:   nowrap;
     overflow:      hidden;
     text-overflow: ellipsis;
@@ -254,7 +254,7 @@
 
 .popup-divider {
   height:     1px;
-  background: var(--sabr-border);
+  background: var(--phub-border);
   margin:     4px 0;
 }
 
@@ -266,68 +266,68 @@
   padding:         9px 14px;
   font-size:       13px;
   font-weight:     500;
-  color:           var(--sabr-text-muted);
+  color:           var(--phub-text-muted);
   background:      transparent;
   border:          none;
   cursor:          pointer;
   text-align:      left;
   text-decoration: none;
-  transition:      background var(--sabr-transition-fast), color var(--sabr-transition-fast);
+  transition:      background var(--phub-transition-fast), color var(--phub-transition-fast);
 
   &:hover {
-    background: var(--sabr-primary-weak);
-    color:      var(--sabr-text);
+    background: var(--phub-primary-weak);
+    color:      var(--phub-text);
   }
 
   nb-icon { font-size: 15px; }
 }
 
 .popup-item-danger {
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
 
   &:hover {
     background: rgba(240, 68, 56, 0.10);
-    color:      var(--sabr-danger);
+    color:      var(--phub-danger);
   }
 }
 
 // ─── Light theme ─────────────────────────────────────────────────────────────
-.sabr-sidebar-light {
-  background:   var(--sabr-surface) !important;
-  border-right: 1px solid var(--sabr-border) !important;
+.phub-sidebar-light {
+  background:   var(--phub-surface) !important;
+  border-right: 1px solid var(--phub-border) !important;
   box-shadow:   2px 0 12px rgba(15, 23, 42, 0.06) !important;
 }
 
-.sabr-sidebar-light .sabr-sidebar-header {
-  border-bottom: 1px solid var(--sabr-border);
+.phub-sidebar-light .phub-sidebar-header {
+  border-bottom: 1px solid var(--phub-border);
 }
 
-.sabr-sidebar-light .sabr-profile {
-  border-top: 1px solid var(--sabr-border);
+.phub-sidebar-light .phub-profile {
+  border-top: 1px solid var(--phub-border);
 }
 
-.sabr-sidebar-light a:hover {
-  background:   var(--sabr-surface-soft);
+.phub-sidebar-light a:hover {
+  background:   var(--phub-surface-soft);
   border-color: transparent;
 }
 
-.sabr-sidebar-light a.active {
-  background:   var(--sabr-primary-weak);
-  border-left:  3px solid var(--sabr-primary);
-  color:        var(--sabr-primary);
+.phub-sidebar-light a.active {
+  background:   var(--phub-primary-weak);
+  border-left:  3px solid var(--phub-primary);
+  color:        var(--phub-primary);
 }
 
 // ─── v1 alias (retrocompatibilidade) ─────────────────────────────────────────
-.sabr-sidebar-v1 { /* herda tudo do novo padrão */ }
+.phub-sidebar-v1 { /* herda tudo do novo padrão */ }
 
 // ─── Mobile ───────────────────────────────────────────────────────────────────
 @media (max-width: 1023px) {
-  .sabr-sidebar {
+  .phub-sidebar {
     transform:  translateX(-100%);
-    box-shadow: var(--sabr-shadow-hover);
+    box-shadow: var(--phub-shadow-hover);
   }
 
-  .sabr-sidebar.sabr-sidebar-open {
+  .phub-sidebar.phub-sidebar-open {
     transform: translateX(0);
   }
 }

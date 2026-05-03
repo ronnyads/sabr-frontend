@@ -19,7 +19,7 @@ const TAB_ID = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 /**
  * Channel name for BroadcastChannel communication
  */
-const CHANNEL_NAME = 'sabr_session_sync';
+const CHANNEL_NAME = 'phub_session_sync';
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService implements OnDestroy {

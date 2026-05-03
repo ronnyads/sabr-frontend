@@ -33,8 +33,8 @@ import { RowActionMenuAction, RowActionsMenuComponent } from '../shared/row-acti
   styleUrls: ['./clients.scss']
 })
 export class Clients implements OnInit, OnDestroy {
-  private readonly lastTenantKey = 'sabr:admin:lastTenantId';
-  private readonly lastTenantContextKey = 'sabr:admin:lastTenantContext';
+  private readonly lastTenantKey = 'phub:admin:lastTenantId';
+  private readonly lastTenantContextKey = 'phub:admin:lastTenantContext';
   private readonly clientStatusPendingAdminApproval = 1;
   private readonly clientStatusPendingDocuments = 2;
   private readonly clientStatusUnderReview = 3;

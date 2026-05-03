@@ -1,4 +1,4 @@
-<section class="sabr-page admin-catalogs-page">
+<section class="phub-page admin-catalogs-page">
   <ng-template #headerActions>
     <button nbButton status="primary" size="small" (click)="openCreate()">Novo Catalogo</button>
   </ng-template>
@@ -18,7 +18,7 @@
     (clear)="clearToolbar()"
   ></app-search-toolbar>
 
-  <div class="sabr-card panel" *ngIf="formOpen">
+  <div class="phub-card panel" *ngIf="formOpen">
     <form [formGroup]="form" class="editor-grid">
       <div class="field">
         <label>Nome</label>
@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  <div class="sabr-card panel links-editor" *ngIf="linksMode">
+  <div class="phub-card panel links-editor" *ngIf="linksMode">
     <div class="links-header">
       <h4>
         {{ linksMode === 'products' ? 'Vincular Produtos' : 'Vincular Planos' }}
@@ -85,7 +85,7 @@
     </ng-container>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <app-ui-state
       [loading]="loading"
       [empty]="empty"
@@ -114,7 +114,7 @@
             <td>{{ catalog.productCount }}</td>
             <td>{{ catalog.planCount }}</td>
             <td>
-              <span class="sabr-badge" [class.sabr-badge-success]="catalog.isActive" [class.sabr-badge-muted]="!catalog.isActive">
+              <span class="phub-badge" [class.phub-badge-success]="catalog.isActive" [class.phub-badge-muted]="!catalog.isActive">
                 {{ catalog.isActive ? 'Ativo' : 'Inativo' }}
               </span>
             </td>

@@ -4,13 +4,13 @@ import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
-  selector: 'app-sabr-topbar',
+  selector: 'app-phub-topbar',
   standalone: true,
   imports: [CommonModule, NbButtonModule, NbIconModule],
-  templateUrl: './sabr-topbar.component.html',
-  styleUrls: ['./sabr-topbar.component.scss']
+  templateUrl: './phub-topbar.component.html',
+  styleUrls: ['./phub-topbar.component.scss']
 })
-export class SabrTopbarComponent {
+export class PhubTopbarComponent {
   @Input() title = '';
   @Input() tenantBadgeText: string | null = null;
   @Input() userName = '';

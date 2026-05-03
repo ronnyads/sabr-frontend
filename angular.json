@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "sabr-frontend": {
+    "phub-frontend": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,7 +21,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/sabr-client",
+            "outputPath": "dist/phub-client",
             "index": "src/index.html",
             "main": "src/main.client.ts",
             "serviceWorker": false,
@@ -72,7 +72,7 @@
               "sourceMap": true
             },
             "admin-production": {
-              "outputPath": "dist/sabr-admin",
+              "outputPath": "dist/phub-admin",
               "main": "src/main.admin.ts",
               "tsConfig": "tsconfig.admin.json",
               "fileReplacements": [
@@ -96,7 +96,7 @@
               "outputHashing": "all"
             },
             "admin-development": {
-              "outputPath": "dist/sabr-admin",
+              "outputPath": "dist/phub-admin",
               "main": "src/main.admin.ts",
               "tsConfig": "tsconfig.admin.json",
               "optimization": false,
@@ -104,7 +104,7 @@
               "sourceMap": true
             },
             "client-dev-deploy": {
-              "outputPath": "dist/sabr-client",
+              "outputPath": "dist/phub-client",
               "main": "src/main.client.ts",
               "tsConfig": "tsconfig.client.json",
               "fileReplacements": [
@@ -128,7 +128,7 @@
               "outputHashing": "all"
             },
             "client-prod-deploy": {
-              "outputPath": "dist/sabr-client",
+              "outputPath": "dist/phub-client",
               "main": "src/main.client.ts",
               "tsConfig": "tsconfig.client.json",
               "fileReplacements": [
@@ -152,7 +152,7 @@
               "outputHashing": "all"
             },
             "admin-dev-deploy": {
-              "outputPath": "dist/sabr-admin",
+              "outputPath": "dist/phub-admin",
               "main": "src/main.admin.ts",
               "tsConfig": "tsconfig.admin.json",
               "fileReplacements": [
@@ -176,7 +176,7 @@
               "outputHashing": "all"
             },
             "admin-prod-deploy": {
-              "outputPath": "dist/sabr-admin",
+              "outputPath": "dist/phub-admin",
               "main": "src/main.admin.ts",
               "tsConfig": "tsconfig.admin.json",
               "fileReplacements": [

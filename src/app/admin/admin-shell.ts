@@ -6,8 +6,8 @@ import { Subject, filter, takeUntil } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
 import { roleLabelSystem } from '../core/utils/role-labels';
-import { SabrMenuItem } from '../shared/sabr-sidebar/sabr-sidebar.component';
-import { SabrShellLayoutComponent } from '../shared/sabr-shell-layout/sabr-shell-layout.component';
+import { PhubMenuItem } from '../shared/phub-sidebar/phub-sidebar.component';
+import { PhubShellLayoutComponent } from '../shared/phub-shell-layout/phub-shell-layout.component';
 import { environment } from '../../environments/environment';
 
 // Rotas que pertencem ao contexto de um cliente específico — NÃO limpam o contexto
@@ -19,7 +19,7 @@ const TENANT_SCOPED_PATTERNS = [
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
-  imports: [CommonModule, RouterModule, NbLayoutModule, SabrShellLayoutComponent],
+  imports: [CommonModule, RouterModule, NbLayoutModule, PhubShellLayoutComponent],
   templateUrl: './admin-shell.html',
   styleUrls: ['./admin-shell.scss']
 })
@@ -27,7 +27,7 @@ export class AdminShell implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   readonly shellRedesignV1 = !!environment.ui?.redesignShellV1;
   readonly darkModeEnabled = !!environment.ui?.darkModeV1;
-  readonly menuItems: SabrMenuItem[] = [
+  readonly menuItems: PhubMenuItem[] = [
     { label: 'Dashboard', icon: 'home-outline', link: '/dashboard', exact: true },
     { label: 'Clientes', icon: 'people-outline', link: '/clients' },
     // Platform users (Admin/SuperAdmin/Finance).

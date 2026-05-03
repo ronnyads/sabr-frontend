@@ -14,7 +14,7 @@ import { PageHeaderComponent } from '../shared/page-header/page-header.component
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NbButtonModule, NbInputModule, NbSpinnerModule, UiStateComponent, PageHeaderComponent],
   template: `
-    <section class="sabr-page admin-global-catalogs-page">
+    <section class="phub-page admin-global-catalogs-page">
       <ng-template #headerActions>
         <button nbButton status="primary" size="small" (click)="openCreate()">Novo Catálogo</button>
       </ng-template>
@@ -26,7 +26,7 @@ import { PageHeaderComponent } from '../shared/page-header/page-header.component
       ></app-page-header>
 
       <!-- Inline form -->
-      <div class="sabr-card panel form-panel" *ngIf="formOpen">
+      <div class="phub-card panel form-panel" *ngIf="formOpen">
         <h4 class="form-title">{{ editingId ? 'Editar Catálogo' : 'Novo Catálogo' }}</h4>
         <form [formGroup]="form" (ngSubmit)="saveCatalog()">
           <div class="form-row">
@@ -62,7 +62,7 @@ import { PageHeaderComponent } from '../shared/page-header/page-header.component
       </div>
 
       <!-- Filters -->
-      <div class="sabr-card panel filters-panel">
+      <div class="phub-card panel filters-panel">
         <div class="filter-row">
           <input nbInput placeholder="Buscar por nome..." [formControl]="searchControl" />
           <select [formControl]="statusControl" class="status-select">
@@ -74,7 +74,7 @@ import { PageHeaderComponent } from '../shared/page-header/page-header.component
         </div>
       </div>
 
-      <div class="sabr-card panel">
+      <div class="phub-card panel">
         <app-ui-state
           [loading]="loading"
           [empty]="!loading && catalogs.length === 0"

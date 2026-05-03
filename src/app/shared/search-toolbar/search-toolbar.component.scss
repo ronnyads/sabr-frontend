@@ -15,8 +15,8 @@
 .search-field {
   flex: 1;
   min-height: 44px;
-  border-radius: var(--sabr-radius-control);
-  border: 1px solid var(--sabr-border);
+  border-radius: var(--phub-radius-control);
+  border: 1px solid var(--phub-border);
   background: #fbfcff;
   display: inline-flex;
   align-items: center;
@@ -33,16 +33,16 @@
   border: none;
   outline: none;
   background: transparent;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   font: inherit;
 }
 
 .clear-btn {
   height: 40px;
-  border-radius: var(--sabr-radius-control);
-  border: 1px solid var(--sabr-border);
-  background: var(--sabr-surface);
-  color: var(--sabr-text-muted);
+  border-radius: var(--phub-radius-control);
+  border: 1px solid var(--phub-border);
+  background: var(--phub-surface);
+  color: var(--phub-text-muted);
   font-weight: 700;
   padding: 0 14px;
   cursor: pointer;
@@ -60,9 +60,9 @@
 
 .filter-pill {
   min-height: 36px;
-  border-radius: var(--sabr-radius-control);
-  border: 1px solid var(--sabr-border);
-  background: var(--sabr-surface);
+  border-radius: var(--phub-radius-control);
+  border: 1px solid var(--phub-border);
+  background: var(--phub-surface);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -70,7 +70,7 @@
 }
 
 .filter-pill span {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -79,7 +79,7 @@
   border: none;
   outline: none;
   background: transparent;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   font-size: 0.84rem;
   font-weight: 600;
 }

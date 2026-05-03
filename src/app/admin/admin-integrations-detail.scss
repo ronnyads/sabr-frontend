@@ -16,7 +16,7 @@
   h1 {
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
     margin: 0;
   }
 }
@@ -25,11 +25,11 @@
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
-  background: var(--sabr-surface-soft);
-  border: 1px solid var(--sabr-border);
+  background: var(--phub-surface-soft);
+  border: 1px solid var(--phub-border);
   border-radius: 99px;
   font-size: 0.78rem;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 // ── Search bar ─────────────────────────────────────────────────────────────────
@@ -39,19 +39,19 @@
     width: 100%;
     max-width: 400px;
     padding: 8px 14px;
-    border: 1px solid var(--sabr-border);
+    border: 1px solid var(--phub-border);
     border-radius: 8px;
     font-size: 0.88rem;
-    color: var(--sabr-text);
-    background: var(--sabr-surface-soft);
+    color: var(--phub-text);
+    background: var(--phub-surface-soft);
     outline: none;
-    transition: border-color var(--sabr-transition-fast);
+    transition: border-color var(--phub-transition-fast);
 
     &:focus {
-      border-color: var(--sabr-primary);
+      border-color: var(--phub-primary);
     }
 
-    &::placeholder { color: var(--sabr-text-subtle); }
+    &::placeholder { color: var(--phub-text-subtle); }
   }
 }
 
@@ -62,13 +62,13 @@
   align-items: center;
   gap: 12px;
   padding: 32px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 
   .spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--sabr-border);
-    border-top-color: var(--sabr-primary);
+    border: 2px solid var(--phub-border);
+    border-top-color: var(--phub-primary);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
   }
@@ -85,7 +85,7 @@
   align-items: center;
   gap: 12px;
   padding: 48px 32px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   text-align: center;
 
   nb-icon { font-size: 2rem; }
@@ -93,14 +93,14 @@
 }
 
 .state-error nb-icon {
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
 }
 
 // ── Table ──────────────────────────────────────────────────────────────────────
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--sabr-border);
+  border: 1px solid var(--phub-border);
   border-radius: 10px;
 }
 
@@ -110,7 +110,7 @@
   font-size: 0.875rem;
 
   thead tr {
-    background: var(--sabr-surface-soft);
+    background: var(--phub-surface-soft);
   }
 
   th {
@@ -120,15 +120,15 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--sabr-text-muted);
-    border-bottom: 1px solid var(--sabr-border);
+    color: var(--phub-text-muted);
+    border-bottom: 1px solid var(--phub-border);
     white-space: nowrap;
   }
 
   td {
     padding: 10px 12px;
-    border-bottom: 1px solid var(--sabr-border);
-    color: var(--sabr-text);
+    border-bottom: 1px solid var(--phub-border);
+    color: var(--phub-text);
     vertical-align: middle;
   }
 
@@ -144,7 +144,7 @@
 .mono {
   font-family: 'Courier New', monospace;
   font-size: 0.78rem;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 // ── Status badge ───────────────────────────────────────────────────────────────
@@ -159,12 +159,12 @@
 
   &.badge-success {
     background: rgba(34, 197, 94, 0.12);
-    color: var(--sabr-success);
+    color: var(--phub-success);
   }
 
   &.badge-neutral {
     background: rgba(148, 163, 184, 0.10);
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
   }
 }
 
@@ -179,7 +179,7 @@
 
 .confirm-label {
   font-size: 0.78rem;
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -196,5 +196,5 @@
 
 .page-info {
   font-size: 0.85rem;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }

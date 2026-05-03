@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type SabrTheme = 'light' | 'dark';
+export type PhubTheme = 'light' | 'dark';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private static readonly THEME_STORAGE_KEY = 'sabr.ui.theme.v1';
-  private readonly themeSubject = new BehaviorSubject<SabrTheme>('light');
+  private static readonly THEME_STORAGE_KEY = 'phub.ui.theme.v1';
+  private readonly themeSubject = new BehaviorSubject<PhubTheme>('light');
   private darkModeEnabled = false;
 
-  get currentTheme(): SabrTheme {
+  get currentTheme(): PhubTheme {
     return this.themeSubject.value;
   }
 
@@ -47,7 +47,7 @@ export class ThemeService {
     this.setTheme(this.isDark ? 'light' : 'dark');
   }
 
-  private setTheme(theme: SabrTheme, persist = true): void {
+  private setTheme(theme: PhubTheme, persist = true): void {
     const resolvedTheme = this.darkModeEnabled ? theme : 'light';
     this.themeSubject.next(resolvedTheme);
     this.applyThemeAttribute(resolvedTheme);
@@ -62,7 +62,7 @@ export class ThemeService {
     }
   }
 
-  private applyThemeAttribute(theme: SabrTheme): void {
+  private applyThemeAttribute(theme: PhubTheme): void {
     if (typeof document === 'undefined') {
       return;
     }
@@ -71,11 +71,11 @@ export class ThemeService {
     root.setAttribute('data-theme', theme);
     root.style.colorScheme = theme;
 
-    document.body.classList.remove('sabr-theme-light', 'sabr-theme-dark');
-    document.body.classList.add(`sabr-theme-${theme}`);
+    document.body.classList.remove('phub-theme-light', 'phub-theme-dark');
+    document.body.classList.add(`phub-theme-${theme}`);
   }
 
-  private readPersistedTheme(): SabrTheme | null {
+  private readPersistedTheme(): PhubTheme | null {
     if (typeof window === 'undefined') {
       return null;
     }
@@ -88,7 +88,7 @@ export class ThemeService {
     return null;
   }
 
-  private persistTheme(theme: SabrTheme): void {
+  private persistTheme(theme: PhubTheme): void {
     if (typeof window === 'undefined') {
       return;
     }
@@ -104,7 +104,7 @@ export class ThemeService {
     window.localStorage.removeItem(ThemeService.THEME_STORAGE_KEY);
   }
 
-  private readPreferredTheme(): SabrTheme {
+  private readPreferredTheme(): PhubTheme {
     // Tema padrão sempre é light — o usuário pode alternar manualmente.
     // Não seguimos a preferência do SO para manter consistência visual da plataforma.
     return 'light';

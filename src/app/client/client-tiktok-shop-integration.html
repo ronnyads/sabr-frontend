@@ -1,4 +1,4 @@
-<section class="sabr-page tiktok-shop-integration-page">
+<section class="phub-page tiktok-shop-integration-page">
   <div class="page-header">
     <div class="page-title">
       <div class="provider-logo">
@@ -37,7 +37,7 @@
   </div>
 
   <!-- Não conectado -->
-  <div class="sabr-card panel connect-panel" *ngIf="!loading && !error && !connected">
+  <div class="phub-card panel connect-panel" *ngIf="!loading && !error && !connected">
     <h3>Autorizar TikTok Shop</h3>
     <p class="connect-desc">
       Clique abaixo para abrir a autorização oficial do TikTok Shop e conectar a sua conta ao PrometheusHUB.
@@ -53,7 +53,7 @@
 
     <!-- Tab: Conexão -->
     <nb-tab tabTitle="Conexão" tabIcon="checkmark-circle-outline">
-      <div class="sabr-card panel">
+      <div class="phub-card panel">
         <div class="status-grid">
           <div class="status-item">
             <small>Loja</small>
@@ -114,13 +114,13 @@
         <button nbButton size="small" (click)="loadOrders()">Tentar novamente</button>
       </div>
 
-      <div class="sabr-card" *ngIf="!ordersLoading && !ordersError">
+      <div class="phub-card" *ngIf="!ordersLoading && !ordersError">
         <div class="empty-state" *ngIf="orders.length === 0">
           <nb-icon icon="shopping-bag-outline"></nb-icon>
           <p>Nenhum pedido encontrado. Use "Sincronizar agora" para importar pedidos do TikTok Shop.</p>
         </div>
 
-        <table class="sabr-table" *ngIf="orders.length > 0">
+        <table class="phub-table" *ngIf="orders.length > 0">
           <thead>
             <tr>
               <th>ID TikTok</th>
@@ -160,7 +160,7 @@
     <nb-tab tabTitle="Mapeamentos" tabIcon="link-2-outline">
 
       <!-- Formulário novo mapeamento -->
-      <div class="sabr-card panel mapping-form">
+      <div class="phub-card panel mapping-form">
         <h4>Novo mapeamento</h4>
         <div class="mapping-form-row">
           <input nbInput placeholder="Product ID do TikTok" [(ngModel)]="newMapping.tikTokItemId" fieldSize="small" />
@@ -188,13 +188,13 @@
         <button nbButton size="small" (click)="loadMappings()">Tentar novamente</button>
       </div>
 
-      <div class="sabr-card" *ngIf="!mappingsLoading && !mappingsError">
+      <div class="phub-card" *ngIf="!mappingsLoading && !mappingsError">
         <div class="empty-state" *ngIf="mappings.length === 0">
           <nb-icon icon="link-2-outline"></nb-icon>
           <p>Nenhum mapeamento criado. Adicione acima para vincular produtos TikTok aos SKUs do PrometheusHUB.</p>
         </div>
 
-        <table class="sabr-table" *ngIf="mappings.length > 0">
+        <table class="phub-table" *ngIf="mappings.length > 0">
           <thead>
             <tr>
               <th>Product ID TikTok</th>
@@ -230,7 +230,7 @@
     <!-- Tab: Publicar -->
     <nb-tab tabTitle="Publicar" tabIcon="cloud-upload-outline">
 
-      <div class="sabr-card panel mapping-form">
+      <div class="phub-card panel mapping-form">
         <h4>Publicar produtos no TikTok Shop</h4>
 
         <div class="mapping-form-row">
@@ -278,7 +278,7 @@
       </div>
 
       <!-- Resultado da validação -->
-      <div class="sabr-card" *ngIf="validateResult">
+      <div class="phub-card" *ngIf="validateResult">
         <div class="status-grid" style="margin-bottom: 12px">
           <div class="status-item">
             <small>Total</small>
@@ -294,7 +294,7 @@
           </div>
         </div>
 
-        <table class="sabr-table">
+        <table class="phub-table">
           <thead>
             <tr>
               <th>SKU PrometheusHUB</th>
@@ -322,7 +322,7 @@
       </div>
 
       <!-- Resultado da publicação -->
-      <div class="sabr-card" *ngIf="publishResult" style="margin-top: 12px">
+      <div class="phub-card" *ngIf="publishResult" style="margin-top: 12px">
         <div class="status-grid" style="margin-bottom: 12px">
           <div class="status-item">
             <small>Publicados</small>
@@ -338,7 +338,7 @@
           </div>
         </div>
 
-        <table class="sabr-table">
+        <table class="phub-table">
           <thead>
             <tr>
               <th>SKU PrometheusHUB</th>
@@ -373,13 +373,13 @@
         <button nbButton size="small" (click)="loadListings()">Tentar novamente</button>
       </div>
 
-      <div class="sabr-card" *ngIf="!listingsLoading && !listingsError">
+      <div class="phub-card" *ngIf="!listingsLoading && !listingsError">
         <div class="empty-state" *ngIf="listings.length === 0">
           <nb-icon icon="cloud-upload-outline"></nb-icon>
           <p>Nenhum produto publicado ainda. Use a tab "Publicar" para enviar produtos ao TikTok Shop.</p>
         </div>
 
-        <table class="sabr-table" *ngIf="listings.length > 0">
+        <table class="phub-table" *ngIf="listings.length > 0">
           <thead>
             <tr>
               <th>Produto</th>

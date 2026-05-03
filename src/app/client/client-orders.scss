@@ -28,12 +28,12 @@
     margin: 0;
     font-size: 22px;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 }
 
 .total-badge {
-  background: var(--sabr-primary, #6366f1);
+  background: var(--phub-primary, #6366f1);
   color: #fff;
   border-radius: 12px;
   padding: 2px 10px;
@@ -48,9 +48,9 @@
 }
 
 .filter-select {
-  background: var(--sabr-surface, rgba(30, 41, 59, 0.8));
-  color: var(--sabr-text);
-  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.15));
+  background: var(--phub-surface, rgba(30, 41, 59, 0.8));
+  color: var(--phub-text);
+  border: 1px solid var(--phub-border, rgba(148, 163, 184, 0.15));
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 13px;
@@ -58,7 +58,7 @@
   outline: none;
 
   &:focus {
-    border-color: var(--sabr-primary, #6366f1);
+    border-color: var(--phub-primary, #6366f1);
   }
 }
 
@@ -73,7 +73,7 @@
   justify-content: center;
   gap: 12px;
   padding: 64px 24px;
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
   text-align: center;
 
   nb-icon {
@@ -83,7 +83,7 @@
   h3 {
     margin: 0;
     font-size: 18px;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 
   p {
@@ -95,8 +95,8 @@
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--sabr-border, rgba(148, 163, 184, 0.2));
-  border-top-color: var(--sabr-primary, #6366f1);
+  border: 3px solid var(--phub-border, rgba(148, 163, 184, 0.2));
+  border-top-color: var(--phub-primary, #6366f1);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -114,18 +114,18 @@
 }
 
 .order-card {
-  background: var(--sabr-surface, rgba(30, 41, 59, 0.8));
-  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.12));
+  background: var(--phub-surface, rgba(30, 41, 59, 0.8));
+  border: 1px solid var(--phub-border, rgba(148, 163, 184, 0.12));
   border-radius: 12px;
   overflow: hidden;
   transition: border-color 0.2s;
 
   &:hover {
-    border-color: var(--sabr-primary, #6366f1);
+    border-color: var(--phub-primary, #6366f1);
   }
 
   &.expanded {
-    border-color: var(--sabr-primary, #6366f1);
+    border-color: var(--phub-primary, #6366f1);
   }
 }
 
@@ -156,7 +156,7 @@
 .ml-order-id {
   font-weight: 700;
   font-size: 15px;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   font-family: monospace;
 }
 
@@ -171,7 +171,7 @@
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    color: var(--sabr-text-muted, #94a3b8);
+    color: var(--phub-text-muted, #94a3b8);
 
     nb-icon {
       font-size: 13px;
@@ -180,7 +180,7 @@
 }
 
 .order-chevron {
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
   nb-icon { font-size: 18px; }
 }
 
@@ -222,7 +222,7 @@
 // ── Expanded detail ──────────────────────────────────────────────────────────
 
 .order-detail {
-  border-top: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.12));
+  border-top: 1px solid var(--phub-border, rgba(148, 163, 184, 0.12));
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
@@ -243,12 +243,12 @@
 }
 
 .detail-label {
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
   min-width: 120px;
 }
 
 .detail-value {
-  color: var(--sabr-text);
+  color: var(--phub-text);
   font-weight: 500;
 }
 
@@ -275,8 +275,8 @@
 }
 
 .action-form {
-  background: var(--sabr-bg, rgba(15, 23, 42, 0.5));
-  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.12));
+  background: var(--phub-bg, rgba(15, 23, 42, 0.5));
+  border: 1px solid var(--phub-border, rgba(148, 163, 184, 0.12));
   border-radius: 10px;
   padding: 16px;
   display: flex;
@@ -287,13 +287,13 @@
 .form-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .form-textarea {
-  background: var(--sabr-surface, rgba(30, 41, 59, 0.8));
-  color: var(--sabr-text);
-  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.2));
+  background: var(--phub-surface, rgba(30, 41, 59, 0.8));
+  color: var(--phub-text);
+  border: 1px solid var(--phub-border, rgba(148, 163, 184, 0.2));
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 13px;
@@ -303,7 +303,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--sabr-primary, #6366f1);
+    border-color: var(--phub-primary, #6366f1);
   }
 }
 
@@ -325,5 +325,5 @@
 
 .page-info {
   font-size: 13px;
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
 }

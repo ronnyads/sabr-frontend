@@ -22,7 +22,7 @@
 
 /* ── Base shell ──────────────────────────────────────────────────────────────── */
 .login-shell {
-  background: var(--sabr-bg, #f0f4fb);
+  background: var(--phub-bg, #f0f4fb);
   min-height: 100vh !important;
 }
 
@@ -44,11 +44,11 @@
   position: relative;
   background: linear-gradient(
     140deg,
-    color-mix(in srgb, var(--sabr-primary) 90%, var(--sabr-surface, #0d0d0d)) 0%,
-    color-mix(in srgb, var(--sabr-primary-strong) 75%, var(--sabr-surface, #0d0d0d)) 55%,
-    color-mix(in srgb, var(--sabr-bg) 25%, var(--sabr-surface, #0d0d0d)) 100%
+    color-mix(in srgb, var(--phub-primary) 90%, var(--phub-surface, #0d0d0d)) 0%,
+    color-mix(in srgb, var(--phub-primary-strong) 75%, var(--phub-surface, #0d0d0d)) 55%,
+    color-mix(in srgb, var(--phub-bg) 25%, var(--phub-surface, #0d0d0d)) 100%
   );
-  color: var(--sabr-text);
+  color: var(--phub-text);
   padding: 72px 64px;
   display: flex;
   flex-direction: column;
@@ -63,9 +63,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 10% 20%, color-mix(in srgb, var(--sabr-primary) 28%, transparent) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 70%, color-mix(in srgb, var(--sabr-accent) 22%, transparent) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--sabr-secondary) 18%, transparent) 0%, transparent 45%);
+    radial-gradient(ellipse at 10% 20%, color-mix(in srgb, var(--phub-primary) 28%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, color-mix(in srgb, var(--phub-accent) 22%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--phub-secondary) 18%, transparent) 0%, transparent 45%);
   animation: meshPulse 8s ease-in-out infinite alternate;
   pointer-events: none;
 }
@@ -149,7 +149,7 @@
 
 .login-hero h1 em {
   font-style: normal;
-  background: var(--sabr-gradient-brand);
+  background: var(--phub-gradient-brand);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -160,7 +160,7 @@
   max-width: 440px;
   line-height: 1.65;
   margin: 0;
-  color: var(--sabr-text-muted, rgba(230, 240, 255, 0.88));
+  color: var(--phub-text-muted, rgba(230, 240, 255, 0.88));
 }
 
 /* Stats badges */
@@ -171,10 +171,10 @@
 }
 
 .stat-badge {
-  background: color-mix(in srgb, var(--sabr-surface, #0d0d0d) 80%, transparent);
+  background: color-mix(in srgb, var(--phub-surface, #0d0d0d) 80%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--sabr-border, rgba(255, 255, 255, 0.22)) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phub-border, rgba(255, 255, 255, 0.22)) 90%, transparent);
   border-radius: 18px;
   padding: 18px 16px;
   display: flex;
@@ -192,7 +192,7 @@
 .stat-value {
   font-size: 26px;
   font-weight: 800;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   line-height: 1;
   letter-spacing: -0.5px;
 }
@@ -202,7 +202,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--sabr-text-muted, rgba(220, 235, 255, 0.75));
+  color: var(--phub-text-muted, rgba(220, 235, 255, 0.75));
 }
 
 /* Feature cards */
@@ -238,7 +238,7 @@
   background: rgba(255, 255, 255, 0.18);
   display: grid;
   place-items: center;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .feature-icon svg {
@@ -252,7 +252,7 @@
 .feature-title {
   font-size: 14px;
   font-weight: 700;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .feature-desc {
@@ -345,14 +345,14 @@
   margin: 0;
   font-size: 26px;
   font-weight: 800;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   letter-spacing: -0.02em;
 }
 
 .login-header p {
   margin: 0;
   font-size: 14px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   line-height: 1.5;
 }
 
@@ -366,7 +366,7 @@
 .input-group label {
   font-size: 13px;
   font-weight: 700;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   letter-spacing: 0.01em;
 }
 
@@ -400,16 +400,16 @@
   font-size: 15px !important;
   font-weight: 700 !important;
   border-radius: 14px !important;
-  background: var(--sabr-gradient-brand) !important;
+  background: var(--phub-gradient-brand) !important;
   border: none !important;
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--sabr-primary, #2563eb) 38%, transparent) !important;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--phub-primary, #2563eb) 38%, transparent) !important;
   transition: transform 180ms ease, box-shadow 180ms ease !important;
   cursor: pointer;
 }
 
 .submit-button:hover:not([disabled]) {
   transform: translateY(-1px);
-  box-shadow: 0 12px 36px color-mix(in srgb, var(--sabr-primary, #2563eb) 48%, transparent) !important;
+  box-shadow: 0 12px 36px color-mix(in srgb, var(--phub-primary, #2563eb) 48%, transparent) !important;
 }
 
 .submit-button:active:not([disabled]) {
@@ -417,7 +417,7 @@
 }
 
 .error {
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
   font-size: 13px;
   margin: 4px 0 0;
   display: flex;
@@ -426,7 +426,7 @@
 }
 
 .hint {
-  color: var(--sabr-primary);
+  color: var(--phub-primary);
   font-size: 13px;
   margin: 4px 0 0;
 }
@@ -436,7 +436,7 @@
   flex-direction: column;
   gap: 12px;
   font-size: 12px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .footer-links {
@@ -446,7 +446,7 @@
 
 .footer-links a,
 .link {
-  color: var(--sabr-primary);
+  color: var(--phub-primary);
   text-decoration: none;
   font-weight: 700;
   font-size: 12px;
@@ -487,73 +487,73 @@
   display: none; /* esconde o texto — só ícone */
 }
 
-/* ── V1 Redesign overrides (sabr-tokens) ─────────────────────────────────────── */
+/* ── V1 Redesign overrides (phub-tokens) ─────────────────────────────────────── */
 .login-shell-v1 {
   background:
-    radial-gradient(circle at 0% 0%, var(--sabr-bg-accent) 0%, transparent 46%),
-    radial-gradient(circle at 100% 0%, var(--sabr-bg-accent-alt) 0%, transparent 42%),
-    var(--sabr-bg);
+    radial-gradient(circle at 0% 0%, var(--phub-bg-accent) 0%, transparent 46%),
+    radial-gradient(circle at 100% 0%, var(--phub-bg-accent-alt) 0%, transparent 42%),
+    var(--phub-bg);
 }
 
 .login-grid-v1 .login-hero {
-  background: var(--sabr-gradient-brand);
+  background: var(--phub-gradient-brand);
   box-shadow: inset -1px 0 0 color-mix(in srgb, #ffffff 12%, transparent);
 }
 
 .login-grid-v1 .login-hero::before {
   background:
-    radial-gradient(ellipse at 10% 20%, color-mix(in srgb, var(--sabr-secondary) 30%, transparent) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 70%, color-mix(in srgb, var(--sabr-primary) 25%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 20%, color-mix(in srgb, var(--phub-secondary) 30%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, color-mix(in srgb, var(--phub-primary) 25%, transparent) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 100%, rgba(0, 200, 200, 0.18) 0%, transparent 45%);
 }
 
 .login-grid-v1 .login-panel {
-  background: color-mix(in srgb, var(--sabr-surface-soft) 70%, var(--sabr-bg));
+  background: color-mix(in srgb, var(--phub-surface-soft) 70%, var(--phub-bg));
 }
 
 .login-grid-v1 .login-card {
-  border: 1px solid color-mix(in srgb, var(--sabr-border) 80%, transparent);
-  background: color-mix(in srgb, var(--sabr-surface) 97%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phub-border) 80%, transparent);
+  background: color-mix(in srgb, var(--phub-surface) 97%, transparent);
   box-shadow:
-    0 4px 6px color-mix(in srgb, var(--sabr-shadow-color) 4%, transparent),
-    0 20px 50px color-mix(in srgb, var(--sabr-shadow-color) 14%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--sabr-border) 60%, transparent);
+    0 4px 6px color-mix(in srgb, var(--phub-shadow-color) 4%, transparent),
+    0 20px 50px color-mix(in srgb, var(--phub-shadow-color) 14%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--phub-border) 60%, transparent);
 }
 
 .login-grid-v1 .login-header h2 {
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .login-grid-v1 .login-header p,
 .login-grid-v1 .login-footer {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .login-grid-v1 .input-group label {
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .login-grid-v1 .submit-button {
-  background: var(--sabr-gradient-brand) !important;
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--sabr-primary) 38%, transparent) !important;
+  background: var(--phub-gradient-brand) !important;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--phub-primary) 38%, transparent) !important;
 }
 
 .login-grid-v1 .submit-button:hover:not([disabled]) {
-  box-shadow: 0 12px 36px color-mix(in srgb, var(--sabr-primary) 48%, transparent) !important;
+  box-shadow: 0 12px 36px color-mix(in srgb, var(--phub-primary) 48%, transparent) !important;
 }
 
 /* Dark mode V1 */
 :host-context([data-theme='dark']) .login-grid-v1 .login-hero {
-  background: var(--sabr-gradient-brand);
+  background: var(--phub-gradient-brand);
 }
 
 :host-context([data-theme='dark']) .login-grid-v1 .login-panel {
-  background: color-mix(in srgb, var(--sabr-surface) 40%, var(--sabr-bg));
+  background: color-mix(in srgb, var(--phub-surface) 40%, var(--phub-bg));
 }
 
 :host-context([data-theme='dark']) .login-grid-v1 .login-card {
-  background: color-mix(in srgb, var(--sabr-surface) 95%, transparent);
-  border-color: color-mix(in srgb, var(--sabr-border) 90%, transparent);
+  background: color-mix(in srgb, var(--phub-surface) 95%, transparent);
+  border-color: color-mix(in srgb, var(--phub-border) 90%, transparent);
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
@@ -605,7 +605,7 @@
   .login-panel {
     min-height: 100vh;
     padding: 32px 20px;
-    background: var(--sabr-bg, #f0f4fb);
+    background: var(--phub-bg, #f0f4fb);
   }
   .panel-toolbar {
     width: 100%;

@@ -10,13 +10,13 @@
 }
 .wizard-page-title h1 {
   margin: 0;
-  font-size: var(--sabr-font-title-lg-size);
-  line-height: var(--sabr-font-title-lg-line);
-  font-weight: var(--sabr-font-title-lg-weight);
+  font-size: var(--phub-font-title-lg-size);
+  line-height: var(--phub-font-title-lg-line);
+  font-weight: var(--phub-font-title-lg-weight);
 }
 .wizard-page-title p {
   margin: 2px 0 0;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 0.9rem;
 }
 .panel {
@@ -60,10 +60,10 @@
 }
 .context-card,
 .editor-card {
-  border: 1px solid var(--sabr-border);
-  border-radius: var(--sabr-radius-card);
-  background: var(--sabr-surface);
-  box-shadow: var(--sabr-shadow-soft);
+  border: 1px solid var(--phub-border);
+  border-radius: var(--phub-radius-card);
+  background: var(--phub-surface);
+  box-shadow: var(--phub-shadow-soft);
 }
 .context-card {
   padding: 14px;
@@ -108,11 +108,11 @@
 }
 .chip {
   border: 1px solid #d8dfeb;
-  border-radius: var(--sabr-radius-control);
+  border-radius: var(--phub-radius-control);
   padding: 3px 8px;
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   background: #f6f9fd;
 }
 .chip.base {
@@ -121,7 +121,7 @@
 }
 .chip.status {
   color: #0b5cab;
-  background: var(--sabr-primary-weak);
+  background: var(--phub-primary-weak);
 }
 .context-meta {
   color: #5f6f86;
@@ -149,7 +149,7 @@
 .context-issues span {
   margin: 0;
   font-size: 0.78rem;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 .wizard-steps {
   display: flex;
@@ -158,18 +158,18 @@
 }
 .wizard-steps button {
   border: 1px solid #d5deeb;
-  border-radius: var(--sabr-radius-control);
+  border-radius: var(--phub-radius-control);
   background: #f6f9fd;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 0.82rem;
   font-weight: 700;
   padding: 7px 12px;
   cursor: pointer;
 }
 .wizard-steps button.active {
-  border-color: var(--sabr-primary);
+  border-color: var(--phub-primary);
   color: #0b5cab;
-  background: var(--sabr-primary-weak);
+  background: var(--phub-primary-weak);
 }
 .editor-grid {
   display: grid;
@@ -199,7 +199,7 @@
   line-height: 1.15;
 }
 .required-pill {
-  border-radius: var(--sabr-radius-control);
+  border-radius: var(--phub-radius-control);
   padding: 4px 10px;
   font-size: 0.74rem;
   font-weight: 700;
@@ -226,7 +226,7 @@
 .category-path button {
   border: 0;
   background: transparent;
-  color: var(--sabr-primary);
+  color: var(--phub-primary);
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -314,7 +314,7 @@ textarea[nbinput] {
   align-items: center;
   font-weight: 700;
   cursor: pointer;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 .optional-attrs__body {
   margin-top: 10px;
@@ -344,7 +344,7 @@ textarea[nbinput] {
 }
 .chips li {
   border: 1px solid #d9e4f5;
-  border-radius: var(--sabr-radius-control);
+  border-radius: var(--phub-radius-control);
   background: #eef4ff;
   padding: 5px 10px;
   display: flex;
@@ -354,7 +354,7 @@ textarea[nbinput] {
 } .image-actions button {
   border: 1px solid #c8d4e6;
   border-radius: 8px;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   cursor: pointer;
 }
 .sidebar-card {
@@ -396,7 +396,7 @@ textarea[nbinput] {
   border: 1px solid #d8e2ef;
   border-radius: 10px;
   overflow: hidden;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   position: relative;
 }
 .image-card img {
@@ -409,8 +409,8 @@ textarea[nbinput] {
   position: absolute;
   top: 6px;
   left: 6px;
-  border-radius: var(--sabr-radius-control);
-  background: var(--sabr-primary);
+  border-radius: var(--phub-radius-control);
+  background: var(--phub-primary);
   color: #fff;
   font-size: 0.68rem;
   padding: 2px 6px;
@@ -453,7 +453,7 @@ textarea[nbinput] {
 }
 .checklist li span {
   min-width: 60px;
-  border-radius: var(--sabr-radius-control);
+  border-radius: var(--phub-radius-control);
   text-align: center;
   padding: 3px 8px;
   font-size: 0.7rem;
@@ -469,13 +469,13 @@ textarea[nbinput] {
 }
 .progress-track {
   height: 8px;
-  border-radius: var(--sabr-radius-control);
+  border-radius: var(--phub-radius-control);
   background: #e3eaf5;
   overflow: hidden;
 }
 .progress-value {
   height: 100%;
-  background: var(--sabr-primary);
+  background: var(--phub-primary);
 }
 .wizard-actions {
   display: grid;

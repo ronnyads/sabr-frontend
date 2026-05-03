@@ -33,7 +33,7 @@ export interface AuthLoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private static readonly SESSION_STORAGE_KEY = 'sabr.auth.session.v1';
+  private static readonly SESSION_STORAGE_KEY = 'phub.auth.session.v1';
   private accessToken: string | null = null;
   private user: AuthUser | null = null;
   private accountType: 'admin' | 'client' | null = null;

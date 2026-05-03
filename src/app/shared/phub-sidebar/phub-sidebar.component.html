@@ -1,9 +1,9 @@
-<aside class="sabr-sidebar" [class.sabr-sidebar-open]="open" [class.sabr-sidebar-v1]="redesignV1" [class.sabr-sidebar-light]="!themeService.isDark">
-  <div class="sabr-sidebar-header">
-    <div class="sabr-logo-mark">
+<aside class="phub-sidebar" [class.phub-sidebar-open]="open" [class.phub-sidebar-v1]="redesignV1" [class.phub-sidebar-light]="!themeService.isDark">
+  <div class="phub-sidebar-header">
+    <div class="phub-logo-mark">
       <nb-icon icon="flash-outline"></nb-icon>
     </div>
-    <div class="sabr-logo-text">
+    <div class="phub-logo-text">
       <strong>{{ title }}</strong>
       <span>{{ subtitle }}</span>
     </div>
@@ -21,7 +21,7 @@
     </button>
   </div>
 
-  <nav class="sabr-nav">
+  <nav class="phub-nav">
     <a
       *ngFor="let item of menuItems"
       [routerLink]="item.disabled ? null : item.link"
@@ -36,7 +36,7 @@
     </a>
   </nav>
 
-  <div class="sabr-profile-wrap" *ngIf="profileName">
+  <div class="phub-profile-wrap" *ngIf="profileName">
     <!-- Mini menu popup -->
     <div class="profile-popup" *ngIf="profileMenuOpen">
       <div class="popup-header">
@@ -63,7 +63,7 @@
     </div>
 
     <!-- Trigger -->
-    <div class="sabr-profile" (click)="toggleProfileMenu()" [class.active]="profileMenuOpen">
+    <div class="phub-profile" (click)="toggleProfileMenu()" [class.active]="profileMenuOpen">
       <div class="avatar">{{ profileName[0] || 'U' }}</div>
       <div class="meta">
         <strong>{{ profileName }}</strong>

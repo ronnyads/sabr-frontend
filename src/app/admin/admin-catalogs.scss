@@ -23,7 +23,7 @@
 .field label {
   font-size: 12px;
   font-weight: 700;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .checkbox-field {
@@ -52,13 +52,13 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .picker-list {
   max-height: 240px;
   overflow: auto;
-  border: 1px solid var(--sabr-border);
+  border: 1px solid var(--phub-border);
   border-radius: 12px;
   padding: 8px;
 }
@@ -73,7 +73,7 @@
 }
 
 .picker-list label:hover {
-  background: var(--sabr-primary-weak);
+  background: var(--phub-primary-weak);
   cursor: pointer;
 }
 
@@ -86,7 +86,7 @@
 
 .error {
   margin: 8px 0 0;
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
 }
 
 .table-wrapper {
@@ -102,13 +102,13 @@
 
 .data-table th,
 .data-table td {
-  border-bottom: 1px solid var(--sabr-border);
+  border-bottom: 1px solid var(--phub-border);
   text-align: left;
   padding: 14px 10px;
 }
 
 .data-table th {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -129,7 +129,7 @@
 }
 
 .pagination span {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 12px;
 }
 

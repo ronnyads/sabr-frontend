@@ -4,7 +4,7 @@ import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ThemeService } from '../../core/services/theme.service';
 
-export interface SabrMenuItem {
+export interface PhubMenuItem {
   label: string;
   link: string;
   icon?: string;
@@ -13,17 +13,17 @@ export interface SabrMenuItem {
 }
 
 @Component({
-  selector: 'app-sabr-sidebar',
+  selector: 'app-phub-sidebar',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, NbIconModule, NbButtonModule],
-  templateUrl: './sabr-sidebar.component.html',
-  styleUrls: ['./sabr-sidebar.component.scss']
+  templateUrl: './phub-sidebar.component.html',
+  styleUrls: ['./phub-sidebar.component.scss']
 })
-export class SabrSidebarComponent {
+export class PhubSidebarComponent {
   @Input() title = 'PrometheusHUB';
   @Input() subtitle = '';
   @Input() redesignV1 = false;
-  @Input() menuItems: SabrMenuItem[] = [];
+  @Input() menuItems: PhubMenuItem[] = [];
   @Input() open = false;
   @Input() mobile = false;
   @Input() profileName = '';
@@ -58,7 +58,7 @@ export class SabrSidebarComponent {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.sabr-profile-wrap')) {
+    if (!target.closest('.phub-profile-wrap')) {
       this.profileMenuOpen = false;
     }
   }

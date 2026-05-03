@@ -6,7 +6,7 @@ import { AuthDebugLogService } from './auth-debug-log.service';
 
 import { environment } from '../../../environments/environment';
 
-export const BACKEND_OFFLINE_HINT_KEY = 'sabr_backend_offline_hint';
+export const BACKEND_OFFLINE_HINT_KEY = 'phub_backend_offline_hint';
 export const LOCAL_API_TARGET = environment.apiBaseUrl;
 export const BACKEND_OFFLINE_MESSAGE =
   `API indisponível em ${LOCAL_API_TARGET}. O backend na nuvem pode estar suspenso (inative). Tente novamente.`;

@@ -1,4 +1,4 @@
-<section class="sabr-page admin-ml-page">
+<section class="phub-page admin-ml-page">
   <ng-template #headerActions>
     <button nbButton status="basic" size="small" (click)="loadStatus()">Atualizar</button>
   </ng-template>
@@ -9,7 +9,7 @@
     [actionsTemplate]="headerActions"
   ></app-page-header>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <app-ui-state
       [loading]="loading"
       [errorMessage]="errorMessage"
@@ -55,7 +55,7 @@
     </div>
 
     <div class="table-wrapper" *ngIf="status && status.connections.length > 0">
-      <table class="sabr-table">
+      <table class="phub-table">
         <thead>
           <tr>
             <th>SellerId</th>

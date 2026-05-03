@@ -1,7 +1,7 @@
-<div class="sabr-shell" [class.sabr-shell-redesign]="redesignV1">
-  <div class="sabr-overlay" *ngIf="mobile && drawerOpen" (click)="closeDrawer()"></div>
+<div class="phub-shell" [class.phub-shell-redesign]="redesignV1">
+  <div class="phub-overlay" *ngIf="mobile && drawerOpen" (click)="closeDrawer()"></div>
 
-  <app-sabr-sidebar
+  <app-phub-sidebar
     [title]="appTitle"
     [subtitle]="appSubtitle"
     [menuItems]="menuItems"
@@ -14,10 +14,10 @@
     (closeDrawer)="closeDrawer()"
     (navigate)="closeDrawer()"
     (logout)="logout.emit()"
-  ></app-sabr-sidebar>
+  ></app-phub-sidebar>
 
-  <div class="sabr-main">
-    <app-sabr-topbar
+  <div class="phub-main">
+    <app-phub-topbar
       [title]="topbarTitle"
       [tenantBadgeText]="tenantBadgeText"
       [userName]="userName"
@@ -25,10 +25,10 @@
       [redesignV1]="redesignV1"
       [mobile]="mobile"
       (menuToggle)="toggleDrawer()"
-    ></app-sabr-topbar>
+    ></app-phub-topbar>
 
-    <div class="sabr-content">
-      <div class="sabr-content-inner">
+    <div class="phub-content">
+      <div class="phub-content-inner">
         <ng-content></ng-content>
       </div>
     </div>

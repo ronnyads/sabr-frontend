@@ -556,7 +556,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--sabr-primary, #2d6dff);
+  color: var(--phub-primary, #2d6dff);
   background: rgba(45, 109, 255, 0.1);
   border: 1px solid rgba(45, 109, 255, 0.2);
   border-radius: 999px;
@@ -598,7 +598,7 @@ h1 {
 
 /* ── Mobile progress ──────────────────────────────────────────────────────── */
 .mobile-progress {
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   border: 1px solid #dce4f2;
   border-radius: 18px;
   padding: 16px 20px;
@@ -650,7 +650,7 @@ h1 {
   height: 44px;
   border-radius: 50%;
   border: 2px solid #dce4f2;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   color: #55617d;
   font-weight: 700;
   font-size: 14px;
@@ -785,7 +785,7 @@ h1 {
 
 .premium-input:focus {
   border-color: #2d6dff;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   box-shadow: 0 0 0 3px rgba(45, 109, 255, 0.12);
 }
 
@@ -1165,49 +1165,49 @@ h1 {
 }
 
 /* ════════════════════════════════════════
-   V1 REDESIGN OVERRIDES (sabr-tokens)
+   V1 REDESIGN OVERRIDES (phub-tokens)
 ════════════════════════════════════════ */
 .onboarding-layout-v1 {
   background:
-    radial-gradient(circle at 0% 0%, var(--sabr-bg-accent) 0%, transparent 44%),
-    radial-gradient(circle at 100% 0%, var(--sabr-bg-accent-alt) 0%, transparent 36%),
-    var(--sabr-bg) !important;
+    radial-gradient(circle at 0% 0%, var(--phub-bg-accent) 0%, transparent 44%),
+    radial-gradient(circle at 100% 0%, var(--phub-bg-accent-alt) 0%, transparent 36%),
+    var(--phub-bg) !important;
 }
 
 .onboarding-shell-v1 {
   background: transparent;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
-.onboarding-shell-v1 h1        { color: var(--sabr-text); }
-.onboarding-shell-v1 .subhead  { color: var(--sabr-text-muted); }
-.onboarding-shell-v1 .hint     { color: var(--sabr-text-muted); }
-.onboarding-shell-v1 .input-label         { color: var(--sabr-text-muted); }
-.onboarding-shell-v1 .brand-footer        { color: var(--sabr-text-muted); }
-.onboarding-shell-v1 .progress-top        { color: var(--sabr-text-muted); }
-.onboarding-shell-v1 .section-title h2    { color: var(--sabr-text); }
-.onboarding-shell-v1 .document-header     { color: var(--sabr-text); }
+.onboarding-shell-v1 h1        { color: var(--phub-text); }
+.onboarding-shell-v1 .subhead  { color: var(--phub-text-muted); }
+.onboarding-shell-v1 .hint     { color: var(--phub-text-muted); }
+.onboarding-shell-v1 .input-label         { color: var(--phub-text-muted); }
+.onboarding-shell-v1 .brand-footer        { color: var(--phub-text-muted); }
+.onboarding-shell-v1 .progress-top        { color: var(--phub-text-muted); }
+.onboarding-shell-v1 .section-title h2    { color: var(--phub-text); }
+.onboarding-shell-v1 .document-header     { color: var(--phub-text); }
 
 .onboarding-shell-v1 .card,
 .onboarding-shell-v1 .mobile-progress {
-  background: color-mix(in srgb, var(--sabr-surface) 96%, transparent);
-  border-color: color-mix(in srgb, var(--sabr-border) 80%, transparent);
-  box-shadow: 0 16px 40px color-mix(in srgb, var(--sabr-shadow-color) 10%, transparent);
+  background: color-mix(in srgb, var(--phub-surface) 96%, transparent);
+  border-color: color-mix(in srgb, var(--phub-border) 80%, transparent);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--phub-shadow-color) 10%, transparent);
 }
 
 .onboarding-shell-v1 .section-title {
-  border-bottom-color: color-mix(in srgb, var(--sabr-border) 60%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--phub-border) 60%, transparent);
 }
 
 .onboarding-shell-v1 .premium-input {
-  border-color: color-mix(in srgb, var(--sabr-border) 85%, transparent);
-  background: color-mix(in srgb, var(--sabr-surface-soft) 70%, white);
-  color: var(--sabr-text);
+  border-color: color-mix(in srgb, var(--phub-border) 85%, transparent);
+  background: color-mix(in srgb, var(--phub-surface-soft) 70%, white);
+  color: var(--phub-text);
 }
 
 .onboarding-shell-v1 .document-item {
-  background: color-mix(in srgb, var(--sabr-surface-soft) 80%, transparent);
-  border-color: color-mix(in srgb, var(--sabr-border) 75%, transparent);
+  background: color-mix(in srgb, var(--phub-surface-soft) 80%, transparent);
+  border-color: color-mix(in srgb, var(--phub-border) 75%, transparent);
 }
 
 .onboarding-shell-v1 .cta-footer {
@@ -1308,7 +1308,7 @@ h1 {
 }
 
 [data-theme="light"] .onboarding-shell .card {
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   border: 1px solid #dce4f2;
   box-shadow: 0 4px 20px rgba(15, 25, 41, 0.06), 0 1px 4px rgba(15, 25, 41, 0.04);
 }
@@ -1334,7 +1334,7 @@ h1 {
 }
 
 [data-theme="light"] .onboarding-shell .premium-input {
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   border-color: #dce4f2;
   color: #0f1929;
 }
@@ -1362,7 +1362,7 @@ h1 {
 
 [data-theme="light"] .onboarding-shell .custom-checkbox-box {
   border-color: #c5d0e0;
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
 }
 
 [data-theme="light"] .onboarding-shell .document-item {
@@ -1385,7 +1385,7 @@ h1 {
 }
 
 [data-theme="light"] .onboarding-shell .mobile-progress {
-  background: var(--sabr-surface);
+  background: var(--phub-surface);
   border-color: #dce4f2;
 }
 

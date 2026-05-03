@@ -39,8 +39,8 @@ import { normalizeRole, roleLabelTenant } from '../core/utils/role-labels';
   styleUrls: ['./users.scss'],
 })
 export class Users implements OnInit {
-  private readonly lastTenantKey = 'sabr:admin:lastTenantId';
-  private readonly lastTenantContextKey = 'sabr:admin:lastTenantContext';
+  private readonly lastTenantKey = 'phub:admin:lastTenantId';
+  private readonly lastTenantContextKey = 'phub:admin:lastTenantContext';
   users: UserResult[] = [];
   loading = false;
   errorMessage = '';

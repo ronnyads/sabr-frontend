@@ -24,13 +24,13 @@
     margin: 0 0 2px;
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 
   .subtitle {
     margin: 0;
     font-size: 0.85rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
   }
 }
 
@@ -66,7 +66,7 @@
   align-items: center;
   gap: 12px;
   padding: 28px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .state-error {
@@ -76,7 +76,7 @@
 
   nb-icon {
     font-size: 1.8rem;
-    color: var(--sabr-danger);
+    color: var(--phub-danger);
   }
 
   p {
@@ -88,8 +88,8 @@
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--sabr-border);
-  border-top-color: var(--sabr-primary);
+  border: 2px solid var(--phub-border);
+  border-top-color: var(--phub-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -107,7 +107,7 @@
     margin: 0 0 16px;
     font-size: 1rem;
     font-weight: 600;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 }
 
@@ -124,14 +124,14 @@
 
   small {
     font-size: 0.75rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
 
   strong {
     font-size: 0.95rem;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 }
 
@@ -141,7 +141,7 @@
 
 .connect-desc {
   font-size: 0.875rem;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   margin: 0 0 20px;
   line-height: 1.5;
 }
@@ -154,13 +154,13 @@
   padding: 12px 14px;
   border-radius: 10px;
   background: rgba(30, 41, 59, 0.06);
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 0.85rem;
   line-height: 1.45;
 
   nb-icon {
     font-size: 1rem;
-    color: var(--sabr-primary);
+    color: var(--phub-primary);
     margin-top: 1px;
   }
 }
@@ -177,20 +177,20 @@
 
 .risk-modal {
   width: min(560px, calc(100vw - 24px));
-  background: var(--sabr-surface-raised);
-  border-radius: var(--sabr-radius-card);
+  background: var(--phub-surface-raised);
+  border-radius: var(--phub-radius-card);
   border: 1px solid rgba(239, 68, 68, 0.30);
   padding: 24px;
-  box-shadow: var(--sabr-shadow-hover);
+  box-shadow: var(--phub-shadow-hover);
 
   h4 {
     margin: 0 0 10px;
-    color: var(--sabr-danger);
+    color: var(--phub-danger);
   }
 
   p {
     margin: 0 0 10px;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
   }
 }
 

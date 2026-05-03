@@ -12,8 +12,8 @@ import { AdminTenantContextService } from '../core/services/admin-tenant-context
   standalone: true,
   imports: [CommonModule, FormsModule, NbButtonModule, NbSelectModule, NbSpinnerModule],
   template: `
-    <section class="sabr-page admin-entry-page">
-      <div class="sabr-card panel entry-panel">
+    <section class="phub-page admin-entry-page">
+      <div class="phub-card panel entry-panel">
         <div *ngIf="loading" class="entry-loading">
           <nb-spinner size="small"></nb-spinner>
           <span>Carregando clientes...</span>

@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   template: `<p style="padding: 16px;">Redirecionando...</p>`
 })
 export class AdminUsersEntry implements OnInit {
-  private readonly storageKey = 'sabr:admin:lastTenantId';
+  private readonly storageKey = 'phub:admin:lastTenantId';
 
   constructor(private router: Router) {}
 

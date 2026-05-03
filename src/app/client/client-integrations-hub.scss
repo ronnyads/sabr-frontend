@@ -9,13 +9,13 @@
   h1 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
     margin: 0 0 4px;
   }
 
   .subtitle {
     font-size: 0.875rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     margin: 0;
   }
 }
@@ -27,13 +27,13 @@
   align-items: center;
   gap: 12px;
   padding: 28px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 
   .spinner {
     width: 18px;
     height: 18px;
-    border: 2px solid var(--sabr-border);
-    border-top-color: var(--sabr-primary);
+    border: 2px solid var(--phub-border);
+    border-top-color: var(--phub-primary);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
   }
@@ -51,12 +51,12 @@
   align-items: center;
   gap: 12px;
   padding: 40px 24px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   text-align: center;
 
   nb-icon {
     font-size: 1.8rem;
-    color: var(--sabr-danger);
+    color: var(--phub-danger);
   }
 
   p {
@@ -74,18 +74,18 @@
 }
 
 .integration-card {
-  background: var(--sabr-surface);
-  border: 1px solid var(--sabr-border);
+  background: var(--phub-surface);
+  border: 1px solid var(--phub-border);
   border-radius: 12px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  transition: box-shadow var(--sabr-transition-base), border-color var(--sabr-transition-base);
+  transition: box-shadow var(--phub-transition-base), border-color var(--phub-transition-base);
 
   &:hover {
-    box-shadow: var(--sabr-shadow-hover);
-    border-color: var(--sabr-primary);
+    box-shadow: var(--phub-shadow-hover);
+    border-color: var(--phub-primary);
   }
 }
 
@@ -119,20 +119,20 @@
   .card-name {
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--sabr-text);
+    color: var(--phub-text);
     margin: 0 0 5px;
   }
 
   .card-desc {
     font-size: 0.82rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     margin: 0;
     line-height: 1.5;
   }
 
   .card-details {
     font-size: 0.8rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     margin: 6px 0 0;
     font-style: italic;
   }
@@ -145,7 +145,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 10px;
-  border-top: 1px solid var(--sabr-border);
+  border-top: 1px solid var(--phub-border);
 }
 
 .installed-badge {
@@ -154,10 +154,10 @@
   gap: 5px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--sabr-success);
+  color: var(--phub-success);
 
   nb-icon {
     font-size: 0.9rem;
-    color: var(--sabr-success);
+    color: var(--phub-success);
   }
 }

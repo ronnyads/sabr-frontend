@@ -1,35 +1,35 @@
 // ─── Shell Layout ─────────────────────────────────────────────────────────────
-.sabr-shell {
+.phub-shell {
   min-height: 100vh;
-  background: var(--sabr-bg);
+  background: var(--phub-bg);
 }
 
 // Light theme: branco puro
-:host-context([data-theme='light']) .sabr-shell {
-  background: var(--sabr-bg);
+:host-context([data-theme='light']) .phub-shell {
+  background: var(--phub-bg);
 }
 
-.sabr-main {
-  margin-left:    var(--sabr-sidebar-width);
+.phub-main {
+  margin-left:    var(--phub-sidebar-width);
   min-height:     100vh;
   display:        flex;
   flex-direction: column;
 }
 
 // Empurra o conteúdo para baixo do topbar fixo
-.sabr-main { padding-top: var(--sabr-topbar-height); }
+.phub-main { padding-top: var(--phub-topbar-height); }
 
-.sabr-content { flex: 1; width: 100%; }
+.phub-content { flex: 1; width: 100%; }
 
-.sabr-content-inner {
+.phub-content-inner {
   width:     100%;
-  max-width: var(--sabr-content-max);
+  max-width: var(--phub-content-max);
   margin:    0 auto;
-  padding:   var(--sabr-space-lg);
+  padding:   var(--phub-space-lg);
 }
 
 // ─── Overlay (mobile) ────────────────────────────────────────────────────────
-.sabr-overlay {
+.phub-overlay {
   position:         fixed;
   inset:            0;
   z-index:          25;
@@ -39,11 +39,11 @@
 }
 
 // ─── v1 alias (retrocompatibilidade) ─────────────────────────────────────────
-.sabr-shell-redesign { /* herda o novo padrão */ }
+.phub-shell-redesign { /* herda o novo padrão */ }
 
 // ─── Mobile ───────────────────────────────────────────────────────────────────
 @media (max-width: 1023px) {
-  .sabr-main { margin-left: 0; }
+  .phub-main { margin-left: 0; }
 
-  .sabr-content-inner { padding: var(--sabr-space-md); }
+  .phub-content-inner { padding: var(--phub-space-md); }
 }

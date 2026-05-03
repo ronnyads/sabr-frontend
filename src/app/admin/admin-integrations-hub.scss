@@ -9,13 +9,13 @@
   h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
     margin: 0 0 4px;
   }
 
   .subtitle {
     font-size: 0.9rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     margin: 0;
   }
 }
@@ -27,13 +27,13 @@
   align-items: center;
   gap: 12px;
   padding: 32px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 
   .spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--sabr-border);
-    border-top-color: var(--sabr-primary);
+    border: 2px solid var(--phub-border);
+    border-top-color: var(--phub-primary);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
   }
@@ -51,12 +51,12 @@
   align-items: center;
   gap: 12px;
   padding: 48px 32px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   text-align: center;
 
   nb-icon {
     font-size: 2rem;
-    color: var(--sabr-danger);
+    color: var(--phub-danger);
   }
 
   p {
@@ -74,20 +74,20 @@
 }
 
 .integration-card {
-  background: var(--sabr-surface);
-  border: 1px solid var(--sabr-border);
+  background: var(--phub-surface);
+  border: 1px solid var(--phub-border);
   border-radius: 14px;
   padding: 20px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: box-shadow var(--sabr-transition-base), transform var(--sabr-transition-base), border-color var(--sabr-transition-base);
+  transition: box-shadow var(--phub-transition-base), transform var(--phub-transition-base), border-color var(--phub-transition-base);
 
   &:hover {
-    box-shadow: var(--sabr-shadow-hover);
+    box-shadow: var(--phub-shadow-hover);
     transform: translateY(-2px);
-    border-color: var(--sabr-primary);
+    border-color: var(--phub-primary);
   }
 }
 
@@ -121,13 +121,13 @@
   .card-name {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--sabr-text);
+    color: var(--phub-text);
     margin: 0 0 6px;
   }
 
   .card-desc {
     font-size: 0.85rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     margin: 0;
     line-height: 1.5;
   }
@@ -140,7 +140,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 12px;
-  border-top: 1px solid var(--sabr-border);
+  border-top: 1px solid var(--phub-border);
 }
 
 .connected-badge {
@@ -148,7 +148,7 @@
   align-items: center;
   gap: 5px;
   font-size: 0.8rem;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 
   nb-icon {
     font-size: 0.9rem;

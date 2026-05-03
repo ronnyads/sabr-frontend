@@ -1,22 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ThemeService } from '../../core/services/theme.service';
-import { SabrMenuItem, SabrSidebarComponent } from '../sabr-sidebar/sabr-sidebar.component';
-import { SabrTopbarComponent } from '../sabr-topbar/sabr-topbar.component';
+import { PhubMenuItem, PhubSidebarComponent } from '../phub-sidebar/phub-sidebar.component';
+import { PhubTopbarComponent } from '../phub-topbar/phub-topbar.component';
 
 @Component({
-  selector: 'app-sabr-shell-layout',
+  selector: 'app-phub-shell-layout',
   standalone: true,
-  imports: [CommonModule, SabrSidebarComponent, SabrTopbarComponent],
-  templateUrl: './sabr-shell-layout.component.html',
-  styleUrls: ['./sabr-shell-layout.component.scss']
+  imports: [CommonModule, PhubSidebarComponent, PhubTopbarComponent],
+  templateUrl: './phub-shell-layout.component.html',
+  styleUrls: ['./phub-shell-layout.component.scss']
 })
-export class SabrShellLayoutComponent implements OnInit, OnChanges {
+export class PhubShellLayoutComponent implements OnInit, OnChanges {
   @Input() appTitle = 'PrometheusHUB';
   @Input() appSubtitle = '';
   @Input() redesignV1 = false;
   @Input() darkModeEnabled = false;
-  @Input() menuItems: SabrMenuItem[] = [];
+  @Input() menuItems: PhubMenuItem[] = [];
   @Input() topbarTitle = '';
   @Input() tenantBadgeText: string | null = null;
   @Input() userName = '';

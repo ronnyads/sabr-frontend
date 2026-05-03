@@ -1,4 +1,4 @@
-<section class="sabr-page my-products-page">
+<section class="phub-page my-products-page">
   <app-page-header
     [title]="'Meus Produtos'"
     [subtitle]="'Configure o modo de precificacao para cada draft.'"
@@ -11,8 +11,8 @@
     (clear)="clearToolbar()"
   ></app-search-toolbar>
 
-  <div class="sabr-card panel">
-    <div class="conflict-card sabr-card" *ngIf="hasConcurrencyConflict || hasPreconditionRequired">
+  <div class="phub-card panel">
+    <div class="conflict-card phub-card" *ngIf="hasConcurrencyConflict || hasPreconditionRequired">
       <p *ngIf="hasConcurrencyConflict">Foi detectado conflito de concorrencia em uma alteracao recente.</p>
       <p *ngIf="hasPreconditionRequired">
         A atualizacao exige precondicao de versao. Recarregue o draft e tente novamente.

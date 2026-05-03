@@ -1,0 +1,173 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// SABR 3.0 — Design System Tokens
+// Style: Pure Black Dark SaaS + Ultra-Modern Light
+// ─────────────────────────────────────────────────────────────────────────────
+
+:root {
+  // ── Brand — Prometheus Fire ────────────────────────────────────────────────
+  --phub-primary:        #7C3AED;   // indigo (era #3b82f6 azul Tailwind)
+  --phub-primary-strong: #8B5CF6;   // violet-500
+  --phub-primary-weak:   rgba(124, 58, 237, 0.12);
+  --phub-accent:         #F59E0B;   // amber/fogo (Prometheus = portador do fogo)
+  --phub-accent-weak:    rgba(245, 158, 11, 0.12);
+  --phub-secondary:      #06B6D4;   // cyan (tech, contraste com amber quente)
+
+  // ── Background — PRETO PURO ────────────────────────────────────────────────
+  --phub-bg:             #000000;
+  --phub-bg-strong:      #000000;
+  --phub-bg-accent:      rgba(124, 58, 237, 0.06);   // indigo accent (era azul)
+  --phub-bg-accent-alt:  rgba(245, 158, 11, 0.04);   // amber accent (era verde)
+
+  // ── Surface — cinzas muito escuros sobre o preto ───────────────────────────
+  --phub-surface:        #0d0d0d;
+  --phub-surface-soft:   #141414;
+  --phub-surface-raised: #1a1a1a;
+
+  // ── Text ───────────────────────────────────────────────────────────────────
+  --phub-text:           #f8fafc;
+  --phub-text-muted:     #94a3b8;
+  --phub-text-subtle:    #4b5563;
+
+  // ── Border ─────────────────────────────────────────────────────────────────
+  --phub-border:         rgba(255, 255, 255, 0.06);
+  --phub-border-strong:  rgba(255, 255, 255, 0.12);
+
+  // ── Semantic ───────────────────────────────────────────────────────────────
+  --phub-success:        #22c55e;
+  --phub-info:           #38BDF8;   // sky-400 (era #3b82f6, mesmo que primary — agora distinto)
+  --phub-warning:        #f59e0b;
+  --phub-danger:         #ef4444;
+
+  // ── Shadow — sutis no preto ────────────────────────────────────────────────
+  --phub-shadow-color:   #000;
+  --phub-shadow-soft:    0 1px 4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --phub-shadow-hover:   0 4px 20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --phub-shadow-glow:    0 0 24px rgba(124, 58, 237, 0.25);  // indigo glow (era azul)
+
+  // ── Gradients — Prometheus Fire ────────────────────────────────────────────
+  --phub-gradient-brand: linear-gradient(135deg, #312e81 0%, #7C3AED 100%);  // deep indigo → indigo
+  --phub-gradient-bg:    linear-gradient(160deg, rgba(124,58,237,0.04) 0%, rgba(124,58,237,0.02) 100%);
+
+  // ── Radius ─────────────────────────────────────────────────────────────────
+  --phub-radius-card:    16px;
+  --phub-radius-control: 10px;
+  --phub-radius-pill:    999px;
+  --phub-radius-sm:      8px;
+
+  // ── Spacing ────────────────────────────────────────────────────────────────
+  --phub-space-xs:       8px;
+  --phub-space-sm:       12px;
+  --phub-space-md:       16px;
+  --phub-space-lg:       24px;
+  --phub-space-xl:       32px;
+  --phub-space-2xl:      48px;
+
+  // ── Layout ─────────────────────────────────────────────────────────────────
+  --phub-sidebar-width:  240px;
+  --phub-topbar-height:  56px;
+  --phub-content-max:    1320px;
+
+  // ── Gutters (legado) ───────────────────────────────────────────────────────
+  --gutter-xs: 16px;
+  --gutter-sm: 20px;
+  --gutter-md: 24px;
+  --gutter-lg: 32px;
+
+  // ── Brand legacy ───────────────────────────────────────────────────────────
+  --color-brand-navy:   #000000;
+  --color-brand-accent: #00E5A0;
+  --color-bg-light:     var(--phub-bg);
+
+  // ── Typography ─────────────────────────────────────────────────────────────
+  --phub-font-title-xl-size:   40px;
+  --phub-font-title-xl-line:   48px;
+  --phub-font-title-xl-weight: 800;
+  --phub-font-title-lg-size:   32px;
+  --phub-font-title-lg-line:   40px;
+  --phub-font-title-lg-weight: 800;
+  --phub-font-h3-size:         24px;
+  --phub-font-h3-line:         32px;
+  --phub-font-h3-weight:       700;
+  --phub-font-body-size:       15px;
+  --phub-font-body-line:       24px;
+  --phub-font-body-weight:     400;
+  --phub-font-caption-size:    12px;
+  --phub-font-caption-line:    16px;
+  --phub-font-caption-weight:  500;
+
+  // ── Transition ─────────────────────────────────────────────────────────────
+  --phub-transition-fast:   100ms ease;
+  --phub-transition-base:   160ms ease;
+  --phub-transition-slow:   260ms ease;
+
+  // ── Focus — novo token para borda de foco em inputs ──────────────────────
+  --phub-border-focus:   var(--phub-primary);
+}
+
+// ── Light mode — Prometheus Fire + WCAG AA contraste ────────────────────────
+:root[data-theme='light'] {
+  --phub-bg:             #f4f6f9;   // off-white cool
+  --phub-bg-strong:      #edf0f5;
+  --phub-bg-accent:      rgba(109, 40, 217, 0.06);      // indigo accent
+  --phub-bg-accent-alt:  rgba(217, 119, 6, 0.05);       // amber accent
+
+  // Hierarquia de surface — cards brancos sobre fundo cinzento
+  --phub-surface:        #ffffff;
+  --phub-surface-soft:   #f1f5f9;
+  --phub-surface-raised: #ffffff;  // cards elevados ficam brancos sobre --phub-bg off-white
+
+  --phub-text:           #0f172a;
+  --phub-text-muted:     #64748b;
+  --phub-text-subtle:    #64748b;  // era #94a3b8 (ratio 3.1:1) → agora 5.0:1 WCAG AA
+
+  // Borders — mais visíveis para inputs de formulário
+  --phub-border:         rgba(15, 23, 42, 0.12);  // era 0.08 — mais visível
+  --phub-border-strong:  rgba(15, 23, 42, 0.20);  // era 0.14 — inputs claramente delimitados
+
+  --phub-shadow-soft:    0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --phub-shadow-hover:   0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --phub-shadow-glow:    0 0 24px rgba(109, 40, 217, 0.15);  // indigo glow (era azul)
+
+  // Brand — Prometheus Fire em light
+  --phub-primary:        #6D28D9;   // indigo (era #2563eb azul)
+  --phub-primary-strong: #5B21B6;
+  --phub-primary-weak:   rgba(109, 40, 217, 0.08);
+  --phub-secondary:      #0891B2;   // cyan
+
+  --phub-accent:         #D97706;   // amber escuro (legível em branco)
+  --phub-accent-weak:    rgba(217, 119, 6, 0.10);
+
+  --phub-info:           #0284C7;   // sky-600
+
+  --phub-success:        #059669;
+  --phub-warning:        #d97706;
+  --phub-danger:         #dc2626;
+
+  --phub-gradient-brand: linear-gradient(135deg, #1e1b4b 0%, #6D28D9 100%);  // dark navy indigo → indigo
+  --phub-border-focus:   var(--phub-primary);
+}
+
+// ── Dark alias — Prometheus Fire ──────────────────────────────────────────
+:root[data-theme='dark'] {
+  --phub-primary:        #7C3AED;
+  --phub-primary-strong: #8B5CF6;
+  --phub-primary-weak:   rgba(124, 58, 237, 0.12);
+  --phub-accent:         #F59E0B;
+  --phub-accent-weak:    rgba(245, 158, 11, 0.12);
+  --phub-secondary:      #06B6D4;
+  --phub-info:           #38BDF8;
+  --phub-bg:             #000000;
+  --phub-bg-strong:      #000000;
+  --phub-bg-accent:      rgba(124, 58, 237, 0.06);
+  --phub-surface:        #0d0d0d;
+  --phub-surface-soft:   #141414;
+  --phub-surface-raised: #1a1a1a;
+  --phub-text:           #f8fafc;
+  --phub-text-muted:     #cbd5e1;
+  --phub-text-subtle:    #94a3b8;
+  --phub-border:         rgba(255, 255, 255, 0.06);
+  --phub-border-strong:  rgba(255, 255, 255, 0.12);
+  --phub-shadow-glow:    0 0 24px rgba(124, 58, 237, 0.25);
+  --phub-gradient-brand: linear-gradient(135deg, #312e81 0%, #7C3AED 100%);
+  --phub-border-focus:   var(--phub-primary);
+}

@@ -1,4 +1,4 @@
-<section class="sabr-page admin-ai-prompts-page">
+<section class="phub-page admin-ai-prompts-page">
   <ng-template #headerActions>
     <button nbButton status="primary" size="small" (click)="openForm()">Novo Prompt</button>
   </ng-template>
@@ -9,7 +9,7 @@
     [actionsTemplate]="headerActions"
   ></app-page-header>
 
-  <div class="sabr-card panel" *ngIf="formOpen">
+  <div class="phub-card panel" *ngIf="formOpen">
     <form [formGroup]="form" class="editor-grid">
       <div class="field">
         <label>Feature</label>
@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <app-ui-state
       [loading]="loading"
       [empty]="prompts.length === 0"

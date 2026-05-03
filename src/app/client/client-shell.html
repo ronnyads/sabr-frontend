@@ -1,4 +1,4 @@
-<nb-layout windowMode class="sabr-layout-host">
+<nb-layout windowMode class="phub-layout-host">
   <nb-layout-column>
 
     <!-- ── Banner: Em Análise ─────────────────────────────────────────────── -->
@@ -31,7 +31,7 @@
     </div>
 
     <!-- ── Shell principal ───────────────────────────────────────────────── -->
-    <app-sabr-shell-layout
+    <app-phub-shell-layout
       [appTitle]="'PrometheusHUB'"
       [appSubtitle]="'Portal'"
       [topbarTitle]="'Portal do Cliente'"
@@ -45,7 +45,7 @@
       (logout)="logout()"
     >
       <router-outlet></router-outlet>
-    </app-sabr-shell-layout>
+    </app-phub-shell-layout>
 
   </nb-layout-column>
 </nb-layout>

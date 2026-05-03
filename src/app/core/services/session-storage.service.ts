@@ -11,7 +11,7 @@ import { detectStorageCapability, testStorageQuota } from '../utils/storage-dete
 
 const logger = createLogger('SessionStorage');
 
-const STORAGE_KEY = 'sabr.session.v1';
+const STORAGE_KEY = 'phub.session.v1';
 
 /**
  * In-memory session storage (lost on page reload, but fastest)

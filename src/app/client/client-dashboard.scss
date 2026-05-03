@@ -22,10 +22,10 @@
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--sabr-primary) 12%, var(--sabr-surface)) 0%,
-      color-mix(in srgb, var(--sabr-secondary) 16%, var(--sabr-surface)) 100%
+      color-mix(in srgb, var(--phub-primary) 12%, var(--phub-surface)) 0%,
+      color-mix(in srgb, var(--phub-secondary) 16%, var(--phub-surface)) 100%
     );
-  border: 1px solid color-mix(in srgb, var(--sabr-primary) 16%, var(--sabr-border));
+  border: 1px solid color-mix(in srgb, var(--phub-primary) 16%, var(--phub-border));
 }
 
 /* Decorative glow no hero */
@@ -36,7 +36,7 @@
   right: -60px;
   width: 260px;
   height: 260px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--sabr-primary) 20%, transparent) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--phub-primary) 20%, transparent) 0%, transparent 70%);
   pointer-events: none;
   animation: glowPulse 5s ease-in-out infinite alternate;
 }
@@ -48,7 +48,7 @@
   left: 40%;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--sabr-secondary) 15%, transparent) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--phub-secondary) 15%, transparent) 0%, transparent 70%);
   pointer-events: none;
   animation: glowPulse 7s ease-in-out infinite alternate-reverse;
 }
@@ -74,9 +74,9 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--sabr-primary);
-  background: color-mix(in srgb, var(--sabr-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sabr-primary) 20%, transparent);
+  color: var(--phub-primary);
+  background: color-mix(in srgb, var(--phub-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phub-primary) 20%, transparent);
   border-radius: 999px;
   padding: 4px 12px;
   width: fit-content;
@@ -87,7 +87,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--sabr-primary);
+  background: var(--phub-primary);
   animation: blink 2s ease-in-out infinite;
 }
 
@@ -101,12 +101,12 @@
   font-size: clamp(1.5rem, 2.2vw, 2.1rem);
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .hero-copy p {
   margin: 0;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 15px;
   line-height: 1.6;
 }
@@ -128,7 +128,7 @@
   gap: 6px;
   min-height: 34px;
   padding: 0 14px;
-  border-radius: var(--sabr-radius-control);
+  border-radius: var(--phub-radius-control);
   font-size: 12px;
   font-weight: 700;
   border: 1px solid transparent;
@@ -138,31 +138,31 @@
 .status-chip:hover { transform: translateY(-1px); }
 
 .status-warning {
-  border-color: color-mix(in srgb, var(--sabr-warning) 32%, transparent);
-  background: color-mix(in srgb, var(--sabr-warning) 14%, transparent);
-  color: color-mix(in srgb, var(--sabr-warning) 80%, var(--sabr-text));
+  border-color: color-mix(in srgb, var(--phub-warning) 32%, transparent);
+  background: color-mix(in srgb, var(--phub-warning) 14%, transparent);
+  color: color-mix(in srgb, var(--phub-warning) 80%, var(--phub-text));
 }
 
 .status-info {
-  border-color: color-mix(in srgb, var(--sabr-info) 32%, transparent);
-  background: color-mix(in srgb, var(--sabr-info) 12%, transparent);
-  color: color-mix(in srgb, var(--sabr-info) 80%, var(--sabr-text));
+  border-color: color-mix(in srgb, var(--phub-info) 32%, transparent);
+  background: color-mix(in srgb, var(--phub-info) 12%, transparent);
+  color: color-mix(in srgb, var(--phub-info) 80%, var(--phub-text));
 }
 
 .status-danger {
-  border-color: color-mix(in srgb, var(--sabr-danger) 32%, transparent);
-  background: color-mix(in srgb, var(--sabr-danger) 12%, transparent);
-  color: color-mix(in srgb, var(--sabr-danger) 80%, var(--sabr-text));
+  border-color: color-mix(in srgb, var(--phub-danger) 32%, transparent);
+  background: color-mix(in srgb, var(--phub-danger) 12%, transparent);
+  color: color-mix(in srgb, var(--phub-danger) 80%, var(--phub-text));
 }
 
 .status-success {
-  border-color: color-mix(in srgb, var(--sabr-success) 32%, transparent);
-  background: color-mix(in srgb, var(--sabr-success) 12%, transparent);
-  color: color-mix(in srgb, var(--sabr-success) 80%, var(--sabr-text));
+  border-color: color-mix(in srgb, var(--phub-success) 32%, transparent);
+  background: color-mix(in srgb, var(--phub-success) 12%, transparent);
+  color: color-mix(in srgb, var(--phub-success) 80%, var(--phub-text));
 }
 
 .status-meta {
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -186,7 +186,7 @@
 
 .insight-card:hover {
   transform: translateY(-3px);
-  box-shadow: var(--sabr-shadow-hover);
+  box-shadow: var(--phub-shadow-hover);
 }
 
 /* Borda esquerda colorida */
@@ -198,15 +198,15 @@
   bottom: 16px;
   width: 3px;
   border-radius: 999px;
-  background: var(--sabr-gradient-brand);
+  background: var(--phub-gradient-brand);
 }
 
 .insight-card:nth-child(2)::before {
-  background: linear-gradient(180deg, var(--sabr-secondary) 0%, #3ddbe0 100%);
+  background: linear-gradient(180deg, var(--phub-secondary) 0%, #3ddbe0 100%);
 }
 
 .insight-card:nth-child(3)::before {
-  background: linear-gradient(180deg, var(--sabr-warning) 0%, #f59e0b 100%);
+  background: linear-gradient(180deg, var(--phub-warning) 0%, #f59e0b 100%);
 }
 
 .card-header-row {
@@ -223,31 +223,31 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  background: color-mix(in srgb, var(--sabr-primary) 12%, transparent);
+  background: color-mix(in srgb, var(--phub-primary) 12%, transparent);
 }
 
 .insight-card:nth-child(2) .card-icon {
-  background: color-mix(in srgb, var(--sabr-secondary) 14%, transparent);
+  background: color-mix(in srgb, var(--phub-secondary) 14%, transparent);
 }
 
 .insight-card:nth-child(3) .card-icon {
-  background: color-mix(in srgb, var(--sabr-warning) 14%, transparent);
+  background: color-mix(in srgb, var(--phub-warning) 14%, transparent);
 }
 
 .card-icon svg {
   width: 20px;
   height: 20px;
-  stroke: var(--sabr-primary);
+  stroke: var(--phub-primary);
   fill: none;
   stroke-width: 1.8;
 }
 
 .insight-card:nth-child(2) .card-icon svg {
-  stroke: var(--sabr-secondary);
+  stroke: var(--phub-secondary);
 }
 
 .insight-card:nth-child(3) .card-icon svg {
-  stroke: var(--sabr-warning);
+  stroke: var(--phub-warning);
 }
 
 .insight-card .label {
@@ -255,19 +255,19 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .insight-card strong {
   font-size: 1.12rem;
   line-height: 1.3;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   font-weight: 700;
 }
 
 .insight-card p {
   margin: 0;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -284,22 +284,22 @@
 .sparkline-bar {
   flex: 1;
   border-radius: 3px 3px 0 0;
-  background: color-mix(in srgb, var(--sabr-primary) 25%, transparent);
+  background: color-mix(in srgb, var(--phub-primary) 25%, transparent);
   transition: background 200ms ease;
   animation: growBar 600ms ease both;
   animation-delay: calc(var(--i, 0) * 60ms);
 }
 
 .insight-card:nth-child(2) .sparkline-bar {
-  background: color-mix(in srgb, var(--sabr-secondary) 28%, transparent);
+  background: color-mix(in srgb, var(--phub-secondary) 28%, transparent);
 }
 
 .insight-card:nth-child(3) .sparkline-bar {
-  background: color-mix(in srgb, var(--sabr-warning) 28%, transparent);
+  background: color-mix(in srgb, var(--phub-warning) 28%, transparent);
 }
 
 .sparkline-bar:hover {
-  background: color-mix(in srgb, var(--sabr-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--phub-primary) 55%, transparent);
   cursor: default;
 }
 
@@ -324,14 +324,14 @@
   font-size: 11px;
   padding: 4px 12px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--sabr-warning) 16%, transparent);
-  color: color-mix(in srgb, var(--sabr-warning) 80%, var(--sabr-text));
+  background: color-mix(in srgb, var(--phub-warning) 16%, transparent);
+  color: color-mix(in srgb, var(--phub-warning) 80%, var(--phub-text));
   font-weight: 700;
 }
 
 .description {
   margin: 0 0 16px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .actions {

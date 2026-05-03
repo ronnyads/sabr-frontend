@@ -26,13 +26,13 @@
     margin: 0 0 2px;
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 
   .subtitle {
     margin: 0;
     font-size: 0.85rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
   }
 }
 
@@ -70,7 +70,7 @@
   align-items: center;
   gap: 12px;
   padding: 28px;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .state-error {
@@ -80,7 +80,7 @@
 
   nb-icon {
     font-size: 1.8rem;
-    color: var(--sabr-danger);
+    color: var(--phub-danger);
   }
 
   p { margin: 0; font-size: 0.875rem; }
@@ -89,8 +89,8 @@
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--sabr-border);
-  border-top-color: var(--sabr-primary);
+  border: 2px solid var(--phub-border);
+  border-top-color: var(--phub-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -106,7 +106,7 @@
     margin: 0 0 16px;
     font-size: 1rem;
     font-weight: 600;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 }
 
@@ -126,14 +126,14 @@
 
   small {
     font-size: 0.75rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
 
   strong {
     font-size: 0.95rem;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 }
 
@@ -145,7 +145,7 @@
   background: rgba(16, 185, 129, 0.08);
   border-radius: 8px;
   font-size: 0.85rem;
-  color: var(--sabr-success);
+  color: var(--phub-success);
   margin-top: 8px;
 
   nb-icon { font-size: 1rem; }
@@ -159,7 +159,7 @@
 
 .connect-desc {
   font-size: 0.875rem;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
   margin: 0 0 20px;
   line-height: 1.5;
 }
@@ -178,13 +178,13 @@
   label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
 
   .input-hint {
     font-size: 0.75rem;
-    color: var(--sabr-text-muted);
+    color: var(--phub-text-muted);
   }
 }

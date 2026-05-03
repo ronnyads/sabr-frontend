@@ -1,4 +1,4 @@
-// Keep in sync with src/Sabr.Domain/Enums/*.cs
+// Keep in sync with src/Phub.Domain/Enums/*.cs
 export const ClientStatus = {
   PendingProfile: 0,
   PendingAdminApproval: 1,

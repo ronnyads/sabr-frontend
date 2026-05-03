@@ -7,8 +7,8 @@ import { ClientProfileService } from '../core/services/client-profile.service';
 import { ClientDocumentsService } from '../core/services/client-documents.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
 import { DocumentStatus, REQUIRED_PJ_DOCUMENT_TYPES } from '../core/utils/document-status.constants';
-import { SabrShellLayoutComponent } from '../shared/sabr-shell-layout/sabr-shell-layout.component';
-import { SabrMenuItem } from '../shared/sabr-sidebar/sabr-sidebar.component';
+import { PhubShellLayoutComponent } from '../shared/phub-shell-layout/phub-shell-layout.component';
+import { PhubMenuItem } from '../shared/phub-sidebar/phub-sidebar.component';
 import { environment } from '../../environments/environment';
 
 const DOCUMENT_TYPE_LABELS: Record<number, string> = {
@@ -21,7 +21,7 @@ const DOCUMENT_TYPE_LABELS: Record<number, string> = {
 @Component({
   selector: 'app-client-shell',
   standalone: true,
-  imports: [CommonModule, RouterModule, NbLayoutModule, SabrShellLayoutComponent],
+  imports: [CommonModule, RouterModule, NbLayoutModule, PhubShellLayoutComponent],
   templateUrl: './client-shell.html',
   styleUrls: ['./client-shell.scss']
 })
@@ -34,7 +34,7 @@ export class ClientShell implements OnInit, AfterViewInit {
   // ── Static menu (same for all users in the shell) ─────────────────────────
   // Access restriction is handled inside each page component / guard.
   // The menu shows all items; restricted ones redirect to dashboard with a notice.
-  readonly menuItems: SabrMenuItem[] = this.buildMenuItems();
+  readonly menuItems: PhubMenuItem[] = this.buildMenuItems();
 
   constructor(
     private auth: AuthService,
@@ -177,8 +177,8 @@ export class ClientShell implements OnInit, AfterViewInit {
 
   // ── Menu ───────────────────────────────────────────────────────────────────
 
-  private buildMenuItems(): SabrMenuItem[] {
-    const menu: SabrMenuItem[] = [
+  private buildMenuItems(): PhubMenuItem[] {
+    const menu: PhubMenuItem[] = [
       { label: 'Dashboard', icon: 'home-outline', link: '/client/dashboard', exact: true },
       { label: 'Catalogo', icon: 'book-open-outline', link: '/client/catalog' },
       { label: 'Meus Produtos', icon: 'cube-outline', link: '/client/my-products' },

@@ -7,9 +7,9 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid var(--sabr-border);
-  background: var(--sabr-surface-raised);
-  color: var(--sabr-text-muted);
+  border: 1px solid var(--phub-border);
+  background: var(--phub-surface-raised);
+  color: var(--phub-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -17,8 +17,8 @@
 }
 
 .menu-trigger:hover {
-  background: var(--sabr-surface-soft);
-  color: var(--sabr-primary);
+  background: var(--phub-surface-soft);
+  color: var(--phub-primary);
 }
 
 .menu-panel {
@@ -26,9 +26,9 @@
   z-index: 9999;
   min-width: 180px;
   border-radius: 12px;
-  border: 1px solid var(--sabr-border-strong, rgba(255,255,255,0.14));
-  background: var(--sabr-surface-raised);
-  box-shadow: var(--sabr-shadow-hover);
+  border: 1px solid var(--phub-border-strong, rgba(255,255,255,0.14));
+  background: var(--phub-surface-raised);
+  box-shadow: var(--phub-shadow-hover);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -40,7 +40,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: var(--sabr-text);
+  color: var(--phub-text);
   padding: 0 10px;
   display: inline-flex;
   align-items: center;
@@ -50,14 +50,14 @@
 }
 
 .menu-panel button:hover:not(:disabled) {
-  background: var(--sabr-primary-weak, rgba(99, 102, 241, 0.1));
+  background: var(--phub-primary-weak, rgba(99, 102, 241, 0.1));
 }
 
 .menu-panel button.danger {
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
 }
 
 .menu-panel button:disabled {
-  color: var(--sabr-text-subtle);
+  color: var(--phub-text-subtle);
   cursor: not-allowed;
 }

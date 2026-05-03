@@ -14,24 +14,24 @@
 
 .meta h1 {
   margin: 0;
-  font-size: var(--sabr-font-title-lg-size);
-  line-height: var(--sabr-font-title-lg-line);
-  font-weight: var(--sabr-font-title-lg-weight);
+  font-size: var(--phub-font-title-lg-size);
+  line-height: var(--phub-font-title-lg-line);
+  font-weight: var(--phub-font-title-lg-weight);
 }
 
 .meta p {
   margin: 0;
-  color: var(--sabr-text-muted);
+  color: var(--phub-text-muted);
 }
 
 .tenant-badge {
   margin-top: 4px;
   display: inline-flex;
   width: fit-content;
-  border-radius: var(--sabr-radius-control);
-  border: 1px solid var(--sabr-border-strong);
-  background: var(--sabr-primary-weak);
-  color: var(--sabr-primary-strong);
+  border-radius: var(--phub-radius-control);
+  border: 1px solid var(--phub-border-strong);
+  background: var(--phub-primary-weak);
+  color: var(--phub-primary-strong);
   min-height: 30px;
   align-items: center;
   padding: 0 10px;

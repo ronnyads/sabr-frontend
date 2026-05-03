@@ -305,13 +305,13 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   private getStepStorageKey(): string | null {
     const u = this.auth.currentUser;
     if (!u?.id || !u?.tenantId) return null;
-    return `sabr:onboardingStep:${u.tenantId}:${u.id}`;
+    return ${`phub:onboardingStep:${u.tenantId}:${u.id}`;
   }
 
   private getProfileDraftStorageKey(): string | null {
     const u = this.auth.currentUser;
     if (!u?.id || !u?.tenantId) return null;
-    return `sabr:onboardingDraft:${u.tenantId}:${u.id}`;
+    return ${`phub:onboardingDraft:${u.tenantId}:${u.id}`;
   }
 
   private loadStoredStep(): number | null {

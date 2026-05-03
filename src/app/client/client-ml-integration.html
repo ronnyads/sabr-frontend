@@ -1,4 +1,4 @@
-<section class="sabr-page ml-integration-page">
+<section class="phub-page ml-integration-page">
   <ng-template #headerActions>
     <button nbButton status="primary" size="small" (click)="syncNow()" [disabled]="syncing || !connected">
       {{ syncing ? 'Sincronizando...' : 'Sincronizar pedidos agora' }}
@@ -14,7 +14,7 @@
     [actionsTemplate]="headerActions"
   ></app-page-header>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <h3>Status da conexao</h3>
     <app-ui-state
       [loading]="statusLoading"
@@ -71,7 +71,7 @@
     </div>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <h3>Listings Mercado Livre (publicados)</h3>
 
     <app-ui-state
@@ -84,7 +84,7 @@
     ></app-ui-state>
 
     <div class="table-wrapper" *ngIf="!listingsLoading && !listingsError && listings.length > 0">
-      <table class="sabr-table">
+      <table class="phub-table">
         <thead>
           <tr>
             <th>Seller</th>
@@ -113,7 +113,7 @@
     </div>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <h3>Vincular produtos (item/variacao -> SKU)</h3>
 
     <div class="mapping-form">
@@ -148,7 +148,7 @@
     ></app-ui-state>
 
     <div class="table-wrapper" *ngIf="!mappingsLoading && !mappingsError && mappings.length > 0">
-      <table class="sabr-table">
+      <table class="phub-table">
         <thead>
           <tr>
             <th>Seller</th>
@@ -175,7 +175,7 @@
     </div>
   </div>
 
-  <div class="sabr-card panel">
+  <div class="phub-card panel">
     <h3>Pedidos Mercado Livre</h3>
 
     <div class="orders-filters">
@@ -216,7 +216,7 @@
     ></app-ui-state>
 
     <div class="table-wrapper" *ngIf="!ordersLoading && !ordersError && orders.length > 0">
-      <table class="sabr-table">
+      <table class="phub-table">
         <thead>
           <tr>
             <th>OrderId ML</th>

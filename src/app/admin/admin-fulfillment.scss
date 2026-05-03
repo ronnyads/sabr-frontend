@@ -25,12 +25,12 @@
     margin: 0;
     font-size: 22px;
     font-weight: 700;
-    color: var(--sabr-text);
+    color: var(--phub-text);
   }
 }
 
 .total-badge {
-  background: var(--sabr-primary, #6366f1);
+  background: var(--phub-primary, #6366f1);
   color: #fff;
   border-radius: 12px;
   padding: 2px 10px;
@@ -43,7 +43,7 @@
   align-items: center;
   gap: 4px;
   background: rgba(239, 68, 68, 0.15);
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
   border-radius: 12px;
   padding: 3px 10px;
   font-size: 12px;
@@ -63,19 +63,19 @@
   justify-content: center;
   gap: 12px;
   padding: 80px 24px;
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
   text-align: center;
 
   nb-icon { font-size: 52px; }
-  h3 { margin: 0; font-size: 20px; color: var(--sabr-text); }
+  h3 { margin: 0; font-size: 20px; color: var(--phub-text); }
   p  { margin: 0; font-size: 14px; }
 }
 
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid var(--sabr-border, rgba(148, 163, 184, 0.2));
-  border-top-color: var(--sabr-primary, #6366f1);
+  border: 3px solid var(--phub-border, rgba(148, 163, 184, 0.2));
+  border-top-color: var(--phub-primary, #6366f1);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -93,8 +93,8 @@
 // ── Card ──────────────────────────────────────────────────────────────────────
 
 .fulfillment-card {
-  background: var(--sabr-surface, rgba(30, 41, 59, 0.8));
-  border: 1px solid var(--sabr-border, rgba(148, 163, 184, 0.12));
+  background: var(--phub-surface, rgba(30, 41, 59, 0.8));
+  border: 1px solid var(--phub-border, rgba(148, 163, 184, 0.12));
   border-radius: 14px;
   padding: 20px;
   display: flex;
@@ -135,7 +135,7 @@
   font-family: monospace;
   font-weight: 700;
   font-size: 15px;
-  color: var(--sabr-text);
+  color: var(--phub-text);
 }
 
 .urgent-pill {
@@ -144,7 +144,7 @@
   gap: 3px;
   padding: 2px 8px;
   background: rgba(239, 68, 68, 0.15);
-  color: var(--sabr-danger);
+  color: var(--phub-danger);
   border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
@@ -154,7 +154,7 @@
 
 .client-name {
   font-size: 12px;
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
 }
 
 // ── Info rows ─────────────────────────────────────────────────────────────────
@@ -170,17 +170,17 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
 
   nb-icon { font-size: 14px; flex-shrink: 0; }
 }
 
 // ── Deadline colors ───────────────────────────────────────────────────────────
 
-.deadline-overdue { color: var(--sabr-danger) !important; font-weight: 600; }
-.deadline-urgent  { color: var(--sabr-warning) !important; font-weight: 600; }
-.deadline-warning { color: var(--sabr-warning) !important; }
-.deadline-ok      { color: var(--sabr-text-muted, #94a3b8); }
+.deadline-overdue { color: var(--phub-danger) !important; font-weight: 600; }
+.deadline-urgent  { color: var(--phub-warning) !important; font-weight: 600; }
+.deadline-warning { color: var(--phub-warning) !important; }
+.deadline-ok      { color: var(--phub-text-muted, #94a3b8); }
 
 // ── Label status ──────────────────────────────────────────────────────────────
 
@@ -197,12 +197,12 @@
 
   &.has-label {
     background: rgba(16, 185, 129, 0.1);
-    color: var(--sabr-success);
+    color: var(--phub-success);
   }
 
   &.no-label {
     background: rgba(148, 163, 184, 0.08);
-    color: var(--sabr-text-muted, #94a3b8);
+    color: var(--phub-text-muted, #94a3b8);
   }
 }
 
@@ -230,5 +230,5 @@
 
 .page-info {
   font-size: 13px;
-  color: var(--sabr-text-muted, #94a3b8);
+  color: var(--phub-text-muted, #94a3b8);
 }
