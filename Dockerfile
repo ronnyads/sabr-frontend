@@ -4,5 +4,5 @@ FROM nginx:1.25-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Bundles: client e admin
-COPY dist/sabr-client/ /usr/share/nginx/html/client
-COPY dist/sabr-admin/ /usr/share/nginx/html/admin
+COPY dist/phub-client/ /usr/share/nginx/html/client
+COPY dist/phub-admin/ /usr/share/nginx/html/admin
