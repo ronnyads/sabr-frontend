@@ -18,6 +18,13 @@
       if (!current || current.indexOf('__API_BASE_URL__') >= 0) {
         window.__API_BASE_URL__ = fallback;
       }
+
+      // Apply theme immediately to avoid black flash before Angular loads
+      var persistedTheme = null;
+      try { persistedTheme = localStorage.getItem('phub.ui.theme.v1'); } catch(e) {}
+      var theme = (persistedTheme === 'dark' || persistedTheme === 'light') ? persistedTheme : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.style.colorScheme = theme;
     })();
   </script>
 </head>
