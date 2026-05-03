@@ -198,6 +198,38 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "supplier-production": {
+              "outputPath": "dist/phub-supplier",
+              "main": "src/main.supplier.ts",
+              "tsConfig": "tsconfig.supplier.json",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.production.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2.5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "30kB",
+                  "maximumError": "64kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "supplier-development": {
+              "outputPath": "dist/phub-supplier",
+              "main": "src/main.supplier.ts",
+              "tsConfig": "tsconfig.supplier.json",
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
             }
           },
           "defaultConfiguration": "production"
@@ -223,6 +255,14 @@
             },
             "admin-production": {
               "buildTarget": "sabr-frontend:build:admin-production"
+            },
+            "supplier-development": {
+              "buildTarget": "sabr-frontend:build:supplier-development",
+              "proxyConfig": "proxy.supplier.conf.json",
+              "port": 4400
+            },
+            "supplier-production": {
+              "buildTarget": "sabr-frontend:build:supplier-production"
             }
           },
           "defaultConfiguration": "development"

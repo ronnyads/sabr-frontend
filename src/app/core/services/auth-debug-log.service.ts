@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
-type AuthDebugRealm = 'admin' | 'client' | 'unknown';
+type AuthDebugRealm = 'admin' | 'client' | 'supplier' | 'unknown';
 type AuthDebugLevel = 'info' | 'warn' | 'error';
 
 export interface AuthDebugLoginAttemptMeta {

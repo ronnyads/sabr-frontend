@@ -4,7 +4,7 @@ import { filter } from 'rxjs';
 import { onCLS, onINP, onLCP, type Metric } from 'web-vitals';
 import { environment } from '../../../environments/environment';
 
-export type AppRealm = 'client' | 'admin';
+export type AppRealm = 'client' | 'admin' | 'supplier';
 
 let sentryInitialized = false;
 let webVitalsInitialized = false;

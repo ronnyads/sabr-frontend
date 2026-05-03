@@ -1,0 +1,62 @@
+<nb-layout>
+  <nb-layout-column>
+    <div class="login-container">
+      <nb-card class="login-card">
+        <nb-card-header>
+          <h2 class="login-title">Portal do Fornecedor</h2>
+          <p class="login-subtitle">Acesse sua conta PHUB Supplier</p>
+        </nb-card-header>
+        <nb-card-body>
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <div class="field">
+              <label class="label">E-mail</label>
+              <input
+                nbInput
+                fullWidth
+                type="email"
+                formControlName="email"
+                placeholder="seu@email.com"
+                autocomplete="username"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Senha</label>
+              <div class="password-wrapper">
+                <input
+                  nbInput
+                  fullWidth
+                  [type]="showPassword ? 'text' : 'password'"
+                  formControlName="password"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                />
+                <button
+                  nbButton
+                  ghost
+                  type="button"
+                  class="toggle-password"
+                  (click)="togglePassword()"
+                >
+                  <nb-icon [icon]="showPassword ? 'eye-off-outline' : 'eye-outline'"></nb-icon>
+                </button>
+              </div>
+            </div>
+
+            <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+            <button
+              nbButton
+              fullWidth
+              status="primary"
+              type="submit"
+              [disabled]="form.invalid || loading"
+            >
+              {{ loading ? 'Entrando...' : 'Entrar' }}
+            </button>
+          </form>
+        </nb-card-body>
+      </nb-card>
+    </div>
+  </nb-layout-column>
+</nb-layout>

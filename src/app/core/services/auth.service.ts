@@ -13,7 +13,7 @@ export interface AuthUser {
   tenantSlug?: string | null;
   name: string;
   email: string;
-  accountType: 'admin' | 'client';
+  accountType: 'admin' | 'client' | 'supplier';
   role?: string | number | null;
   sectorCode?: string | null;
   isActive: boolean;
@@ -26,7 +26,7 @@ export interface AuthLoginResponse {
   accessToken: string;
   tokenType: string;
   expiresAt: string;
-  accountType: 'admin' | 'client';
+  accountType: 'admin' | 'client' | 'supplier';
   user: AuthUser;
   refreshToken?: string | null;
 }
@@ -36,7 +36,7 @@ export class AuthService {
   private static readonly SESSION_STORAGE_KEY = 'phub.auth.session.v1';
   private accessToken: string | null = null;
   private user: AuthUser | null = null;
-  private accountType: 'admin' | 'client' | null = null;
+  private accountType: 'admin' | 'client' | 'supplier' | null = null;
   private refreshToken: string | null = null;
   private expiresAt: string | null = null;
   private refreshInProgress$: Observable<AuthLoginResponse> | null = null;
@@ -59,7 +59,7 @@ export class AuthService {
     return this.user;
   }
 
-  get currentAccountType(): 'admin' | 'client' | null {
+  get currentAccountType(): 'admin' | 'client' | 'supplier' | null {
     return this.accountType;
   }
 
@@ -160,9 +160,9 @@ export class AuthService {
     const normalizedAccountType = this.normalizeAccountType(accountTypeRaw);
     const normalizedScope = typeof scopeRaw === 'string' ? scopeRaw.trim().toLowerCase() : '';
     const fallbackByRole = normalizeRole(roleRaw) > 0 ? 'admin' : 'client';
-    const resolvedAccountType: 'admin' | 'client' =
+    const resolvedAccountType: 'admin' | 'client' | 'supplier' =
       normalizedAccountType ??
-      (normalizedScope === 'platform' ? 'admin' : fallbackByRole);
+      (normalizedScope === 'supplier' ? 'supplier' : normalizedScope === 'platform' ? 'admin' : fallbackByRole);
 
     const normalizedUser: AuthUser | null = rawUser
       ? {
@@ -193,17 +193,18 @@ export class AuthService {
   }
 
   private authBasePath(): string {
-    // apiBaseUrl já contém /api/v1, então retornar apenas o sufixo
-    return this.realm === 'admin' ? '/admin/auth' : '/auth';
+    if (this.realm === 'admin') return '/admin/auth';
+    if (this.realm === 'supplier') return '/supplier/auth';
+    return '/auth';
   }
 
-  private normalizeAccountType(value: unknown): 'admin' | 'client' | null {
+  private normalizeAccountType(value: unknown): 'admin' | 'client' | 'supplier' | null {
     if (typeof value !== 'string') {
       return null;
     }
 
     const normalized = value.trim().toLowerCase();
-    if (normalized === 'admin' || normalized === 'client') {
+    if (normalized === 'admin' || normalized === 'client' || normalized === 'supplier') {
       return normalized;
     }
 
