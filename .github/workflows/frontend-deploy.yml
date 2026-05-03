@@ -42,7 +42,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx wrangler pages project create sabr-frontend --production-branch main || true
-          npx wrangler pages deploy dist/sabr-client --project-name sabr-frontend --branch ${{ github.ref_name }}
+          npx wrangler pages deploy dist/phub-client --project-name sabr-frontend --branch ${{ github.ref_name }}
 
       - name: Deploy Admin to Cloudflare Pages
         env:
@@ -50,4 +50,4 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx wrangler pages project create sabr-admin --production-branch main || true
-          npx wrangler pages deploy dist/sabr-admin --project-name sabr-admin --branch ${{ github.ref_name }}
+          npx wrangler pages deploy dist/phub-admin --project-name sabr-admin --branch ${{ github.ref_name }}
