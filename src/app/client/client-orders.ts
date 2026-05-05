@@ -3,14 +3,17 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NbButtonModule, NbIconModule, NbSelectModule, NbToastrService } from '@nebular/theme';
 import { Subject, takeUntil } from 'rxjs';
+import { CatalogService, CatalogVariant } from '../core/services/catalog.service';
 import {
   MarketplaceInternalFulfillmentSummaryResult,
   MarketplaceOrderDetail,
+  MarketplaceOrderItemDetail,
   MarketplaceOrderListItem,
   MarketplaceOrdersService,
   MarketplaceShipmentMilestonesResult,
   MarketplaceShipmentResult
 } from '../core/services/marketplace-orders.service';
+import { TikTokShopIntegrationService } from '../core/services/tiktok-shop-integration.service';
 
 const CHANNEL_STATUS_LABELS: Record<string, string> = {
   pending: 'Aguardando canal',
@@ -20,7 +23,7 @@ const CHANNEL_STATUS_LABELS: Record<string, string> = {
   cancelled: 'Cancelado',
   refund_requested: 'Estorno solicitado',
   refunded: 'Estornado',
-  pending_payment: 'Aguardando Pagamento',
+  pending_payment: 'Aguardando pagamento',
   paid: 'Pago',
   payment_confirmed: 'Confirmado'
 };
@@ -52,6 +55,14 @@ export class ClientOrders implements OnInit, OnDestroy {
   showCancelForm: Record<string, boolean> = {};
   showRefundForm: Record<string, boolean> = {};
 
+  allowedVariants: CatalogVariant[] = [];
+  variantsLoading = false;
+  variantsLoaded = false;
+  variantsError: string | null = null;
+  itemMappingEditorOpen: Record<string, boolean> = {};
+  itemMappingSelection: Record<string, string> = {};
+  itemMappingSaving: Record<string, boolean> = {};
+
   private destroy$ = new Subject<void>();
 
   readonly providerOptions = [
@@ -82,12 +93,15 @@ export class ClientOrders implements OnInit, OnDestroy {
   ];
 
   constructor(
-    private ordersService: MarketplaceOrdersService,
-    private toastr: NbToastrService
+    private readonly ordersService: MarketplaceOrdersService,
+    private readonly catalogService: CatalogService,
+    private readonly tikTokShopIntegrationService: TikTokShopIntegrationService,
+    private readonly toastr: NbToastrService
   ) {}
 
   ngOnInit(): void {
     this.load();
+    this.loadAllowedVariants();
   }
 
   ngOnDestroy(): void {
@@ -95,7 +109,7 @@ export class ClientOrders implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  load(): void {
+  load(preserveExpandedOrderId?: string | null): void {
     this.loading = true;
     this.error = null;
     this.ordersService.listOrders({
@@ -110,14 +124,49 @@ export class ClientOrders implements OnInit, OnDestroy {
         next: (result) => {
           this.orders = result.items ?? [];
           this.total = result.total ?? 0;
-          this.orderDetails = {};
-          this.detailLoading = {};
-          this.expandedOrderId = null;
+
+          const nextExpandedOrderId = preserveExpandedOrderId && this.orders.some(order => order.id === preserveExpandedOrderId)
+            ? preserveExpandedOrderId
+            : null;
+
+          if (!nextExpandedOrderId) {
+            this.orderDetails = {};
+            this.detailLoading = {};
+          }
+
+          this.expandedOrderId = nextExpandedOrderId;
+          if (nextExpandedOrderId) {
+            this.loadOrderDetail(nextExpandedOrderId);
+          }
+
           this.loading = false;
         },
         error: () => {
           this.error = 'Erro ao carregar pedidos.';
           this.loading = false;
+        }
+      });
+  }
+
+  loadAllowedVariants(force = false): void {
+    if (this.variantsLoading || (this.variantsLoaded && !force)) {
+      return;
+    }
+
+    this.variantsLoading = true;
+    this.variantsError = null;
+    this.catalogService.listCatalogVariants(0, 200)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.allowedVariants = result.items ?? [];
+          this.variantsLoaded = true;
+        },
+        error: () => {
+          this.variantsError = 'Nao foi possivel carregar as variantes liberadas do catalogo.';
+        },
+        complete: () => {
+          this.variantsLoading = false;
         }
       });
   }
@@ -148,6 +197,7 @@ export class ClientOrders implements OnInit, OnDestroy {
     }
 
     this.expandedOrderId = id;
+    this.loadAllowedVariants();
     if (!this.orderDetails[id] && !this.detailLoading[id]) {
       this.loadOrderDetail(id);
     }
@@ -212,7 +262,7 @@ export class ClientOrders implements OnInit, OnDestroy {
       case 'available_cached':
         return 'Etiqueta cacheada';
       case 'available_remote':
-        return 'Etiqueta disponível';
+        return 'Etiqueta disponivel';
       default:
         return 'Etiqueta pendente';
     }
@@ -234,7 +284,7 @@ export class ClientOrders implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.toastr.success('Pagamento confirmado com sucesso.', 'Pedidos');
-          this.load();
+          this.load(order.id);
         },
         error: (err: any) => {
           const msg = err?.error?.message ?? 'Erro ao confirmar pagamento.';
@@ -257,7 +307,7 @@ export class ClientOrders implements OnInit, OnDestroy {
           } else {
             this.toastr.warning(result.message, 'Etiqueta');
           }
-          this.load();
+          this.load(order.id);
         },
         error: (err) => {
           this.toastr.danger(err?.error?.message ?? 'Falha ao puxar etiqueta.', 'Etiqueta');
@@ -284,7 +334,7 @@ export class ClientOrders implements OnInit, OnDestroy {
           } else {
             this.toastr.success(message, title);
           }
-          this.load();
+          this.load(this.expandedOrderId);
         },
         error: (err) => {
           this.toastr.danger(err?.error?.message ?? 'Falha ao puxar etiquetas em massa.', 'Etiquetas');
@@ -309,7 +359,7 @@ export class ClientOrders implements OnInit, OnDestroy {
           URL.revokeObjectURL(url);
         },
         error: (err) => {
-          const msg = err?.error?.message ?? 'Etiqueta indisponível no momento.';
+          const msg = err?.error?.message ?? 'Etiqueta indisponivel no momento.';
           this.toastr.danger(msg, 'Etiqueta');
         },
         complete: () => { this.actionLoading[key] = false; }
@@ -328,10 +378,10 @@ export class ClientOrders implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           this.toastr.success(result.message || (result.action === 'cancellation_requested'
-            ? 'Solicitação de cancelamento enviada.'
+            ? 'Solicitacao de cancelamento enviada.'
             : 'Pedido cancelado com sucesso.'), 'Cancelamento');
           this.showCancelForm[orderId] = false;
-          this.load();
+          this.load(orderId);
         },
         error: (err) => {
           const msg = err?.error?.message ?? 'Erro ao cancelar pedido.';
@@ -353,9 +403,9 @@ export class ClientOrders implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toastr.success('Solicitação de estorno enviada.', 'Estorno');
+          this.toastr.success('Solicitacao de estorno enviada.', 'Estorno');
           this.showRefundForm[orderId] = false;
-          this.load();
+          this.load(orderId);
         },
         error: (err) => {
           const msg = err?.error?.message ?? 'Erro ao solicitar estorno.';
@@ -382,6 +432,79 @@ export class ClientOrders implements OnInit, OnDestroy {
     return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_label`];
   }
 
+  isTikTokOrder(order: MarketplaceOrderListItem): boolean {
+    return order.provider === 4;
+  }
+
+  openItemMappingEditor(item: MarketplaceOrderItemDetail): void {
+    this.loadAllowedVariants();
+    this.itemMappingEditorOpen[item.id] = true;
+    this.itemMappingSelection[item.id] = item.sabrVariantSku ?? this.itemMappingSelection[item.id] ?? '';
+  }
+
+  closeItemMappingEditor(itemId: string): void {
+    this.itemMappingEditorOpen[itemId] = false;
+  }
+
+  isItemMappingEditorOpen(itemId: string): boolean {
+    return !!this.itemMappingEditorOpen[itemId];
+  }
+
+  saveItemMapping(order: MarketplaceOrderListItem, item: MarketplaceOrderItemDetail): void {
+    const selectedVariantSku = (this.itemMappingSelection[item.id] ?? '').trim();
+    if (!selectedVariantSku) {
+      return;
+    }
+
+    const isRemap = !!item.sabrVariantSku && item.sabrVariantSku !== selectedVariantSku;
+    if (isRemap && !window.confirm(this.remapResponsibilityMessage())) {
+      return;
+    }
+
+    this.itemMappingSaving[item.id] = true;
+    this.tikTokShopIntegrationService.createMapping({
+      tikTokItemId: item.mlItemId,
+      tikTokSkuId: item.mlVariationId ?? null,
+      sabrVariantSku: selectedVariantSku
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.itemMappingEditorOpen[item.id] = false;
+          this.itemMappingSelection[item.id] = result.sabrVariantSku;
+          this.toastr.success(this.mappingSuccessMessage(result.action), 'Mapeamento TikTok');
+          this.load(order.id);
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Falha ao salvar mapeamento do item.', 'Mapeamento TikTok');
+        },
+        complete: () => {
+          this.itemMappingSaving[item.id] = false;
+        }
+      });
+  }
+
+  variantOptionLabel(variant: CatalogVariant): string {
+    const details = [variant.productName, variant.variantName].filter(Boolean).join(' / ');
+    return `${variant.variantSku}${details ? ` - ${details}` : ''}`;
+  }
+
+  remapResponsibilityMessage(): string {
+    return 'Voce esta trocando o produto/variante mapeado para este item do TikTok Shop. Essa escolha e de responsabilidade do cliente e pode impactar estoque, separacao e expedicao. Deseja continuar?';
+  }
+
+  mappingSuccessMessage(action: string): string {
+    if (action === 'updated') {
+      return 'Mapeamento trocado com sucesso. Os pedidos afetados foram reprocessados.';
+    }
+
+    if (action === 'unchanged') {
+      return 'Esse item ja estava mapeado para a variante selecionada.';
+    }
+
+    return 'Mapeamento salvo com sucesso. Os pedidos afetados foram reprocessados.';
+  }
+
   isUrgent(order: MarketplaceOrderListItem): boolean {
     if (!order.shipByDeadlineAt) return false;
     const deadline = new Date(order.shipByDeadlineAt);
@@ -402,7 +525,7 @@ export class ClientOrders implements OnInit, OnDestroy {
           this.orderDetails[orderId] = detail;
         },
         error: (err) => {
-          const msg = err?.error?.message ?? 'Não foi possível carregar os detalhes do pedido.';
+          const msg = err?.error?.message ?? 'Nao foi possivel carregar os detalhes do pedido.';
           this.toastr.danger(msg, 'Pedidos');
         },
         complete: () => {

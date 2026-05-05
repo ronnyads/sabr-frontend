@@ -6,7 +6,7 @@
       </div>
       <div>
         <h1>TikTok Shop</h1>
-        <p class="subtitle">Gerencie sua integração TikTok Shop: pedidos, mapeamentos e conexão.</p>
+        <p class="subtitle">Gerencie sua integracao TikTok Shop: pedidos, mapeamentos e conexao.</p>
       </div>
     </div>
     <div class="header-actions" *ngIf="connected">
@@ -33,24 +33,21 @@
     </button>
   </div>
 
-  <!-- Loading inicial -->
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
     <span>Carregando...</span>
   </div>
 
-  <!-- Erro de status -->
   <div class="state-error" *ngIf="!loading && error">
     <nb-icon icon="alert-circle-outline"></nb-icon>
     <p>{{ error }}</p>
     <button nbButton size="small" (click)="loadStatus()">Tentar novamente</button>
   </div>
 
-  <!-- Não conectado -->
   <div class="phub-card panel connect-panel" *ngIf="!loading && !error && !connected">
     <h3>Autorizar TikTok Shop</h3>
     <p class="connect-desc">
-      Clique abaixo para abrir a autorização oficial do TikTok Shop e conectar a sua conta ao PrometheusHUB.
+      Clique abaixo para abrir a autorizacao oficial do TikTok Shop e conectar a sua conta ao PrometheusHUB.
     </p>
     <button nbButton status="success" [disabled]="connecting" (click)="connect()">
       <nb-icon icon="external-link-outline"></nb-icon>
@@ -58,11 +55,8 @@
     </button>
   </div>
 
-  <!-- Conectado — tabs -->
   <nb-tabset *ngIf="!loading && !error && connected">
-
-    <!-- Tab: Conexão -->
-    <nb-tab tabTitle="Conexão" tabIcon="checkmark-circle-outline">
+    <nb-tab tabTitle="Conexao" tabIcon="checkmark-circle-outline">
       <div class="phub-card panel">
         <div class="status-grid">
           <div class="status-item">
@@ -78,8 +72,8 @@
             <strong>{{ status?.tokenExpiresAt ? (status?.tokenExpiresAt | date:'dd/MM/yyyy HH:mm') : '-' }}</strong>
           </div>
           <div class="status-item">
-            <small>Último sync</small>
-            <strong>{{ status?.lastSyncAt ? (status?.lastSyncAt | date:'dd/MM/yyyy HH:mm') : 'Ainda não iniciado' }}</strong>
+            <small>Ultimo sync</small>
+            <strong>{{ status?.lastSyncAt ? (status?.lastSyncAt | date:'dd/MM/yyyy HH:mm') : 'Ainda nao iniciado' }}</strong>
           </div>
           <div class="status-item">
             <small>Pedidos importados</small>
@@ -93,13 +87,12 @@
       </div>
     </nb-tab>
 
-    <!-- Tab: Pedidos -->
     <nb-tab tabTitle="Pedidos" tabIcon="shopping-cart-outline">
       <div class="phub-card panel" style="margin-bottom: 12px;">
         <div class="status-grid">
           <div class="status-item" style="grid-column: 1 / -1;">
             <small>Hub de pedidos</small>
-            <strong>Os pedidos operacionais, etiquetas e status de expedição agora ficam em Meus Pedidos.</strong>
+            <strong>Os pedidos operacionais, etiquetas e status de expedicao agora ficam em Meus Pedidos.</strong>
             <div style="margin-top: 10px;">
               <a nbButton status="primary" size="small" routerLink="/client/orders">Abrir Meus Pedidos</a>
             </div>
@@ -111,15 +104,15 @@
         <div class="filter-row">
           <select [(ngModel)]="ordersStatusFilter" (change)="onOrdersFilterChange()" class="status-select">
             <option value="">Todos os status</option>
-            <option value="UNPAID">Não pago</option>
+            <option value="UNPAID">Nao pago</option>
             <option value="ON_HOLD">Em espera</option>
             <option value="AWAITING_SHIPMENT">Aguardando envio</option>
             <option value="AWAITING_COLLECTION">Aguardando coleta</option>
-            <option value="IN_TRANSIT">Em trânsito</option>
+            <option value="IN_TRANSIT">Em transito</option>
             <option value="DELIVERED">Entregue</option>
-            <option value="COMPLETED">Concluído</option>
+            <option value="COMPLETED">Concluido</option>
             <option value="CANCELLED">Cancelado</option>
-            <option value="RETURN_REQUESTED">Devolução solicitada</option>
+            <option value="RETURN_REQUESTED">Devolucao solicitada</option>
             <option value="RETURNED">Devolvido</option>
           </select>
         </div>
@@ -148,7 +141,7 @@
               <th>ID TikTok</th>
               <th>Status</th>
               <th>Itens</th>
-              <th>Não mapeado</th>
+              <th>Nao mapeado</th>
               <th>Importado em</th>
             </tr>
           </thead>
@@ -170,7 +163,7 @@
           <button nbButton size="tiny" [disabled]="ordersSkip === 0" (click)="ordersPrevPage()">
             <nb-icon icon="arrow-ios-back-outline"></nb-icon>
           </button>
-          <span>Página {{ ordersCurrentPage }} de {{ ordersTotalPages }}</span>
+          <span>Pagina {{ ordersCurrentPage }} de {{ ordersTotalPages }}</span>
           <button nbButton size="tiny" [disabled]="ordersSkip + ordersLimit >= ordersTotal" (click)="ordersNextPage()">
             <nb-icon icon="arrow-ios-forward-outline"></nb-icon>
           </button>
@@ -178,25 +171,92 @@
       </div>
     </nb-tab>
 
-    <!-- Tab: Mapeamentos -->
     <nb-tab tabTitle="Mapeamentos" tabIcon="link-2-outline">
-
-      <!-- Formulário novo mapeamento -->
-      <div class="phub-card panel mapping-form">
-        <h4>Novo mapeamento</h4>
-        <div class="mapping-form-row">
-          <input nbInput placeholder="Product ID do TikTok" [(ngModel)]="newMapping.tikTokItemId" fieldSize="small" />
-          <input nbInput placeholder="SKU ID do TikTok (variação)" [(ngModel)]="newMapping.tikTokSkuId" fieldSize="small" />
-          <input nbInput placeholder="SKU PrometheusHUB" [(ngModel)]="newMapping.sabrVariantSku" fieldSize="small" />
-          <button
-            nbButton
-            status="primary"
-            size="small"
-            [disabled]="savingMapping || !newMapping.tikTokItemId.trim() || !newMapping.sabrVariantSku.trim()"
-            (click)="saveMapping()">
-            {{ savingMapping ? 'Salvando...' : 'Adicionar' }}
-          </button>
+      <div class="phub-card panel">
+        <div class="responsibility-banner">
+          <nb-icon icon="shield-outline"></nb-icon>
+          <div>
+            <strong>Responsabilidade do cliente</strong>
+            <p>Os produtos e variantes mapeados para o TikTok Shop sao definidos pelo cliente. Ao trocar um mapeamento, confira o impacto em estoque, separacao e expedicao.</p>
+          </div>
         </div>
+      </div>
+
+      <div class="phub-card panel">
+        <h4>Itens TikTok Shop sem mapeamento</h4>
+
+        <div class="state-loading" *ngIf="unmappedItemsLoading">
+          <div class="spinner"></div>
+          <span>Carregando itens sem mapeamento...</span>
+        </div>
+
+        <div class="state-error" *ngIf="!unmappedItemsLoading && unmappedItemsError">
+          <nb-icon icon="alert-circle-outline"></nb-icon>
+          <p>{{ unmappedItemsError }}</p>
+          <button nbButton size="small" (click)="loadUnmappedItems()">Tentar novamente</button>
+        </div>
+
+        <div class="inline-category-error" *ngIf="allowedVariantsError">
+          <div class="inline-category-error__content">
+            <nb-icon icon="alert-circle-outline" status="warning"></nb-icon>
+            <p>{{ allowedVariantsError }}</p>
+          </div>
+          <div class="inline-category-error__actions">
+            <button nbButton status="basic" size="small" [disabled]="allowedVariantsLoading" (click)="loadAllowedVariants(true)">
+              {{ allowedVariantsLoading ? 'Tentando...' : 'Tentar novamente' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!unmappedItemsLoading && !unmappedItemsError && unmappedItems.length === 0">
+          <nb-icon icon="checkmark-circle-outline"></nb-icon>
+          <p>Nao ha itens TikTok pendentes de mapeamento neste momento.</p>
+        </div>
+
+        <table class="phub-table" *ngIf="!unmappedItemsLoading && !unmappedItemsError && unmappedItems.length > 0">
+          <thead>
+            <tr>
+              <th>Produto TikTok</th>
+              <th>SKU TikTok</th>
+              <th>Pedidos afetados</th>
+              <th>Qtd total</th>
+              <th>Variante autorizada</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of unmappedItems">
+              <td>
+                <strong>{{ item.productName || item.tikTokItemId }}</strong>
+                <div class="mapping-meta">Product ID {{ item.tikTokItemId }}</div>
+              </td>
+              <td>
+                <strong>{{ item.variantName || item.tikTokSkuId || '-' }}</strong>
+                <div class="mapping-meta" *ngIf="item.tikTokSkuId">SKU ID {{ item.tikTokSkuId }}</div>
+              </td>
+              <td>{{ item.ordersAffected }}</td>
+              <td>{{ item.totalUnits }}</td>
+              <td>
+                <select class="status-select mapping-select" [(ngModel)]="unmappedSelection[item.mappingKey]">
+                  <option value="">Selecione uma variante</option>
+                  <option *ngFor="let variant of allowedVariants" [value]="variant.variantSku">
+                    {{ variantOptionLabel(variant) }}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <button
+                  nbButton
+                  status="primary"
+                  size="small"
+                  [disabled]="savingUnmappedKey === item.mappingKey || !unmappedSelection[item.mappingKey]"
+                  (click)="saveUnmappedItem(item)">
+                  {{ savingUnmappedKey === item.mappingKey ? 'Salvando...' : 'Mapear' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="state-loading" *ngIf="mappingsLoading">
@@ -213,25 +273,52 @@
       <div class="phub-card" *ngIf="!mappingsLoading && !mappingsError">
         <div class="empty-state" *ngIf="mappings.length === 0">
           <nb-icon icon="link-2-outline"></nb-icon>
-          <p>Nenhum mapeamento criado. Adicione acima para vincular produtos TikTok aos SKUs do PrometheusHUB.</p>
+          <p>Nenhum mapeamento criado ainda.</p>
         </div>
 
         <table class="phub-table" *ngIf="mappings.length > 0">
           <thead>
             <tr>
-              <th>Product ID TikTok</th>
-              <th>SKU ID TikTok</th>
-              <th>SKU PrometheusHUB</th>
-              <th>Criado em</th>
+              <th>Produto TikTok</th>
+              <th>SKU TikTok</th>
+              <th>Mapeado para</th>
+              <th>Trocar variante</th>
+              <th>Atualizado em</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let m of mappings">
-              <td>{{ m.tikTokItemId }}</td>
-              <td>{{ m.tikTokSkuId || '-' }}</td>
-              <td>{{ m.sabrVariantSku }}</td>
-              <td>{{ m.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <strong>{{ m.productName || m.tikTokItemId }}</strong>
+                <div class="mapping-meta">Product ID {{ m.tikTokItemId }}</div>
+              </td>
+              <td>
+                <strong>{{ m.variantName || m.tikTokSkuId || '-' }}</strong>
+                <div class="mapping-meta" *ngIf="m.tikTokSkuId">SKU ID {{ m.tikTokSkuId }}</div>
+              </td>
+              <td>
+                <strong>{{ m.sabrVariantSku }}</strong>
+                <div class="mapping-meta" *ngIf="m.variantName">{{ m.variantName }}</div>
+              </td>
+              <td>
+                <div class="mapping-actions-cell">
+                  <select class="status-select mapping-select" [(ngModel)]="mappingSelection[m.id]">
+                    <option *ngFor="let variant of allowedVariants" [value]="variant.variantSku">
+                      {{ variantOptionLabel(variant) }}
+                    </option>
+                  </select>
+                  <button
+                    nbButton
+                    status="info"
+                    size="tiny"
+                    [disabled]="savingMappingId === m.id || mappingSelection[m.id] === m.sabrVariantSku"
+                    (click)="saveExistingMapping(m)">
+                    {{ savingMappingId === m.id ? 'Salvando...' : 'Trocar' }}
+                  </button>
+                </div>
+              </td>
+              <td>{{ m.updatedAt | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>
                 <button
                   nbButton
@@ -249,9 +336,7 @@
       </div>
     </nb-tab>
 
-    <!-- Tab: Publicar -->
     <nb-tab tabTitle="Publicar" tabIcon="cloud-upload-outline">
-
       <div class="phub-card panel mapping-form">
         <h4>Publicar produtos no TikTok Shop</h4>
 
@@ -321,12 +406,11 @@
             size="small"
             [disabled]="publishing || !validateResult || validateResult.eligible === 0"
             (click)="publish()">
-            {{ publishing ? 'Publicando...' : 'Publicar elegíveis' }}
+            {{ publishing ? 'Publicando...' : 'Publicar elegiveis' }}
           </button>
         </div>
       </div>
 
-      <!-- Resultado da validação -->
       <div class="phub-card" *ngIf="validateResult">
         <div class="status-grid" style="margin-bottom: 12px">
           <div class="status-item">
@@ -334,11 +418,11 @@
             <strong>{{ validateResult.total }}</strong>
           </div>
           <div class="status-item">
-            <small>Elegíveis</small>
+            <small>Elegiveis</small>
             <strong style="color: var(--color-success-500)">{{ validateResult.eligible }}</strong>
           </div>
           <div class="status-item">
-            <small>Inelegíveis</small>
+            <small>Inelegiveis</small>
             <strong style="color: var(--color-danger-500)">{{ validateResult.ineligible }}</strong>
           </div>
         </div>
@@ -349,7 +433,7 @@
               <th>SKU PrometheusHUB</th>
               <th>Produto</th>
               <th>Imagens</th>
-              <th>Elegível</th>
+              <th>Elegivel</th>
               <th>Motivo</th>
             </tr>
           </thead>
@@ -370,7 +454,6 @@
         </table>
       </div>
 
-      <!-- Resultado da publicação -->
       <div class="phub-card" *ngIf="publishResult" style="margin-top: 12px">
         <div class="status-grid" style="margin-bottom: 12px">
           <div class="status-item">
@@ -378,7 +461,7 @@
             <strong style="color: var(--color-success-500)">{{ publishResult.published }}</strong>
           </div>
           <div class="status-item">
-            <small>Já mapeados</small>
+            <small>Ja mapeados</small>
             <strong>{{ publishResult.alreadyMapped }}</strong>
           </div>
           <div class="status-item">
@@ -408,9 +491,7 @@
       </div>
     </nb-tab>
 
-    <!-- Tab: Listings -->
     <nb-tab tabTitle="Listings" tabIcon="list-outline" (click)="loadListings()">
-
       <div class="state-loading" *ngIf="listingsLoading">
         <div class="spinner"></div>
         <span>Carregando listings...</span>
@@ -450,7 +531,6 @@
         </table>
       </div>
     </nb-tab>
-
   </nb-tabset>
 
   <div class="risk-overlay" *ngIf="showResetConfirm">

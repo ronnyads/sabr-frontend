@@ -30,8 +30,13 @@ export interface TikTokShopMappingResult {
   tikTokItemId: string;
   tikTokSkuId?: string | null;
   sabrVariantSku: string;
+  baseSku?: string | null;
+  productName?: string | null;
+  variantName?: string | null;
   createdAt: string;
   updatedAt: string;
+  action: string;
+  ordersAffected: number;
 }
 
 export interface TikTokShopCreateMappingRequest {
@@ -50,6 +55,17 @@ export interface TikTokShopOrderListItem {
   hasUnmappedItems: boolean;
   totalItems: number;
   importedAt: string;
+}
+
+export interface TikTokShopUnmappedItem {
+  mappingKey: string;
+  tikTokItemId: string;
+  tikTokSkuId?: string | null;
+  productName?: string | null;
+  variantName?: string | null;
+  ordersAffected: number;
+  totalUnits: number;
+  latestImportedAt: string;
 }
 
 export interface TikTokShopPublishRequest {
@@ -136,6 +152,10 @@ export class TikTokShopIntegrationService {
 
   listMappings(): Observable<TikTokShopMappingResult[]> {
     return this.http.get<TikTokShopMappingResult[]>(`${this.base}/mappings`);
+  }
+
+  listUnmappedItems(): Observable<TikTokShopUnmappedItem[]> {
+    return this.http.get<TikTokShopUnmappedItem[]>(`${this.base}/unmapped-items`);
   }
 
   createMapping(request: TikTokShopCreateMappingRequest): Observable<TikTokShopMappingResult> {

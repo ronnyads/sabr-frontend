@@ -2,8 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import {
   NbButtonModule,
   NbFormFieldModule,
@@ -15,16 +14,17 @@ import {
   NbToastrService
 } from '@nebular/theme';
 import { Subject, finalize, takeUntil } from 'rxjs';
+import { CatalogService, CatalogVariant } from '../core/services/catalog.service';
 import {
   TikTokShopCategoryResult,
-  TikTokShopCreateMappingRequest,
   TikTokShopIntegrationService,
   TikTokShopIntegrationStatus,
   TikTokShopListingResult,
   TikTokShopMappingResult,
   TikTokShopOrderListItem,
   TikTokShopPublishResult,
-  TikTokShopPublishValidateResult
+  TikTokShopPublishValidateResult,
+  TikTokShopUnmappedItem
 } from '../core/services/tiktok-shop-integration.service';
 
 @Component({
@@ -56,9 +56,18 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   mappingsError: string | null = null;
   mappings: TikTokShopMappingResult[] = [];
   deletingMappingId: string | null = null;
+  savingMappingId: string | null = null;
+  mappingSelection: Record<string, string> = {};
 
-  newMapping: TikTokShopCreateMappingRequest = { tikTokItemId: '', tikTokSkuId: '', sabrVariantSku: '' };
-  savingMapping = false;
+  unmappedItemsLoading = false;
+  unmappedItemsError: string | null = null;
+  unmappedItems: TikTokShopUnmappedItem[] = [];
+  savingUnmappedKey: string | null = null;
+  unmappedSelection: Record<string, string> = {};
+
+  allowedVariantsLoading = false;
+  allowedVariantsError: string | null = null;
+  allowedVariants: CatalogVariant[] = [];
 
   categories: { id: string; localName: string }[] = [];
   categoriesLoading = false;
@@ -82,6 +91,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
 
   constructor(
     private readonly service: TikTokShopIntegrationService,
+    private readonly catalogService: CatalogService,
     private readonly toastr: NbToastrService,
     private readonly route: ActivatedRoute
   ) {}
@@ -142,6 +152,8 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
           if (result.isConnected) {
             this.loadOrders();
             this.loadMappings();
+            this.loadUnmappedItems();
+            this.loadAllowedVariants();
             this.loadListings();
             if (result.requiresReconnect) {
               this.categories = [];
@@ -242,7 +254,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
             `Sync concluido: ${result.ordersUpserted} pedidos, ${result.itemsUpserted} itens.`,
             'TikTok Shop'
           );
-          this.loadOrders();
           this.loadStatus();
         },
         error: (err: HttpErrorResponse) => {
@@ -294,28 +305,111 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       .listMappings()
       .pipe(finalize(() => (this.mappingsLoading = false)), takeUntil(this.destroy$))
       .subscribe({
-        next: (result) => { this.mappings = result; },
+        next: (result) => {
+          this.mappings = result;
+          for (const mapping of result) {
+            this.mappingSelection[mapping.id] = mapping.sabrVariantSku;
+          }
+        },
         error: (err: HttpErrorResponse) => {
           this.mappingsError = this.buildErrorMessage('Falha ao carregar mapeamentos.', err);
         }
       });
   }
 
-  saveMapping(): void {
-    if (!this.newMapping.tikTokItemId.trim() || !this.newMapping.sabrVariantSku.trim()) return;
-
-    this.savingMapping = true;
+  loadUnmappedItems(): void {
+    this.unmappedItemsLoading = true;
+    this.unmappedItemsError = null;
     this.service
-      .createMapping(this.newMapping)
-      .pipe(finalize(() => (this.savingMapping = false)), takeUntil(this.destroy$))
+      .listUnmappedItems()
+      .pipe(finalize(() => (this.unmappedItemsLoading = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
-          this.mappings = [result, ...this.mappings];
-          this.newMapping = { tikTokItemId: '', tikTokSkuId: '', sabrVariantSku: '' };
-          this.toastr.success('Mapeamento criado com sucesso.', 'TikTok Shop');
+          this.unmappedItems = result;
+          for (const item of result) {
+            this.unmappedSelection[item.mappingKey] = this.unmappedSelection[item.mappingKey] ?? '';
+          }
         },
         error: (err: HttpErrorResponse) => {
-          this.toastr.danger(this.buildErrorMessage('Falha ao criar mapeamento.', err), 'TikTok Shop');
+          this.unmappedItemsError = this.buildErrorMessage('Falha ao carregar itens nao mapeados.', err);
+        }
+      });
+  }
+
+  loadAllowedVariants(force = false): void {
+    if (this.allowedVariantsLoading || (this.allowedVariants.length > 0 && !force)) {
+      return;
+    }
+
+    this.allowedVariantsLoading = true;
+    this.allowedVariantsError = null;
+    this.catalogService
+      .listCatalogVariants(0, 200)
+      .pipe(finalize(() => (this.allowedVariantsLoading = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.allowedVariants = result.items ?? [];
+        },
+        error: (err: HttpErrorResponse) => {
+          this.allowedVariantsError = this.buildErrorMessage('Falha ao carregar variantes liberadas.', err);
+        }
+      });
+  }
+
+  saveUnmappedItem(item: TikTokShopUnmappedItem): void {
+    const selectedVariantSku = (this.unmappedSelection[item.mappingKey] ?? '').trim();
+    if (!selectedVariantSku) {
+      return;
+    }
+
+    this.savingUnmappedKey = item.mappingKey;
+    this.service
+      .createMapping({
+        tikTokItemId: item.tikTokItemId,
+        tikTokSkuId: item.tikTokSkuId ?? null,
+        sabrVariantSku: selectedVariantSku
+      })
+      .pipe(finalize(() => (this.savingUnmappedKey = null)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.unmappedSelection[item.mappingKey] = result.sabrVariantSku;
+          this.toastr.success(this.mappingSuccessMessage(result.action), 'TikTok Shop');
+          this.reloadMappingData();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.toastr.danger(this.buildErrorMessage('Falha ao mapear item do TikTok Shop.', err), 'TikTok Shop');
+        }
+      });
+  }
+
+  saveExistingMapping(mapping: TikTokShopMappingResult): void {
+    const selectedVariantSku = (this.mappingSelection[mapping.id] ?? '').trim();
+    if (!selectedVariantSku || selectedVariantSku === mapping.sabrVariantSku) {
+      return;
+    }
+
+    if (!window.confirm(this.responsibilityWarningMessage())) {
+      this.mappingSelection[mapping.id] = mapping.sabrVariantSku;
+      return;
+    }
+
+    this.savingMappingId = mapping.id;
+    this.service
+      .createMapping({
+        tikTokItemId: mapping.tikTokItemId,
+        tikTokSkuId: mapping.tikTokSkuId ?? null,
+        sabrVariantSku: selectedVariantSku
+      })
+      .pipe(finalize(() => (this.savingMappingId = null)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.mappingSelection[mapping.id] = result.sabrVariantSku;
+          this.toastr.success(this.mappingSuccessMessage(result.action), 'TikTok Shop');
+          this.reloadMappingData();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.mappingSelection[mapping.id] = mapping.sabrVariantSku;
+          this.toastr.danger(this.buildErrorMessage('Falha ao trocar mapeamento.', err), 'TikTok Shop');
         }
       });
   }
@@ -327,8 +421,8 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       .pipe(finalize(() => (this.deletingMappingId = null)), takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.mappings = this.mappings.filter(m => m.id !== id);
           this.toastr.success('Mapeamento removido.', 'TikTok Shop');
+          this.reloadMappingData();
         },
         error: (err: HttpErrorResponse) => {
           this.toastr.danger(this.buildErrorMessage('Falha ao remover mapeamento.', err), 'TikTok Shop');
@@ -433,6 +527,34 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       });
   }
 
+  variantOptionLabel(variant: CatalogVariant): string {
+    const details = [variant.productName, variant.variantName].filter(Boolean).join(' / ');
+    return `${variant.variantSku}${details ? ` - ${details}` : ''}`;
+  }
+
+  responsibilityWarningMessage(): string {
+    return 'Voce esta trocando o produto/variante mapeado para um item do TikTok Shop. Essa escolha e de responsabilidade do cliente e pode impactar estoque, separacao e expedicao. Deseja continuar?';
+  }
+
+  mappingSuccessMessage(action: string): string {
+    if (action === 'updated') {
+      return 'Mapeamento trocado com sucesso. Os pedidos afetados foram reprocessados.';
+    }
+
+    if (action === 'unchanged') {
+      return 'Esse item ja estava vinculado a variante selecionada.';
+    }
+
+    return 'Mapeamento salvo com sucesso. Os pedidos afetados foram reprocessados.';
+  }
+
+  private reloadMappingData(): void {
+    this.loadMappings();
+    this.loadUnmappedItems();
+    this.loadOrders();
+    this.loadStatus();
+  }
+
   private buildErrorMessage(fallback: string, err: HttpErrorResponse): string {
     const message = err?.error?.message;
     return message ? `${fallback} ${message}` : fallback;
@@ -448,6 +570,11 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
     this.ordersTotal = 0;
     this.ordersSkip = 0;
     this.mappings = [];
+    this.mappingSelection = {};
+    this.unmappedItems = [];
+    this.unmappedSelection = {};
+    this.allowedVariants = [];
+    this.allowedVariantsError = null;
     this.categories = [];
     this.categoriesError = null;
     this.categoriesReconnectRequired = false;

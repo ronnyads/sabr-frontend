@@ -159,6 +159,13 @@
           </div>
         </div>
 
+        <div class="detail-section detail-section-warning" *ngIf="isTikTokOrder(order)">
+          <div class="unmapped-alert">
+            <nb-icon icon="shield-outline"></nb-icon>
+            O mapeamento e responsabilidade do cliente. Ao trocar produto ou variante, confira impacto em estoque, separacao e expedicao.
+          </div>
+        </div>
+
         <div class="inline-loading" *ngIf="detailLoading[order.id]">
           <div class="spinner spinner-sm"></div>
           <span>Carregando pacotes, produtos e etiquetas...</span>
@@ -166,6 +173,12 @@
 
         <div class="detail-section" *ngIf="!detailLoading[order.id] && orderDetails[order.id]?.items?.length">
           <h3>Itens do pedido</h3>
+
+          <div class="variants-warning" *ngIf="variantsError">
+            <nb-icon icon="alert-circle-outline"></nb-icon>
+            <span>{{ variantsError }}</span>
+          </div>
+
           <div class="shipment-stack">
             <div class="shipment-card" *ngFor="let item of orderDetails[order.id].items">
               <div class="shipment-header">
@@ -192,6 +205,49 @@
                 <div>
                   <small>Estoque visivel</small>
                   <strong>{{ item.availableStock ?? '—' }}</strong>
+                </div>
+              </div>
+
+              <div class="mapping-summary" *ngIf="isTikTokOrder(order)">
+                <span class="mapping-channel-id">TikTok product {{ item.mlItemId }}<span *ngIf="item.mlVariationId"> / sku {{ item.mlVariationId }}</span></span>
+                <button
+                  nbButton
+                  size="tiny"
+                  status="primary"
+                  outline
+                  *ngIf="!isItemMappingEditorOpen(item.id)"
+                  (click)="openItemMappingEditor(item); $event.stopPropagation()">
+                  {{ item.sabrVariantSku ? 'Trocar mapeamento' : 'Mapear produto' }}
+                </button>
+              </div>
+
+              <div class="mapping-editor" *ngIf="isTikTokOrder(order) && isItemMappingEditorOpen(item.id)">
+                <label class="mapping-label">Selecione a variante autorizada para este item do TikTok Shop</label>
+                <select class="mapping-select" [(ngModel)]="itemMappingSelection[item.id]">
+                  <option value="">Selecione uma variante</option>
+                  <option *ngFor="let variant of allowedVariants" [value]="variant.variantSku">
+                    {{ variantOptionLabel(variant) }}
+                  </option>
+                </select>
+                <div class="mapping-hint">Ao trocar um mapeamento existente, a responsabilidade operacional e do cliente.</div>
+                <div class="shipment-actions">
+                  <button
+                    nbButton
+                    size="small"
+                    status="success"
+                    [disabled]="itemMappingSaving[item.id] || !itemMappingSelection[item.id]"
+                    (click)="saveItemMapping(order, item); $event.stopPropagation()">
+                    {{ itemMappingSaving[item.id] ? 'Salvando...' : 'Salvar mapeamento' }}
+                  </button>
+                  <button
+                    nbButton
+                    size="small"
+                    status="basic"
+                    outline
+                    [disabled]="itemMappingSaving[item.id]"
+                    (click)="closeItemMappingEditor(item.id); $event.stopPropagation()">
+                    Cancelar
+                  </button>
                 </div>
               </div>
             </div>
@@ -284,7 +340,7 @@
             (click)="toggleRefundForm(order.id)"
             [disabled]="actionLoading[order.id]">
             <nb-icon icon="refresh-outline"></nb-icon>
-            Solicitar Estorno
+            Solicitar estorno
           </button>
         </div>
 
@@ -325,7 +381,7 @@
               nbButton status="warning" size="small"
               (click)="submitRefund(order.id)"
               [disabled]="actionLoading[order.id]">
-              {{ actionLoading[order.id] ? 'Aguarde...' : 'Solicitar Estorno' }}
+              {{ actionLoading[order.id] ? 'Aguarde...' : 'Solicitar estorno' }}
             </button>
           </div>
         </div>

@@ -18,6 +18,15 @@ export interface CatalogProduct {
   isActive: boolean;
 }
 
+export interface CatalogVariant {
+  variantSku: string;
+  baseSku: string;
+  productName: string;
+  variantName: string;
+  availableStock: number;
+  thumbnailUrl?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CatalogService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
@@ -59,6 +68,24 @@ export class CatalogService {
       request$
     });
     return request$;
+  }
+
+  listCatalogVariants(skip = 0, limit = 200, search?: string, productSku?: string): Observable<PagedResult<CatalogVariant>> {
+    let params = new HttpParams()
+      .set('skip', Math.max(0, Math.trunc(skip)))
+      .set('limit', Math.min(200, Math.max(1, Math.trunc(limit))));
+
+    const normalizedSearch = (search ?? '').trim();
+    if (normalizedSearch) {
+      params = params.set('search', normalizedSearch);
+    }
+
+    const normalizedProductSku = (productSku ?? '').trim();
+    if (normalizedProductSku) {
+      params = params.set('productSku', normalizedProductSku);
+    }
+
+    return this.http.get<PagedResult<CatalogVariant>>(`${this.apiBaseUrl}/client/catalog/variants`, { params });
   }
 
   invalidate(): void {
