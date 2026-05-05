@@ -12,20 +12,17 @@ import {
   MarketplaceShipmentResult
 } from '../core/services/marketplace-orders.service';
 
-const STATUS_LABELS: Record<string, string> = {
-  pending_payment: 'Aguardando Pagamento',
-  paid: 'Pago',
-  payment_confirmed: 'Pagamento Confirmado',
-  label_generated: 'Etiqueta Gerada',
-  dispatched: 'Despachado',
+const CHANNEL_STATUS_LABELS: Record<string, string> = {
+  pending: 'Aguardando canal',
+  awaiting_shipment: 'Aguardando envio',
+  channel_dispatched: 'Despachado no canal',
   delivered: 'Entregue',
   cancelled: 'Cancelado',
-  refund_requested: 'Estorno Solicitado',
+  refund_requested: 'Estorno solicitado',
   refunded: 'Estornado',
-  AWAITING_SHIPMENT: 'Aguardando envio',
-  AWAITING_COLLECTION: 'Aguardando coleta',
-  IN_TRANSIT: 'Em trânsito',
-  COMPLETED: 'Concluído'
+  pending_payment: 'Aguardando Pagamento',
+  paid: 'Pago',
+  payment_confirmed: 'Confirmado'
 };
 
 @Component({
@@ -43,12 +40,12 @@ export class ClientOrders implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
 
-  selectedStatus = '';
+  selectedInternalStatus = '';
+  selectedChannelStatus = '';
   filterProvider = '';
   expandedOrderId: string | null = null;
   orderDetails: Record<string, MarketplaceOrderDetail> = {};
   detailLoading: Record<string, boolean> = {};
-
   actionLoading: Record<string, boolean> = {};
   cancelReason: Record<string, string> = {};
   refundReason: Record<string, string> = {};
@@ -64,16 +61,23 @@ export class ClientOrders implements OnInit, OnDestroy {
     { value: '4', label: 'TikTok Shop' }
   ];
 
-  readonly statusOptions = [
-    { value: '', label: 'Todos os status' },
-    { value: 'pending_payment', label: 'Aguardando Pagamento' },
-    { value: 'paid', label: 'Pago' },
-    { value: 'payment_confirmed', label: 'Confirmado' },
-    { value: 'label_generated', label: 'Etiqueta Gerada' },
-    { value: 'dispatched', label: 'Despachado' },
+  readonly internalStatusOptions = [
+    { value: '', label: 'Status interno' },
+    { value: 'received', label: 'Pedido recebido' },
+    { value: 'paid', label: 'Pedido pago' },
+    { value: 'processing_started', label: 'Em processamento' },
+    { value: 'label_printed', label: 'Etiqueta impressa' },
+    { value: 'separated', label: 'Pedido separado' },
+    { value: 'dispatched', label: 'Pedido enviado' }
+  ];
+
+  readonly channelStatusOptions = [
+    { value: '', label: 'Status do canal' },
+    { value: 'awaiting_shipment', label: 'Aguardando envio' },
+    { value: 'channel_dispatched', label: 'Despachado no canal' },
     { value: 'delivered', label: 'Entregue' },
     { value: 'cancelled', label: 'Cancelado' },
-    { value: 'refund_requested', label: 'Estorno Solicitado' },
+    { value: 'refund_requested', label: 'Estorno solicitado' },
     { value: 'refunded', label: 'Estornado' }
   ];
 
@@ -95,7 +99,8 @@ export class ClientOrders implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
     this.ordersService.listOrders({
-      status: this.selectedStatus || null,
+      internalStatus: this.selectedInternalStatus || null,
+      channelStatus: this.selectedChannelStatus || null,
       provider: this.filterProvider || null,
       skip: this.skip,
       limit: this.limit
@@ -148,32 +153,6 @@ export class ClientOrders implements OnInit, OnDestroy {
     }
   }
 
-  statusLabel(status: string): string {
-    return STATUS_LABELS[status] ?? status;
-  }
-
-  statusClass(status: string): string {
-    switch (status) {
-      case 'paid':
-      case 'payment_confirmed':
-      case 'label_generated':
-        return 'badge-success';
-      case 'dispatched':
-      case 'IN_TRANSIT':
-        return 'badge-info';
-      case 'delivered':
-      case 'COMPLETED':
-        return 'badge-delivered';
-      case 'cancelled':
-      case 'refunded':
-        return 'badge-danger';
-      case 'refund_requested':
-        return 'badge-warning';
-      default:
-        return 'badge-neutral';
-    }
-  }
-
   providerLabel(provider: number): string {
     if (provider === 1) return 'ML';
     if (provider === 2) return 'Tiny';
@@ -188,8 +167,12 @@ export class ClientOrders implements OnInit, OnDestroy {
     return 'badge-neutral';
   }
 
-  fulfillmentStageClass(summary?: MarketplaceInternalFulfillmentSummaryResult | null): string {
-    switch (summary?.stage) {
+  internalStageLabel(summary?: MarketplaceInternalFulfillmentSummaryResult | null): string {
+    return summary?.label || 'Pedido recebido';
+  }
+
+  internalStageClass(stage?: string | null): string {
+    switch (stage) {
       case 'dispatched':
         return 'badge-info';
       case 'separated':
@@ -197,15 +180,56 @@ export class ClientOrders implements OnInit, OnDestroy {
       case 'label_printed':
         return 'badge-warning';
       case 'processing_started':
+      case 'paid':
         return 'badge-neutral';
       default:
         return 'badge-neutral';
     }
   }
 
-  markPaid(orderId: string): void {
-    this.actionLoading[orderId + '_pay'] = true;
-    this.ordersService.markPaid(orderId)
+  channelStatusLabel(order: MarketplaceOrderListItem): string {
+    return order.channelStatus?.label || CHANNEL_STATUS_LABELS[order.currentChannelStage] || order.currentChannelStage;
+  }
+
+  channelStatusClass(stage?: string | null): string {
+    switch (stage) {
+      case 'channel_dispatched':
+        return 'badge-info';
+      case 'delivered':
+        return 'badge-delivered';
+      case 'cancelled':
+      case 'refunded':
+        return 'badge-danger';
+      case 'refund_requested':
+        return 'badge-warning';
+      default:
+        return 'badge-neutral';
+    }
+  }
+
+  labelAvailabilityLabel(value?: string | null): string {
+    switch (value) {
+      case 'available_cached':
+        return 'Etiqueta cacheada';
+      case 'available_remote':
+        return 'Etiqueta disponível';
+      default:
+        return 'Etiqueta pendente';
+    }
+  }
+
+  isLabelReady(value?: string | null): boolean {
+    return value === 'available_cached' || value === 'available_remote';
+  }
+
+  labelAvailabilityClass(value?: string | null): string {
+    return this.isLabelReady(value) ? 'enabled' : '';
+  }
+
+  markPaid(order: MarketplaceOrderListItem): void {
+    const key = `${order.id}_pay`;
+    this.actionLoading[key] = true;
+    this.ordersService.markPaid(order.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -215,9 +239,58 @@ export class ClientOrders implements OnInit, OnDestroy {
         error: (err: any) => {
           const msg = err?.error?.message ?? 'Erro ao confirmar pagamento.';
           this.toastr.danger(msg, 'Erro');
-          this.actionLoading[orderId + '_pay'] = false;
+          this.actionLoading[key] = false;
         },
-        complete: () => { this.actionLoading[orderId + '_pay'] = false; }
+        complete: () => { this.actionLoading[key] = false; }
+      });
+  }
+
+  pullLabel(order: MarketplaceOrderListItem, shipment?: MarketplaceShipmentResult): void {
+    const key = `${order.id}_${shipment?.shipmentId ?? 'order'}_pull`;
+    this.actionLoading[key] = true;
+    this.ordersService.pullLabel(order.id, shipment?.shipmentId ?? null)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          if (result.succeeded) {
+            this.toastr.success(result.message, 'Etiqueta');
+          } else {
+            this.toastr.warning(result.message, 'Etiqueta');
+          }
+          this.load();
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Falha ao puxar etiqueta.', 'Etiqueta');
+          this.actionLoading[key] = false;
+        },
+        complete: () => { this.actionLoading[key] = false; }
+      });
+  }
+
+  pullFilteredLabels(): void {
+    if (this.orders.length === 0) {
+      return;
+    }
+
+    this.actionLoading['bulk_pull'] = true;
+    this.ordersService.pullLabelsBulk(this.orders.map(order => order.id))
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          const title = result.failed > 0 ? 'Etiquetas' : 'Etiquetas atualizadas';
+          const message = `${result.succeeded} pedido(s) atualizado(s)` + (result.failed > 0 ? `, ${result.failed} falharam.` : '.');
+          if (result.failed > 0) {
+            this.toastr.warning(message, title);
+          } else {
+            this.toastr.success(message, title);
+          }
+          this.load();
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Falha ao puxar etiquetas em massa.', 'Etiquetas');
+          this.actionLoading['bulk_pull'] = false;
+        },
+        complete: () => { this.actionLoading['bulk_pull'] = false; }
       });
   }
 
@@ -243,17 +316,6 @@ export class ClientOrders implements OnInit, OnDestroy {
       });
   }
 
-  isLabelLoading(order: MarketplaceOrderListItem, shipment: MarketplaceShipmentResult): boolean {
-    return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_label`];
-  }
-
-  isUrgent(order: MarketplaceOrderListItem): boolean {
-    if (!order.shipByDeadlineAt) return false;
-    const deadline = new Date(order.shipByDeadlineAt);
-    const diff = deadline.getTime() - Date.now();
-    return diff > 0 && diff < 4 * 60 * 60 * 1000;
-  }
-
   toggleCancelForm(orderId: string): void {
     this.showCancelForm[orderId] = !this.showCancelForm[orderId];
     this.showRefundForm[orderId] = false;
@@ -264,8 +326,10 @@ export class ClientOrders implements OnInit, OnDestroy {
     this.ordersService.cancelOrder(orderId, this.cancelReason[orderId] || null)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.toastr.success('Pedido cancelado com sucesso.', 'Cancelamento');
+        next: (result) => {
+          this.toastr.success(result.message || (result.action === 'cancellation_requested'
+            ? 'Solicitação de cancelamento enviada.'
+            : 'Pedido cancelado com sucesso.'), 'Cancelamento');
           this.showCancelForm[orderId] = false;
           this.load();
         },
@@ -310,6 +374,25 @@ export class ClientOrders implements OnInit, OnDestroy {
     return this.orderDetails[order.id]?.shipments ?? [];
   }
 
+  isPullLabelLoading(order: MarketplaceOrderListItem, shipment?: MarketplaceShipmentResult): boolean {
+    return !!this.actionLoading[`${order.id}_${shipment?.shipmentId ?? 'order'}_pull`];
+  }
+
+  isLabelLoading(order: MarketplaceOrderListItem, shipment: MarketplaceShipmentResult): boolean {
+    return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_label`];
+  }
+
+  isUrgent(order: MarketplaceOrderListItem): boolean {
+    if (!order.shipByDeadlineAt) return false;
+    const deadline = new Date(order.shipByDeadlineAt);
+    const diff = deadline.getTime() - Date.now();
+    return diff > 0 && diff < 4 * 60 * 60 * 1000;
+  }
+
+  canShowRefund(order: MarketplaceOrderListItem): boolean {
+    return ['paid', 'payment_confirmed', 'label_generated', 'dispatched'].includes(order.status);
+  }
+
   private loadOrderDetail(orderId: string): void {
     this.detailLoading[orderId] = true;
     this.ordersService.getOrder(orderId)
@@ -330,6 +413,8 @@ export class ClientOrders implements OnInit, OnDestroy {
 
   milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null }> {
     return [
+      { label: 'Pedido recebido', value: milestones.receivedAt },
+      { label: 'Pedido pago', value: milestones.paidAt },
       { label: 'Em processamento', value: milestones.processingStartedAt },
       { label: 'Etiqueta impressa', value: milestones.labelPrintedAt },
       { label: 'Pedido separado', value: milestones.separatedAt },

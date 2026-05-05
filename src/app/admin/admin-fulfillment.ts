@@ -97,6 +97,31 @@ export class AdminFulfillment implements OnInit, OnDestroy {
     }
   }
 
+  channelStatusClass(stage?: string | null): string {
+    switch (stage) {
+      case 'channel_dispatched':
+        return 'label-ready';
+      case 'delivered':
+        return 'label-ready';
+      case 'cancelled':
+      case 'refunded':
+        return 'label-no-label';
+      default:
+        return 'label-neutral';
+    }
+  }
+
+  labelAvailabilityLabel(value?: string | null): string {
+    switch (value) {
+      case 'available_cached':
+        return 'Etiqueta cacheada';
+      case 'available_remote':
+        return 'Etiqueta disponível';
+      default:
+        return 'Etiqueta pendente';
+    }
+  }
+
   downloadLabel(order: AdminFulfillmentOrderResult, shipment: MarketplaceShipmentResult): void {
     const key = `${order.id}_${shipment.shipmentId}_label`;
     this.actionLoading[key] = true;
@@ -113,6 +138,26 @@ export class AdminFulfillment implements OnInit, OnDestroy {
         },
         error: () => {
           this.toastr.danger('Etiqueta não disponível.', 'Erro');
+        },
+        complete: () => {
+          this.actionLoading[key] = false;
+        }
+      });
+  }
+
+  pullLabel(order: AdminFulfillmentOrderResult, shipment: MarketplaceShipmentResult): void {
+    const key = `${order.id}_${shipment.shipmentId}_pull`;
+    this.actionLoading[key] = true;
+    this.ordersService.pullLabel(order.id, shipment.shipmentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.toastr.success(result.message, 'Etiqueta');
+          this.load();
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Falha ao puxar etiqueta.', 'Etiqueta');
+          this.actionLoading[key] = false;
         },
         complete: () => {
           this.actionLoading[key] = false;
@@ -147,13 +192,53 @@ export class AdminFulfillment implements OnInit, OnDestroy {
     return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_label`];
   }
 
+  isPullLabelLoading(order: AdminFulfillmentOrderResult, shipment: MarketplaceShipmentResult): boolean {
+    return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_pull`];
+  }
+
   milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null }> {
     return [
+      { label: 'Recebido', value: milestones.receivedAt },
+      { label: 'Pago', value: milestones.paidAt },
       { label: 'Processamento', value: milestones.processingStartedAt },
       { label: 'Etiqueta impressa', value: milestones.labelPrintedAt },
       { label: 'Separado', value: milestones.separatedAt },
       { label: 'Enviado', value: milestones.dispatchedAt }
     ];
+  }
+
+  approveCancellation(order: AdminFulfillmentOrderResult): void {
+    this.actionLoading[`${order.id}_approve_cancel`] = true;
+    this.ordersService.approveCancellationRequest(order.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastr.success('Cancelamento aprovado.', 'Pedidos');
+          this.load();
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Erro ao aprovar cancelamento.', 'Erro');
+          this.actionLoading[`${order.id}_approve_cancel`] = false;
+        },
+        complete: () => { this.actionLoading[`${order.id}_approve_cancel`] = false; }
+      });
+  }
+
+  rejectCancellation(order: AdminFulfillmentOrderResult): void {
+    this.actionLoading[`${order.id}_reject_cancel`] = true;
+    this.ordersService.rejectCancellationRequest(order.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastr.success('Solicitação recusada.', 'Pedidos');
+          this.load();
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Erro ao recusar cancelamento.', 'Erro');
+          this.actionLoading[`${order.id}_reject_cancel`] = false;
+        },
+        complete: () => { this.actionLoading[`${order.id}_reject_cancel`] = false; }
+      });
   }
 
   get urgentCount(): number {

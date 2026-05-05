@@ -39,6 +39,9 @@
           <span class="urgent-pill" *ngIf="order.isUrgent">
             <nb-icon icon="clock-outline"></nb-icon> Urgente
           </span>
+          <span class="label-status" [ngClass]="channelStatusClass(order.channelStatus.stage)">
+            {{ order.channelStatus.label }}
+          </span>
           <span class="label-status" [ngClass]="fulfillmentStageClass(order.internalFulfillmentSummary)">
             {{ order.internalFulfillmentSummary?.label || 'Aguardando processamento' }}
           </span>
@@ -67,6 +70,11 @@
         </div>
       </div>
 
+      <div class="info-row" *ngIf="order.cancellationRequest?.isPending">
+        <nb-icon icon="alert-triangle-outline"></nb-icon>
+        <span>Cancelamento solicitado pelo cliente</span>
+      </div>
+
       <div class="shipment-stack">
         <div class="shipment-box" *ngFor="let shipment of order.shipments">
           <div class="shipment-box__header">
@@ -74,8 +82,8 @@
               <strong>{{ shipment.shipmentId }}</strong>
               <small>{{ shipment.shippingProvider || shipment.shippingMode || shipment.logisticType || 'Marketplace' }}</small>
             </div>
-            <span class="label-status" [class.has-label]="shipment.hasLabel" [class.no-label]="!shipment.hasLabel">
-              {{ shipment.hasLabel ? 'Etiqueta pronta' : 'Etiqueta pendente' }}
+            <span class="label-status" [class.has-label]="shipment.labelAvailability !== 'pending'" [class.no-label]="shipment.labelAvailability === 'pending'">
+              {{ labelAvailabilityLabel(shipment.labelAvailability) }}
             </span>
           </div>
 
@@ -93,8 +101,14 @@
 
           <div class="shipment-actions">
             <button
+              nbButton status="primary" size="tiny"
+              [disabled]="isPullLabelLoading(order, shipment)"
+              (click)="pullLabel(order, shipment)">
+              {{ isPullLabelLoading(order, shipment) ? 'Puxando...' : 'Puxar etiqueta' }}
+            </button>
+            <button
               nbButton status="info" size="tiny"
-              [disabled]="!shipment.hasLabel || isLabelLoading(order, shipment)"
+              [disabled]="shipment.labelAvailability === 'pending' || isLabelLoading(order, shipment)"
               (click)="downloadLabel(order, shipment)">
               {{ isLabelLoading(order, shipment) ? 'Baixando...' : 'Etiqueta' }}
             </button>
@@ -124,6 +138,21 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <div class="shipment-actions" *ngIf="order.cancellationRequest?.isPending">
+        <button
+          nbButton status="danger" size="tiny"
+          [disabled]="actionLoading[order.id + '_approve_cancel']"
+          (click)="approveCancellation(order)">
+          Aprovar cancelamento
+        </button>
+        <button
+          nbButton status="basic" size="tiny"
+          [disabled]="actionLoading[order.id + '_reject_cancel']"
+          (click)="rejectCancellation(order)">
+          Recusar cancelamento
+        </button>
       </div>
     </div>
   </div>

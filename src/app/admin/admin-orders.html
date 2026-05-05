@@ -5,6 +5,12 @@
       <span class="total-badge" *ngIf="total > 0">{{ total }}</span>
     </div>
     <div class="filters">
+      <select class="filter-select" [(ngModel)]="filterInternalStatus" (change)="onFilterChange()">
+        <option *ngFor="let opt of internalStatusOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <select class="filter-select" [(ngModel)]="filterChannelStatus" (change)="onFilterChange()">
+        <option *ngFor="let opt of channelStatusOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
       <select class="filter-select" [(ngModel)]="filterStatus" (change)="onFilterChange()">
         <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
@@ -15,32 +21,28 @@
     </div>
   </div>
 
-  <!-- Loading -->
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
     <span>Carregando pedidos...</span>
   </div>
 
-  <!-- Error -->
   <div class="state-error" *ngIf="!loading && error">
     <nb-icon icon="alert-circle-outline"></nb-icon>
     <p>{{ error }}</p>
     <button nbButton size="small" (click)="load()">Tentar novamente</button>
   </div>
 
-  <!-- Empty -->
   <div class="state-empty" *ngIf="!loading && !error && orders.length === 0">
     <nb-icon icon="shopping-bag-outline"></nb-icon>
     <h3>Nenhum pedido encontrado</h3>
     <p>Altere os filtros ou aguarde novos pedidos.</p>
   </div>
 
-  <!-- Table -->
   <div class="table-wrap" *ngIf="!loading && !error && orders.length > 0">
     <table class="orders-table">
       <thead>
         <tr>
-          <th>Pedido ML</th>
+          <th>Pedido</th>
           <th>Canal</th>
           <th>Cliente</th>
           <th>Status</th>
@@ -62,13 +64,14 @@
             </td>
             <td>{{ order.clientName ?? '—' }}</td>
             <td>
-              <span class="status-badge" [class]="statusClass(order.status)">{{ statusLabel(order.status) }}</span>
+              <span class="status-badge" [class]="statusClass(order.channelStatus.stage)">{{ order.channelStatus.label }}</span>
+              <span class="status-badge" [class]="internalStageClass(order.currentInternalStage)">{{ order.internalFulfillmentSummary?.label || order.currentInternalStage }}</span>
             </td>
             <td>
               <div class="date-col">
-                <span *ngIf="order.paidAt" class="date-item">
+                <span *ngIf="order.sabrPaymentConfirmedAt" class="date-item">
                   <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
-                  {{ order.paidAt | date:'dd/MM HH:mm' }}
+                  {{ order.sabrPaymentConfirmedAt | date:'dd/MM HH:mm' }}
                 </span>
                 <span *ngIf="order.shipByDeadlineAt" class="date-item deadline">
                   <nb-icon icon="clock-outline"></nb-icon>
@@ -84,24 +87,33 @@
               <span class="risk-flag" *ngIf="hasRisk(order)" title="Possui flags de risco">
                 <nb-icon icon="alert-triangle-outline"></nb-icon>
               </span>
-              <span class="label-flag" *ngIf="order.hasLabel" title="Etiqueta disponível">
+              <span class="label-flag" *ngIf="order.labelAvailability !== 'pending'" [title]="labelAvailabilityLabel(order.labelAvailability)">
                 <nb-icon icon="checkmark-square-2-outline"></nb-icon>
+              </span>
+              <span class="risk-flag" *ngIf="order.cancellationRequest?.isPending" title="Cancelamento solicitado">
+                <nb-icon icon="person-done-outline"></nb-icon>
               </span>
             </td>
             <td class="actions-cell" (click)="$event.stopPropagation()">
-              <!-- Confirmar pagamento -->
               <button
                 *ngIf="order.status === 'paid'"
                 nbButton status="success" size="tiny"
                 title="Confirmar Pagamento"
-                [disabled]="actionLoading[order.id]"
+                [disabled]="actionLoading[order.id] || !order.canMarkPaid"
                 (click)="confirmPayment(order)">
                 <nb-icon icon="checkmark-outline"></nb-icon>
               </button>
 
-              <!-- Baixar etiqueta -->
               <button
-                *ngIf="order.hasLabel"
+                nbButton status="primary" size="tiny"
+                title="Puxar Etiqueta"
+                [disabled]="actionLoading[order.id + '_pull_label']"
+                (click)="pullLabel(order)">
+                <nb-icon icon="refresh-outline"></nb-icon>
+              </button>
+
+              <button
+                *ngIf="order.labelAvailability !== 'pending'"
                 nbButton status="info" size="tiny"
                 title="Baixar Etiqueta"
                 [disabled]="actionLoading[order.id + '_label']"
@@ -109,7 +121,6 @@
                 <nb-icon icon="download-outline"></nb-icon>
               </button>
 
-              <!-- Processar estorno -->
               <button
                 *ngIf="order.status === 'refund_requested'"
                 nbButton status="warning" size="tiny"
@@ -119,19 +130,35 @@
                 <nb-icon icon="refresh-outline"></nb-icon>
               </button>
 
-              <!-- Cancelar -->
               <button
-                *ngIf="order.status !== 'cancelled' && order.status !== 'refunded' && order.status !== 'delivered' && order.status !== 'dispatched'"
+                *ngIf="order.status !== 'cancelled' && order.status !== 'refunded' && order.status !== 'delivered'"
                 nbButton status="danger" size="tiny"
                 title="Cancelar Pedido"
                 [disabled]="actionLoading[order.id]"
                 (click)="toggleCancelConfirm(order.id)">
                 <nb-icon icon="close-outline"></nb-icon>
               </button>
+
+              <button
+                *ngIf="order.cancellationRequest?.isPending"
+                nbButton status="danger" size="tiny"
+                title="Aprovar Cancelamento"
+                [disabled]="actionLoading[order.id + '_approve_cancel']"
+                (click)="approveCancellation(order.id)">
+                <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+              </button>
+
+              <button
+                *ngIf="order.cancellationRequest?.isPending"
+                nbButton status="basic" size="tiny"
+                title="Recusar Cancelamento"
+                [disabled]="actionLoading[order.id + '_reject_cancel']"
+                (click)="rejectCancellation(order.id)">
+                <nb-icon icon="close-circle-outline"></nb-icon>
+              </button>
             </td>
           </tr>
 
-          <!-- Expanded cancel form -->
           <tr *ngIf="showCancelConfirm[order.id]" class="cancel-row">
             <td colspan="8">
               <div class="cancel-form">
@@ -149,7 +176,6 @@
     </table>
   </div>
 
-  <!-- Pagination -->
   <div class="pagination" *ngIf="total > limit">
     <button nbButton size="small" outline (click)="prevPage()" [disabled]="skip === 0 || loading">
       <nb-icon icon="chevron-left-outline"></nb-icon>

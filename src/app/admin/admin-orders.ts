@@ -5,12 +5,9 @@ import { NbButtonModule, NbIconModule, NbToastrService } from '@nebular/theme';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminOrderListItem, AdminOrdersService } from '../core/services/admin-orders.service';
 
-const STATUS_LABELS: Record<string, string> = {
-  pending_payment: 'Aguardando Pagamento',
-  paid: 'Pago',
-  payment_confirmed: 'Confirmado',
-  label_generated: 'Etiqueta Gerada',
-  dispatched: 'Despachado',
+const CHANNEL_STATUS_LABELS: Record<string, string> = {
+  awaiting_shipment: 'Aguardando envio',
+  channel_dispatched: 'Despachado no canal',
   delivered: 'Entregue',
   cancelled: 'Cancelado',
   refund_requested: 'Estorno Solicitado',
@@ -33,6 +30,8 @@ export class AdminOrders implements OnInit, OnDestroy {
   error: string | null = null;
 
   filterStatus = '';
+  filterInternalStatus = '';
+  filterChannelStatus = '';
   filterTenant = '';
   filterProvider: string = '';
 
@@ -51,12 +50,28 @@ export class AdminOrders implements OnInit, OnDestroy {
   ];
 
   readonly statusOptions = [
-    { value: '', label: 'Todos os status' },
-    { value: 'pending_payment', label: 'Aguardando Pagamento' },
+    { value: '', label: 'Todos os status legados' },
     { value: 'paid', label: 'Pago' },
-    { value: 'payment_confirmed', label: 'Confirmado' },
-    { value: 'label_generated', label: 'Etiqueta Gerada' },
-    { value: 'dispatched', label: 'Despachado' },
+    { value: 'delivered', label: 'Entregue' },
+    { value: 'cancelled', label: 'Cancelado' },
+    { value: 'refund_requested', label: 'Estorno Solicitado' },
+    { value: 'refunded', label: 'Estornado' }
+  ];
+
+  readonly internalStatusOptions = [
+    { value: '', label: 'Status interno' },
+    { value: 'received', label: 'Pedido recebido' },
+    { value: 'paid', label: 'Pedido pago' },
+    { value: 'processing_started', label: 'Em processamento' },
+    { value: 'label_printed', label: 'Etiqueta impressa' },
+    { value: 'separated', label: 'Pedido separado' },
+    { value: 'dispatched', label: 'Pedido enviado' }
+  ];
+
+  readonly channelStatusOptions = [
+    { value: '', label: 'Status do canal' },
+    { value: 'awaiting_shipment', label: 'Aguardando envio' },
+    { value: 'channel_dispatched', label: 'Despachado no canal' },
     { value: 'delivered', label: 'Entregue' },
     { value: 'cancelled', label: 'Cancelado' },
     { value: 'refund_requested', label: 'Estorno Solicitado' },
@@ -82,6 +97,8 @@ export class AdminOrders implements OnInit, OnDestroy {
     this.error = null;
     this.ordersService.listOrders({
       status: this.filterStatus || null,
+      internalStatus: this.filterInternalStatus || null,
+      channelStatus: this.filterChannelStatus || null,
       tenantId: this.filterTenant || null,
       provider: this.filterProvider || null,
       skip: this.skip,
@@ -130,11 +147,11 @@ export class AdminOrders implements OnInit, OnDestroy {
     return 'badge-neutral';
   }
 
-  statusLabel(status: string): string {
-    return STATUS_LABELS[status] ?? status;
+  statusLabel(status?: string | null): string {
+    return status ? (CHANNEL_STATUS_LABELS[status] ?? status) : 'Aguardando canal';
   }
 
-  statusClass(status: string): string {
+  statusClass(status?: string | null): string {
     switch (status) {
       case 'paid': case 'payment_confirmed': return 'badge-success';
       case 'label_generated': return 'badge-info';
@@ -143,6 +160,23 @@ export class AdminOrders implements OnInit, OnDestroy {
       case 'cancelled': case 'refunded': return 'badge-danger';
       case 'refund_requested': return 'badge-warning';
       default: return 'badge-neutral';
+    }
+  }
+
+  internalStageClass(stage?: string | null): string {
+    switch (stage) {
+      case 'dispatched': return 'badge-info';
+      case 'separated': return 'badge-success';
+      case 'label_printed': return 'badge-warning';
+      default: return 'badge-neutral';
+    }
+  }
+
+  labelAvailabilityLabel(value?: string | null): string {
+    switch (value) {
+      case 'available_cached': return 'Etiqueta cacheada';
+      case 'available_remote': return 'Etiqueta disponível';
+      default: return 'Etiqueta pendente';
     }
   }
 
@@ -191,6 +225,21 @@ export class AdminOrders implements OnInit, OnDestroy {
     });
   }
 
+  pullLabel(order: AdminOrderListItem): void {
+    this.actionLoading[order.id + '_pull_label'] = true;
+    this.ordersService.pullLabel(order.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (result) => {
+        this.toastr.success(result.message, 'Etiqueta');
+        this.load();
+      },
+      error: (err) => {
+        this.toastr.danger(err?.error?.message ?? 'Etiqueta não disponível.', 'Erro');
+        this.actionLoading[order.id + '_pull_label'] = false;
+      },
+      complete: () => { this.actionLoading[order.id + '_pull_label'] = false; }
+    });
+  }
+
   toggleCancelConfirm(orderId: string): void {
     this.showCancelConfirm[orderId] = !this.showCancelConfirm[orderId];
   }
@@ -225,6 +274,36 @@ export class AdminOrders implements OnInit, OnDestroy {
         this.actionLoading[orderId + '_refund'] = false;
       },
       complete: () => { this.actionLoading[orderId + '_refund'] = false; }
+    });
+  }
+
+  approveCancellation(orderId: string): void {
+    this.actionLoading[orderId + '_approve_cancel'] = true;
+    this.ordersService.approveCancellationRequest(orderId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toastr.success('Cancelamento aprovado.', 'Pedidos');
+        this.load();
+      },
+      error: (err) => {
+        this.toastr.danger(err?.error?.message ?? 'Erro ao aprovar cancelamento.', 'Erro');
+        this.actionLoading[orderId + '_approve_cancel'] = false;
+      },
+      complete: () => { this.actionLoading[orderId + '_approve_cancel'] = false; }
+    });
+  }
+
+  rejectCancellation(orderId: string): void {
+    this.actionLoading[orderId + '_reject_cancel'] = true;
+    this.ordersService.rejectCancellationRequest(orderId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toastr.success('Solicitação recusada.', 'Pedidos');
+        this.load();
+      },
+      error: (err) => {
+        this.toastr.danger(err?.error?.message ?? 'Erro ao recusar cancelamento.', 'Erro');
+        this.actionLoading[orderId + '_reject_cancel'] = false;
+      },
+      complete: () => { this.actionLoading[orderId + '_reject_cancel'] = false; }
     });
   }
 

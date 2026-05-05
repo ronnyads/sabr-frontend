@@ -8,12 +8,19 @@
       <span class="total-badge" *ngIf="total > 0">{{ total }} pedido{{ total !== 1 ? 's' : '' }}</span>
     </div>
     <div class="filters">
-      <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
-        <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+      <select class="filter-select" [(ngModel)]="selectedInternalStatus" (change)="onFilterChange()">
+        <option *ngFor="let opt of internalStatusOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <select class="filter-select" [(ngModel)]="selectedChannelStatus" (change)="onFilterChange()">
+        <option *ngFor="let opt of channelStatusOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
       <select class="filter-select" [(ngModel)]="filterProvider" (change)="onFilterChange()">
         <option *ngFor="let opt of providerOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
+      <button nbButton size="small" status="info" outline (click)="pullFilteredLabels()" [disabled]="loading || actionLoading['bulk_pull'] || orders.length === 0">
+        <nb-icon icon="download-outline"></nb-icon>
+        {{ actionLoading['bulk_pull'] ? 'Puxando...' : 'Puxar etiquetas filtradas' }}
+      </button>
     </div>
   </div>
 
@@ -40,20 +47,22 @@
         <div class="order-main-info">
           <div class="order-id-row">
             <span class="ml-order-id">#{{ order.mlOrderId }}</span>
-            <span class="status-badge" [class]="statusClass(order.status)">{{ statusLabel(order.status) }}</span>
             <span class="status-badge" [ngClass]="providerClass(order.provider)">{{ providerLabel(order.provider) }}</span>
-            <span class="status-badge" *ngIf="order.internalFulfillmentSummary" [ngClass]="fulfillmentStageClass(order.internalFulfillmentSummary)">
-              {{ order.internalFulfillmentSummary.label }}
-            </span>
+            <span class="status-badge" [class]="channelStatusClass(order.currentChannelStage)">{{ channelStatusLabel(order) }}</span>
+            <span class="status-badge" [class]="internalStageClass(order.currentInternalStage)">{{ internalStageLabel(order.internalFulfillmentSummary) }}</span>
             <span class="urgent-badge" *ngIf="isUrgent(order)">
               <nb-icon icon="clock-outline"></nb-icon> Urgente
             </span>
           </div>
 
           <div class="order-meta">
-            <span *ngIf="order.paidAt">
+            <span>
               <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
-              Pago em {{ order.paidAt | date:'dd/MM/yyyy HH:mm' }}
+              Recebido em {{ order.importedAt | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+            <span *ngIf="order.sabrPaymentConfirmedAt">
+              <nb-icon icon="credit-card-outline"></nb-icon>
+              Pago em {{ order.sabrPaymentConfirmedAt | date:'dd/MM/yyyy HH:mm' }}
             </span>
             <span *ngIf="order.shipByDeadlineAt">
               <nb-icon icon="calendar-outline"></nb-icon>
@@ -67,17 +76,13 @@
               <nb-icon icon="cube-outline"></nb-icon>
               {{ order.shipmentsCount }} pacote{{ order.shipmentsCount !== 1 ? 's' : '' }}
             </span>
-            <span *ngIf="order.trackingNumber">
-              <nb-icon icon="car-outline"></nb-icon>
-              {{ order.trackingNumber }}
-            </span>
           </div>
         </div>
 
         <div class="order-header-side">
-          <div class="header-side-pill" [class.enabled]="order.hasLabel">
-            <nb-icon [icon]="order.hasLabel ? 'pricetags-outline' : 'slash-outline'"></nb-icon>
-            {{ order.hasLabel ? 'Etiqueta disponível' : 'Etiqueta pendente' }}
+          <div class="header-side-pill" [class]="labelAvailabilityClass(order.labelAvailability)">
+            <nb-icon [icon]="isLabelReady(order.labelAvailability) ? 'pricetags-outline' : 'slash-outline'"></nb-icon>
+            {{ labelAvailabilityLabel(order.labelAvailability) }}
           </div>
           <div class="order-chevron">
             <nb-icon [icon]="expandedOrderId === order.id ? 'chevron-up-outline' : 'chevron-down-outline'"></nb-icon>
@@ -91,6 +96,10 @@
             <div class="panel-title-row">
               <h3>Logística</h3>
               <span class="panel-pill" *ngIf="order.shippingProvider">{{ order.shippingProvider }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Status do canal</span>
+              <span class="detail-value">{{ channelStatusLabel(order) }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Modo de envio</span>
@@ -112,7 +121,7 @@
           <section class="detail-panel">
             <div class="panel-title-row">
               <h3>Status interno</h3>
-              <span class="panel-pill" *ngIf="order.internalFulfillmentSummary">{{ order.internalFulfillmentSummary.label }}</span>
+              <span class="panel-pill">{{ internalStageLabel(order.internalFulfillmentSummary) }}</span>
             </div>
             <div class="milestone-list" *ngIf="order.internalFulfillmentSummary as summary">
               <div class="milestone-item" *ngFor="let entry of milestoneEntries(summary.milestones)" [class.done]="entry.value">
@@ -124,6 +133,13 @@
               </div>
             </div>
           </section>
+        </div>
+
+        <div class="detail-section" *ngIf="order.cancellationRequest?.isPending">
+          <div class="unmapped-alert">
+            <nb-icon icon="alert-triangle-outline"></nb-icon>
+            {{ order.cancellationRequest?.label }} desde {{ order.cancellationRequest?.requestedAt | date:'dd/MM/yyyy HH:mm' }}.
+          </div>
         </div>
 
         <div class="detail-section" *ngIf="order.hasUnmappedItems">
@@ -163,7 +179,7 @@
               </div>
               <div>
                 <small>Etiqueta</small>
-                <strong>{{ shipment.hasLabel ? 'Disponível' : 'Ainda não disponível' }}</strong>
+                <strong>{{ labelAvailabilityLabel(shipment.labelAvailability) }}</strong>
               </div>
             </div>
 
@@ -171,21 +187,20 @@
               <button
                 nbButton
                 size="small"
-                status="info"
-                *ngIf="shipment.hasLabel"
-                [disabled]="isLabelLoading(order, shipment)"
-                (click)="downloadLabel(order, shipment)">
-                <nb-icon icon="download-outline"></nb-icon>
-                {{ isLabelLoading(order, shipment) ? 'Baixando...' : 'Etiqueta' }}
+                status="primary"
+                [disabled]="isPullLabelLoading(order, shipment)"
+                (click)="pullLabel(order, shipment)">
+                <nb-icon icon="refresh-outline"></nb-icon>
+                {{ isPullLabelLoading(order, shipment) ? 'Puxando...' : 'Puxar etiqueta' }}
               </button>
               <button
                 nbButton
                 size="small"
-                status="basic"
-                *ngIf="!shipment.hasLabel"
-                disabled>
-                <nb-icon icon="clock-outline"></nb-icon>
-                Etiqueta pendente
+                status="info"
+                [disabled]="!isLabelReady(shipment.labelAvailability) || isLabelLoading(order, shipment)"
+                (click)="downloadLabel(order, shipment)">
+                <nb-icon icon="download-outline"></nb-icon>
+                {{ isLabelLoading(order, shipment) ? 'Baixando...' : 'Baixar etiqueta' }}
               </button>
             </div>
           </div>
@@ -195,30 +210,42 @@
           Nenhum pacote detalhado retornado ainda para este pedido.
         </div>
 
-        <div class="order-actions" *ngIf="order.status === 'paid' || order.status === 'payment_confirmed' || order.status === 'label_generated' || order.status === 'dispatched'">
+        <div class="order-actions">
           <button
             nbButton status="success" size="small"
             *ngIf="order.status === 'paid'"
-            [disabled]="actionLoading[order.id + '_pay']"
-            (click)="markPaid(order.id); $event.stopPropagation()">
+            [disabled]="!order.canMarkPaid || actionLoading[order.id + '_pay']"
+            (click)="markPaid(order); $event.stopPropagation()">
             <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
-            {{ actionLoading[order.id + '_pay'] ? 'Confirmando...' : 'Confirmar Pagamento' }}
+            {{ actionLoading[order.id + '_pay'] ? 'Confirmando...' : 'Confirmar pagamento' }}
+          </button>
+          <button
+            nbButton status="primary" size="small" outline
+            *ngIf="order.status === 'paid' && !order.canMarkPaid"
+            [disabled]="isPullLabelLoading(order)"
+            (click)="pullLabel(order); $event.stopPropagation()">
+            <nb-icon icon="refresh-outline"></nb-icon>
+            {{ isPullLabelLoading(order) ? 'Puxando...' : 'Puxar etiqueta para liberar pagamento' }}
           </button>
           <button
             nbButton status="danger" size="small" outline
-            (click)="toggleCancelForm(order.id)"
-            [disabled]="actionLoading[order.id]">
+            [disabled]="actionLoading[order.id] || !!order.cancellationRequest?.isPending"
+            (click)="toggleCancelForm(order.id)">
             <nb-icon icon="close-circle-outline"></nb-icon>
-            Solicitar Cancelamento
+            {{ orderDetails[order.id]?.canAutoCancel === false ? 'Solicitar cancelamento' : 'Cancelar pedido' }}
           </button>
           <button
             nbButton status="warning" size="small" outline
-            *ngIf="order.status === 'paid' || order.status === 'payment_confirmed' || order.status === 'label_generated' || order.status === 'dispatched'"
+            *ngIf="canShowRefund(order)"
             (click)="toggleRefundForm(order.id)"
             [disabled]="actionLoading[order.id]">
             <nb-icon icon="refresh-outline"></nb-icon>
             Solicitar Estorno
           </button>
+        </div>
+
+        <div class="detail-empty-note" *ngIf="order.requiresLabelForPayment && !order.canMarkPaid">
+          Este pedido exige etiqueta liberada pelo canal antes da confirmação de pagamento.
         </div>
 
         <div class="action-form" *ngIf="showCancelForm[order.id]">
@@ -235,7 +262,7 @@
               nbButton status="danger" size="small"
               (click)="submitCancel(order.id)"
               [disabled]="actionLoading[order.id]">
-              {{ actionLoading[order.id] ? 'Aguarde...' : 'Confirmar Cancelamento' }}
+              {{ actionLoading[order.id] ? 'Aguarde...' : 'Enviar solicitação' }}
             </button>
           </div>
         </div>

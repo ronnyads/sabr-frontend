@@ -5,6 +5,8 @@ import { environment } from '../../../environments/environment';
 import { PagedResult } from './catalog.service';
 
 export interface MarketplaceShipmentMilestonesResult {
+  receivedAt?: string | null;
+  paidAt?: string | null;
   processingStartedAt?: string | null;
   labelPrintedAt?: string | null;
   separatedAt?: string | null;
@@ -30,15 +32,35 @@ export interface MarketplaceShipmentResult {
   shippedAt?: string | null;
   shipByDeadlineAt?: string | null;
   hasLabel: boolean;
+  labelAvailability: string;
   milestones: MarketplaceShipmentMilestonesResult;
 }
 
 export interface MarketplaceShipmentLabelListItem {
   shipmentId: string;
   hasLabel: boolean;
+  labelAvailability: string;
   shippingProvider?: string | null;
   trackingNumber?: string | null;
   status?: string | null;
+}
+
+export interface MarketplaceChannelStatusResult {
+  stage: string;
+  label: string;
+  occurredAt?: string | null;
+  rawStatus?: string | null;
+}
+
+export interface MarketplaceCancellationRequestResult {
+  status: string;
+  label: string;
+  requestedAt?: string | null;
+  requestedBy?: string | null;
+  reason?: string | null;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+  isPending: boolean;
 }
 
 export interface AdminOrderListItem {
@@ -59,6 +81,13 @@ export interface AdminOrderListItem {
   hasUnmappedItems: boolean;
   totalItems: number;
   hasLabel: boolean;
+  labelAvailability: string;
+  requiresLabelForPayment: boolean;
+  canMarkPaid: boolean;
+  currentInternalStage: string;
+  channelStatus: MarketplaceChannelStatusResult;
+  cancellationRequest?: MarketplaceCancellationRequestResult | null;
+  internalFulfillmentSummary?: MarketplaceInternalFulfillmentSummaryResult | null;
   riskFlagsJson?: string | null;
   importedAt: string;
 }
@@ -91,16 +120,32 @@ export interface AdminFulfillmentOrderResult {
   shipByDeadlineAt?: string | null;
   isUrgent: boolean;
   hasLabel: boolean;
+  labelAvailability: string;
   totalItems: number;
   sabrPaymentConfirmedAt: string;
   shipments: MarketplaceShipmentResult[];
+  channelStatus: MarketplaceChannelStatusResult;
+  cancellationRequest?: MarketplaceCancellationRequestResult | null;
   internalFulfillmentSummary?: MarketplaceInternalFulfillmentSummaryResult | null;
 }
 
 export interface OrderActionResult {
   orderId: string;
   status: string;
+  action?: string | null;
+  message?: string | null;
+  cancellationRequestStatus?: string | null;
   updatedAt: string;
+}
+
+export interface MarketplacePullShipmentLabelResult {
+  orderId: string;
+  shipmentId: string;
+  succeeded: boolean;
+  cachedNow: boolean;
+  hasLabel: boolean;
+  labelAvailability: string;
+  message: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -111,6 +156,8 @@ export class AdminOrdersService {
 
   listOrders(options?: {
     status?: string | null;
+    internalStatus?: string | null;
+    channelStatus?: string | null;
     tenantId?: string | null;
     provider?: string | null;
     from?: string | null;
@@ -122,6 +169,8 @@ export class AdminOrdersService {
     params = params.set('skip', Math.max(0, options?.skip ?? 0));
     params = params.set('limit', Math.min(100, Math.max(1, options?.limit ?? 20)));
     if (options?.status) params = params.set('status', options.status);
+    if (options?.internalStatus) params = params.set('internalStatus', options.internalStatus);
+    if (options?.channelStatus) params = params.set('channelStatus', options.channelStatus);
     if (options?.tenantId) params = params.set('tenantId', options.tenantId);
     if (options?.provider) params = params.set('provider', options.provider);
     if (options?.from) params = params.set('from', options.from);
@@ -157,6 +206,19 @@ export class AdminOrdersService {
     return this.http.get(`${this.apiBaseUrl}/admin/orders/${orderId}/labels/${shipmentId}`, { responseType: 'blob' });
   }
 
+  pullLabel(orderId: string, shipmentId?: string | null): Observable<MarketplacePullShipmentLabelResult> {
+    let params = new HttpParams();
+    if ((shipmentId ?? '').trim()) {
+      params = params.set('shipmentId', shipmentId!.trim());
+    }
+
+    return this.http.post<MarketplacePullShipmentLabelResult>(
+      `${this.apiBaseUrl}/admin/orders/${orderId}/labels/pull`,
+      {},
+      { params }
+    );
+  }
+
   dispatch(orderId: string): Observable<OrderActionResult> {
     return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/dispatch`, {});
   }
@@ -170,5 +232,13 @@ export class AdminOrdersService {
   listFulfillment(skip = 0, limit = 20): Observable<PagedResult<AdminFulfillmentOrderResult>> {
     const params = new HttpParams().set('skip', skip).set('limit', limit);
     return this.http.get<PagedResult<AdminFulfillmentOrderResult>>(`${this.apiBaseUrl}/admin/fulfillment`, { params });
+  }
+
+  approveCancellationRequest(orderId: string): Observable<OrderActionResult> {
+    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/cancellation-request/approve`, {});
+  }
+
+  rejectCancellationRequest(orderId: string): Observable<OrderActionResult> {
+    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/cancellation-request/reject`, {});
   }
 }
