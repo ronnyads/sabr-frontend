@@ -1,7 +1,10 @@
 <div class="orders-page">
   <div class="page-header">
     <div class="page-title">
-      <h1>Meus Pedidos</h1>
+      <div>
+        <h1>Meus Pedidos</h1>
+        <p class="page-subtitle">Hub operacional de pedidos, etiquetas e expedição das suas integrações.</p>
+      </div>
       <span class="total-badge" *ngIf="total > 0">{{ total }} pedido{{ total !== 1 ? 's' : '' }}</span>
     </div>
     <div class="filters">
@@ -14,41 +17,39 @@
     </div>
   </div>
 
-  <!-- Loading -->
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
     <span>Carregando pedidos...</span>
   </div>
 
-  <!-- Error -->
   <div class="state-error" *ngIf="!loading && error">
     <nb-icon icon="alert-circle-outline"></nb-icon>
     <p>{{ error }}</p>
     <button nbButton size="small" (click)="load()">Tentar novamente</button>
   </div>
 
-  <!-- Empty -->
   <div class="state-empty" *ngIf="!loading && !error && orders.length === 0">
     <nb-icon icon="shopping-bag-outline"></nb-icon>
     <h3>Nenhum pedido encontrado</h3>
-    <p>Seus pedidos do Mercado Livre aparecerão aqui após sincronização.</p>
+    <p>Os pedidos sincronizados do Mercado Livre, TikTok Shop e demais canais vão aparecer aqui.</p>
   </div>
 
-  <!-- Orders list -->
   <div class="orders-list" *ngIf="!loading && !error && orders.length > 0">
     <div class="order-card" *ngFor="let order of orders" [class.expanded]="expandedOrderId === order.id">
-
-      <!-- Card header -->
       <div class="order-header" (click)="toggleExpand(order.id)">
         <div class="order-main-info">
           <div class="order-id-row">
             <span class="ml-order-id">#{{ order.mlOrderId }}</span>
             <span class="status-badge" [class]="statusClass(order.status)">{{ statusLabel(order.status) }}</span>
-            <span class="status-badge" *ngIf="order.provider" [ngClass]="providerClass(order.provider)">{{ providerLabel(order.provider) }}</span>
+            <span class="status-badge" [ngClass]="providerClass(order.provider)">{{ providerLabel(order.provider) }}</span>
+            <span class="status-badge" *ngIf="order.internalFulfillmentSummary" [ngClass]="fulfillmentStageClass(order.internalFulfillmentSummary)">
+              {{ order.internalFulfillmentSummary.label }}
+            </span>
             <span class="urgent-badge" *ngIf="isUrgent(order)">
               <nb-icon icon="clock-outline"></nb-icon> Urgente
             </span>
           </div>
+
           <div class="order-meta">
             <span *ngIf="order.paidAt">
               <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
@@ -60,26 +61,69 @@
             </span>
             <span>
               <nb-icon icon="shopping-bag-outline"></nb-icon>
-              {{ order.totalItems ?? 0 }} ite{{ (order.totalItems ?? 0) !== 1 ? 'ns' : 'm' }}
+              {{ order.totalItems }} ite{{ order.totalItems !== 1 ? 'ns' : 'm' }}
+            </span>
+            <span>
+              <nb-icon icon="cube-outline"></nb-icon>
+              {{ order.shipmentsCount }} pacote{{ order.shipmentsCount !== 1 ? 's' : '' }}
+            </span>
+            <span *ngIf="order.trackingNumber">
+              <nb-icon icon="car-outline"></nb-icon>
+              {{ order.trackingNumber }}
             </span>
           </div>
         </div>
-        <div class="order-chevron">
-          <nb-icon [icon]="expandedOrderId === order.id ? 'chevron-up-outline' : 'chevron-down-outline'"></nb-icon>
+
+        <div class="order-header-side">
+          <div class="header-side-pill" [class.enabled]="order.hasLabel">
+            <nb-icon [icon]="order.hasLabel ? 'pricetags-outline' : 'slash-outline'"></nb-icon>
+            {{ order.hasLabel ? 'Etiqueta disponível' : 'Etiqueta pendente' }}
+          </div>
+          <div class="order-chevron">
+            <nb-icon [icon]="expandedOrderId === order.id ? 'chevron-up-outline' : 'chevron-down-outline'"></nb-icon>
+          </div>
         </div>
       </div>
 
-      <!-- Expanded detail -->
       <div class="order-detail" *ngIf="expandedOrderId === order.id">
-        <div class="detail-section" *ngIf="order.logisticType || order.shippingMode">
-          <div class="detail-row">
-            <span class="detail-label">Logística</span>
-            <span class="detail-value">{{ order.logisticType ?? '—' }}</span>
-          </div>
-          <div class="detail-row" *ngIf="order.shippingMode">
-            <span class="detail-label">Modo de envio</span>
-            <span class="detail-value">{{ order.shippingMode }}</span>
-          </div>
+        <div class="detail-grid">
+          <section class="detail-panel">
+            <div class="panel-title-row">
+              <h3>Logística</h3>
+              <span class="panel-pill" *ngIf="order.shippingProvider">{{ order.shippingProvider }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Modo de envio</span>
+              <span class="detail-value">{{ order.shippingMode || '—' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Tipo logístico</span>
+              <span class="detail-value">{{ order.logisticType || '—' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Tracking</span>
+              <span class="detail-value">{{ order.trackingNumber || 'Ainda não informado' }}</span>
+            </div>
+            <a class="tracking-link" *ngIf="order.trackingUrl" [href]="order.trackingUrl" target="_blank" rel="noreferrer" (click)="$event.stopPropagation()">
+              Acompanhar rastreio
+            </a>
+          </section>
+
+          <section class="detail-panel">
+            <div class="panel-title-row">
+              <h3>Status interno</h3>
+              <span class="panel-pill" *ngIf="order.internalFulfillmentSummary">{{ order.internalFulfillmentSummary.label }}</span>
+            </div>
+            <div class="milestone-list" *ngIf="order.internalFulfillmentSummary as summary">
+              <div class="milestone-item" *ngFor="let entry of milestoneEntries(summary.milestones)" [class.done]="entry.value">
+                <div class="milestone-dot"></div>
+                <div>
+                  <strong>{{ entry.label }}</strong>
+                  <span>{{ entry.value ? (entry.value | date:'dd/MM/yyyy HH:mm') : 'Pendente' }}</span>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
 
         <div class="detail-section" *ngIf="order.hasUnmappedItems">
@@ -89,8 +133,69 @@
           </div>
         </div>
 
-        <!-- Action buttons -->
-        <div class="order-actions" *ngIf="order.status === 'paid' || order.canCancel || order.canRefund">
+        <div class="inline-loading" *ngIf="detailLoading[order.id]">
+          <div class="spinner spinner-sm"></div>
+          <span>Carregando pacotes e etiquetas...</span>
+        </div>
+
+        <div class="shipment-stack" *ngIf="!detailLoading[order.id] && getExpandedShipments(order).length > 0">
+          <div class="shipment-card" *ngFor="let shipment of getExpandedShipments(order)">
+            <div class="shipment-header">
+              <div>
+                <span class="shipment-id">Pacote {{ shipment.shipmentId }}</span>
+                <span class="shipment-provider">{{ formatProviderName(shipment) }}</span>
+              </div>
+              <span class="status-badge badge-neutral">{{ shipment.status || 'Sem status' }}</span>
+            </div>
+
+            <div class="shipment-grid">
+              <div>
+                <small>Tracking</small>
+                <strong>{{ shipment.trackingNumber || 'Pendente' }}</strong>
+              </div>
+              <div>
+                <small>Envio</small>
+                <strong>{{ shipment.shippingMode || shipment.logisticType || 'Marketplace' }}</strong>
+              </div>
+              <div>
+                <small>Substatus</small>
+                <strong>{{ shipment.substatus || '—' }}</strong>
+              </div>
+              <div>
+                <small>Etiqueta</small>
+                <strong>{{ shipment.hasLabel ? 'Disponível' : 'Ainda não disponível' }}</strong>
+              </div>
+            </div>
+
+            <div class="shipment-actions">
+              <button
+                nbButton
+                size="small"
+                status="info"
+                *ngIf="shipment.hasLabel"
+                [disabled]="isLabelLoading(order, shipment)"
+                (click)="downloadLabel(order, shipment)">
+                <nb-icon icon="download-outline"></nb-icon>
+                {{ isLabelLoading(order, shipment) ? 'Baixando...' : 'Etiqueta' }}
+              </button>
+              <button
+                nbButton
+                size="small"
+                status="basic"
+                *ngIf="!shipment.hasLabel"
+                disabled>
+                <nb-icon icon="clock-outline"></nb-icon>
+                Etiqueta pendente
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-empty-note" *ngIf="!detailLoading[order.id] && getExpandedShipments(order).length === 0">
+          Nenhum pacote detalhado retornado ainda para este pedido.
+        </div>
+
+        <div class="order-actions" *ngIf="order.status === 'paid' || order.status === 'payment_confirmed' || order.status === 'label_generated' || order.status === 'dispatched'">
           <button
             nbButton status="success" size="small"
             *ngIf="order.status === 'paid'"
@@ -101,7 +206,6 @@
           </button>
           <button
             nbButton status="danger" size="small" outline
-            *ngIf="order.canCancel"
             (click)="toggleCancelForm(order.id)"
             [disabled]="actionLoading[order.id]">
             <nb-icon icon="close-circle-outline"></nb-icon>
@@ -109,7 +213,7 @@
           </button>
           <button
             nbButton status="warning" size="small" outline
-            *ngIf="order.canRefund"
+            *ngIf="order.status === 'paid' || order.status === 'payment_confirmed' || order.status === 'label_generated' || order.status === 'dispatched'"
             (click)="toggleRefundForm(order.id)"
             [disabled]="actionLoading[order.id]">
             <nb-icon icon="refresh-outline"></nb-icon>
@@ -117,7 +221,6 @@
           </button>
         </div>
 
-        <!-- Cancel form -->
         <div class="action-form" *ngIf="showCancelForm[order.id]">
           <label class="form-label">Motivo do cancelamento (opcional)</label>
           <textarea
@@ -137,7 +240,6 @@
           </div>
         </div>
 
-        <!-- Refund form -->
         <div class="action-form" *ngIf="showRefundForm[order.id]">
           <label class="form-label">Motivo do estorno (opcional)</label>
           <textarea
@@ -160,7 +262,6 @@
     </div>
   </div>
 
-  <!-- Pagination -->
   <div class="pagination" *ngIf="total > limit">
     <button nbButton size="small" outline (click)="prevPage()" [disabled]="skip === 0 || loading">
       <nb-icon icon="chevron-left-outline"></nb-icon>

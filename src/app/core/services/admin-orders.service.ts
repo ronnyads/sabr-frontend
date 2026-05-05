@@ -4,6 +4,43 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PagedResult } from './catalog.service';
 
+export interface MarketplaceShipmentMilestonesResult {
+  processingStartedAt?: string | null;
+  labelPrintedAt?: string | null;
+  separatedAt?: string | null;
+  dispatchedAt?: string | null;
+}
+
+export interface MarketplaceInternalFulfillmentSummaryResult {
+  stage: string;
+  label: string;
+  milestones: MarketplaceShipmentMilestonesResult;
+}
+
+export interface MarketplaceShipmentResult {
+  shipmentId: string;
+  status?: string | null;
+  substatus?: string | null;
+  shippingMode?: string | null;
+  logisticType?: string | null;
+  trackingNumber?: string | null;
+  trackingMethod?: string | null;
+  trackingUrl?: string | null;
+  shippingProvider?: string | null;
+  shippedAt?: string | null;
+  shipByDeadlineAt?: string | null;
+  hasLabel: boolean;
+  milestones: MarketplaceShipmentMilestonesResult;
+}
+
+export interface MarketplaceShipmentLabelListItem {
+  shipmentId: string;
+  hasLabel: boolean;
+  shippingProvider?: string | null;
+  trackingNumber?: string | null;
+  status?: string | null;
+}
+
 export interface AdminOrderListItem {
   id: string;
   tenantId: string;
@@ -56,6 +93,8 @@ export interface AdminFulfillmentOrderResult {
   hasLabel: boolean;
   totalItems: number;
   sabrPaymentConfirmedAt: string;
+  shipments: MarketplaceShipmentResult[];
+  internalFulfillmentSummary?: MarketplaceInternalFulfillmentSummaryResult | null;
 }
 
 export interface OrderActionResult {
@@ -110,8 +149,22 @@ export class AdminOrdersService {
     return this.http.get(`${this.apiBaseUrl}/admin/orders/${orderId}/label`, { responseType: 'blob' });
   }
 
+  listLabels(orderId: string): Observable<MarketplaceShipmentLabelListItem[]> {
+    return this.http.get<MarketplaceShipmentLabelListItem[]>(`${this.apiBaseUrl}/admin/orders/${orderId}/labels`);
+  }
+
+  getLabelByShipment(orderId: string, shipmentId: string): Observable<Blob> {
+    return this.http.get(`${this.apiBaseUrl}/admin/orders/${orderId}/labels/${shipmentId}`, { responseType: 'blob' });
+  }
+
   dispatch(orderId: string): Observable<OrderActionResult> {
     return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/dispatch`, {});
+  }
+
+  advanceShipmentMilestone(orderId: string, shipmentId: string, milestone: string): Observable<OrderActionResult> {
+    return this.http.post<OrderActionResult>(`${this.apiBaseUrl}/admin/orders/${orderId}/shipments/${shipmentId}/milestone`, {
+      milestone
+    });
   }
 
   listFulfillment(skip = 0, limit = 20): Observable<PagedResult<AdminFulfillmentOrderResult>> {

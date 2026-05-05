@@ -23,6 +23,16 @@
     </div>
   </div>
 
+  <div class="state-warning" *ngIf="!loading && !error && connected && connectionWarning">
+    <div class="state-warning__content">
+      <nb-icon icon="alert-triangle-outline"></nb-icon>
+      <p>{{ connectionWarning }}</p>
+    </div>
+    <button nbButton status="warning" size="small" [disabled]="connecting" (click)="connect()">
+      {{ connecting ? 'Redirecionando...' : 'Reconectar conta' }}
+    </button>
+  </div>
+
   <!-- Loading inicial -->
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
@@ -85,6 +95,18 @@
 
     <!-- Tab: Pedidos -->
     <nb-tab tabTitle="Pedidos" tabIcon="shopping-cart-outline">
+      <div class="phub-card panel" style="margin-bottom: 12px;">
+        <div class="status-grid">
+          <div class="status-item" style="grid-column: 1 / -1;">
+            <small>Hub de pedidos</small>
+            <strong>Os pedidos operacionais, etiquetas e status de expedição agora ficam em Meus Pedidos.</strong>
+            <div style="margin-top: 10px;">
+              <a nbButton status="primary" size="small" routerLink="/client/orders">Abrir Meus Pedidos</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="tab-toolbar">
         <div class="filter-row">
           <select [(ngModel)]="ordersStatusFilter" (change)="onOrdersFilterChange()" class="status-select">
@@ -240,6 +262,33 @@
               <option value="">{{ categoriesLoading ? 'Carregando...' : 'Selecione uma categoria' }}</option>
               <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.localName }}</option>
             </select>
+          </div>
+        </div>
+
+        <div class="inline-category-error" *ngIf="categoriesError">
+          <div class="inline-category-error__content">
+            <nb-icon icon="alert-circle-outline" status="warning"></nb-icon>
+            <p>{{ categoriesError }}</p>
+          </div>
+          <div class="inline-category-error__actions">
+            <button
+              *ngIf="categoriesReconnectRequired"
+              nbButton
+              status="warning"
+              size="small"
+              [disabled]="connecting"
+              (click)="connect()">
+              {{ connecting ? 'Redirecionando...' : 'Reconectar conta' }}
+            </button>
+            <button
+              *ngIf="!categoriesReconnectRequired"
+              nbButton
+              status="basic"
+              size="small"
+              [disabled]="categoriesLoading"
+              (click)="loadCategories()">
+              {{ categoriesLoading ? 'Tentando...' : 'Tentar novamente' }}
+            </button>
           </div>
         </div>
 

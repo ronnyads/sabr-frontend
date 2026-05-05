@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import {
   NbButtonModule,
   NbFormFieldModule,
@@ -29,12 +30,11 @@ import {
 @Component({
   selector: 'app-client-tiktok-shop-integration',
   standalone: true,
-  imports: [CommonModule, FormsModule, NbButtonModule, NbIconModule, NbTabsetModule, NbFormFieldModule, NbInputModule, NbSelectModule, NbSpinnerModule],
+  imports: [CommonModule, FormsModule, RouterModule, NbButtonModule, NbIconModule, NbTabsetModule, NbFormFieldModule, NbInputModule, NbSelectModule, NbSpinnerModule],
   templateUrl: './client-tiktok-shop-integration.html',
   styleUrls: ['./client-tiktok-shop-integration.scss']
 })
 export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
-  // Connection state
   loading = false;
   connecting = false;
   disconnecting = false;
@@ -44,7 +44,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   error: string | null = null;
   status: TikTokShopIntegrationStatus | null = null;
 
-  // Orders state
   ordersLoading = false;
   ordersError: string | null = null;
   orders: TikTokShopOrderListItem[] = [];
@@ -53,7 +52,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   ordersLimit = 20;
   ordersStatusFilter = '';
 
-  // Mappings state
   mappingsLoading = false;
   mappingsError: string | null = null;
   mappings: TikTokShopMappingResult[] = [];
@@ -62,20 +60,23 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   newMapping: TikTokShopCreateMappingRequest = { tikTokItemId: '', tikTokSkuId: '', sabrVariantSku: '' };
   savingMapping = false;
 
-  // Publish state
   categories: { id: string; localName: string }[] = [];
   categoriesLoading = false;
+  categoriesError: string | null = null;
+  categoriesReconnectRequired = false;
   selectedCategoryId = '';
   publishSkuInput = '';
   publishValidating = false;
   validateResult: TikTokShopPublishValidateResult | null = null;
   publishing = false;
   publishResult: TikTokShopPublishResult | null = null;
+  connectionWarning: string | null = null;
+  private reconnectWarningToastShown = false;
 
-  // Listings state
   listings: TikTokShopListingResult[] = [];
   listingsLoading = false;
   listingsError: string | null = null;
+  private pendingConnectToast = false;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -91,11 +92,13 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const tikTokParam = params.get('tiktok');
       if (tikTokParam === 'connected') {
-        this.toastr.success('Conta TikTok Shop conectada com sucesso!', 'TikTok Shop');
+        this.pendingConnectToast = true;
         this.loadStatus();
       } else if (tikTokParam === 'oauth_error') {
+        this.pendingConnectToast = false;
         this.toastr.danger('Falha na autorizacao do TikTok Shop. Tente novamente.', 'TikTok Shop');
       } else if (tikTokParam === 'missing_code_or_state' || tikTokParam === 'invalid_state') {
+        this.pendingConnectToast = false;
         this.toastr.danger('Parametros OAuth invalidos.', 'TikTok Shop');
       }
     });
@@ -118,8 +121,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
     return Math.floor(this.ordersSkip / this.ordersLimit) + 1;
   }
 
-  // --- Connection ---
-
   loadStatus(): void {
     this.loading = true;
     this.error = null;
@@ -129,15 +130,37 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           this.status = result;
+          this.applyConnectionWarning(result);
+          if (this.pendingConnectToast) {
+            if (result.requiresReconnect) {
+              this.pendingConnectToast = false;
+            } else {
+              this.toastr.success('Conta TikTok Shop conectada com sucesso!', 'TikTok Shop');
+              this.pendingConnectToast = false;
+            }
+          }
           if (result.isConnected) {
             this.loadOrders();
             this.loadMappings();
             this.loadListings();
-            this.loadCategories();
+            if (result.requiresReconnect) {
+              this.categories = [];
+              this.selectedCategoryId = '';
+              this.categoriesReconnectRequired = true;
+              this.categoriesError = this.connectionWarning;
+            } else {
+              this.loadCategories();
+            }
+          } else {
+            this.resetTikTokData();
           }
         },
         error: (err: HttpErrorResponse) => {
           this.status = null;
+          this.pendingConnectToast = false;
+          this.connectionWarning = null;
+          this.reconnectWarningToastShown = false;
+          this.resetTikTokData();
           this.error = this.buildErrorMessage('Falha ao verificar status da integracao TikTok Shop.', err);
         }
       });
@@ -145,7 +168,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
 
   connect(): void {
     this.connecting = true;
-    const returnUrl = window.location.origin + '/client/integrations/tiktokshop';
+    const returnUrl = '/client/integrations/tiktokshop';
     this.service
       .connectUrl(returnUrl)
       .pipe(finalize(() => (this.connecting = false)), takeUntil(this.destroy$))
@@ -165,8 +188,9 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.status = null;
-          this.orders = [];
-          this.mappings = [];
+          this.connectionWarning = null;
+          this.reconnectWarningToastShown = false;
+          this.resetTikTokData();
           this.toastr.success('TikTok Shop desconectado com sucesso.', 'TikTok Shop');
         },
         error: (err: HttpErrorResponse) => {
@@ -196,8 +220,9 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.status = null;
-          this.orders = [];
-          this.mappings = [];
+          this.connectionWarning = null;
+          this.reconnectWarningToastShown = false;
+          this.resetTikTokData();
           this.toastr.success('Integracao TikTok Shop limpa com sucesso.', 'TikTok Shop');
         },
         error: (err: HttpErrorResponse) => {
@@ -225,8 +250,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         }
       });
   }
-
-  // --- Orders ---
 
   loadOrders(): void {
     this.ordersLoading = true;
@@ -263,8 +286,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       this.loadOrders();
     }
   }
-
-  // --- Mappings ---
 
   loadMappings(): void {
     this.mappingsLoading = true;
@@ -315,21 +336,32 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       });
   }
 
-  // --- Publish ---
-
   loadCategories(): void {
     this.categoriesLoading = true;
+    this.categoriesError = null;
+    this.categoriesReconnectRequired = false;
     this.service
       .getCategories()
       .pipe(finalize(() => (this.categoriesLoading = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
+          this.categoriesError = null;
+          this.categoriesReconnectRequired = false;
           this.categories = result
-            .filter(c => c.isLeaf)
-            .map(c => ({ id: c.id, localName: c.localName }));
+            .filter((c: TikTokShopCategoryResult) => c.isLeaf)
+            .map((c: TikTokShopCategoryResult) => ({ id: c.id, localName: c.localName }));
         },
-        error: () => {
-          this.toastr.warning('Não foi possível carregar as categorias TikTok.', 'TikTok Shop');
+        error: (err: HttpErrorResponse) => {
+          this.categories = [];
+          this.selectedCategoryId = '';
+
+          if (this.readApiCode(err) === 'TIKTOK_SHOP_RECONNECT_REQUIRED') {
+            this.categoriesReconnectRequired = true;
+            this.categoriesError = this.connectionWarning ?? 'A conexao TikTok Shop ficou inconsistente apos a autorizacao. Reconecte a conta para carregar as categorias.';
+            return;
+          }
+
+          this.categoriesError = this.buildErrorMessage('Nao foi possivel carregar as categorias TikTok.', err);
         }
       });
   }
@@ -374,7 +406,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         next: (result) => {
           this.publishResult = result;
           this.toastr.success(
-            `${result.published} publicados, ${result.alreadyMapped} já mapeados, ${result.failed} falhas.`,
+            `${result.published} publicados, ${result.alreadyMapped} ja mapeados, ${result.failed} falhas.`,
             'TikTok Shop'
           );
           if (result.published > 0) {
@@ -386,8 +418,6 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         }
       });
   }
-
-  // --- Listings ---
 
   loadListings(): void {
     this.listingsLoading = true;
@@ -406,5 +436,40 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   private buildErrorMessage(fallback: string, err: HttpErrorResponse): string {
     const message = err?.error?.message;
     return message ? `${fallback} ${message}` : fallback;
+  }
+
+  private readApiCode(err: HttpErrorResponse): string {
+    const code = err?.error?.code ?? err?.error?.Code;
+    return typeof code === 'string' ? code : '';
+  }
+
+  private resetTikTokData(): void {
+    this.orders = [];
+    this.ordersTotal = 0;
+    this.ordersSkip = 0;
+    this.mappings = [];
+    this.categories = [];
+    this.categoriesError = null;
+    this.categoriesReconnectRequired = false;
+    this.selectedCategoryId = '';
+    this.validateResult = null;
+    this.publishResult = null;
+    this.listings = [];
+  }
+
+  private applyConnectionWarning(status: TikTokShopIntegrationStatus): void {
+    this.connectionWarning = status.requiresReconnect
+      ? status.connectionWarning?.trim() || 'A conexao TikTok Shop ficou inconsistente apos a autorizacao. Reconecte a conta para continuar.'
+      : null;
+
+    if (!status.requiresReconnect) {
+      this.reconnectWarningToastShown = false;
+      return;
+    }
+
+    if (!this.reconnectWarningToastShown && this.connectionWarning) {
+      this.toastr.warning(this.connectionWarning, 'TikTok Shop');
+      this.reconnectWarningToastShown = true;
+    }
   }
 }

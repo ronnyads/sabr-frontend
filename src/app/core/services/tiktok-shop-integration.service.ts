@@ -12,6 +12,8 @@ export interface TikTokShopIntegrationStatus {
   tokenExpiresAt?: string;
   ordersCount: number;
   mappingsCount: number;
+  requiresReconnect?: boolean;
+  connectionWarning?: string | null;
 }
 
 export interface TikTokShopConnectUrlResult {
