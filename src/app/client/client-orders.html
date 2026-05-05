@@ -3,7 +3,7 @@
     <div class="page-title">
       <div>
         <h1>Meus Pedidos</h1>
-        <p class="page-subtitle">Hub operacional de pedidos, etiquetas e expedição das suas integrações.</p>
+        <p class="page-subtitle">Hub operacional de pedidos, etiquetas e expedicao das suas integracoes.</p>
       </div>
       <span class="total-badge" *ngIf="total > 0">{{ total }} pedido{{ total !== 1 ? 's' : '' }}</span>
     </div>
@@ -38,7 +38,7 @@
   <div class="state-empty" *ngIf="!loading && !error && orders.length === 0">
     <nb-icon icon="shopping-bag-outline"></nb-icon>
     <h3>Nenhum pedido encontrado</h3>
-    <p>Os pedidos sincronizados do Mercado Livre, TikTok Shop e demais canais vão aparecer aqui.</p>
+    <p>Os pedidos sincronizados do Mercado Livre, TikTok Shop e demais canais vao aparecer aqui.</p>
   </div>
 
   <div class="orders-list" *ngIf="!loading && !error && orders.length > 0">
@@ -46,16 +46,18 @@
       <div class="order-header" (click)="toggleExpand(order.id)">
         <div class="order-main-info">
           <div class="order-id-row">
-            <span class="ml-order-id">#{{ order.mlOrderId }}</span>
+            <span class="ml-order-id">{{ order.internalOrderNumber || ('#' + order.mlOrderId) }}</span>
             <span class="status-badge" [ngClass]="providerClass(order.provider)">{{ providerLabel(order.provider) }}</span>
             <span class="status-badge" [class]="channelStatusClass(order.currentChannelStage)">{{ channelStatusLabel(order) }}</span>
             <span class="status-badge" [class]="internalStageClass(order.currentInternalStage)">{{ internalStageLabel(order.internalFulfillmentSummary) }}</span>
+            <span class="status-badge badge-neutral">{{ inventoryStatusLabel(order.inventoryStatus) }}</span>
             <span class="urgent-badge" *ngIf="isUrgent(order)">
               <nb-icon icon="clock-outline"></nb-icon> Urgente
             </span>
           </div>
 
           <div class="order-meta">
+            <span class="tenant-tag">Marketplace #{{ order.mlOrderId }}</span>
             <span>
               <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
               Recebido em {{ order.importedAt | date:'dd/MM/yyyy HH:mm' }}
@@ -66,7 +68,7 @@
             </span>
             <span *ngIf="order.shipByDeadlineAt">
               <nb-icon icon="calendar-outline"></nb-icon>
-              Despachar até {{ order.shipByDeadlineAt | date:'dd/MM/yyyy HH:mm' }}
+              Despachar ate {{ order.shipByDeadlineAt | date:'dd/MM/yyyy HH:mm' }}
             </span>
             <span>
               <nb-icon icon="shopping-bag-outline"></nb-icon>
@@ -94,7 +96,7 @@
         <div class="detail-grid">
           <section class="detail-panel">
             <div class="panel-title-row">
-              <h3>Logística</h3>
+              <h3>Logistica</h3>
               <span class="panel-pill" *ngIf="order.shippingProvider">{{ order.shippingProvider }}</span>
             </div>
             <div class="detail-row">
@@ -106,12 +108,12 @@
               <span class="detail-value">{{ order.shippingMode || '—' }}</span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Tipo logístico</span>
+              <span class="detail-label">Tipo logistico</span>
               <span class="detail-value">{{ order.logisticType || '—' }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Tracking</span>
-              <span class="detail-value">{{ order.trackingNumber || 'Ainda não informado' }}</span>
+              <span class="detail-value">{{ order.trackingNumber || 'Ainda nao informado' }}</span>
             </div>
             <a class="tracking-link" *ngIf="order.trackingUrl" [href]="order.trackingUrl" target="_blank" rel="noreferrer" (click)="$event.stopPropagation()">
               Acompanhar rastreio
@@ -135,6 +137,14 @@
           </section>
         </div>
 
+        <div class="detail-section" *ngIf="order.paymentBlockers.length > 0">
+          <div class="unmapped-alert">
+            <nb-icon icon="alert-triangle-outline"></nb-icon>
+            Bloqueios operacionais:
+            <strong>{{ paymentBlockerSummary(order.paymentBlockers) }}</strong>
+          </div>
+        </div>
+
         <div class="detail-section" *ngIf="order.cancellationRequest?.isPending">
           <div class="unmapped-alert">
             <nb-icon icon="alert-triangle-outline"></nb-icon>
@@ -145,13 +155,47 @@
         <div class="detail-section" *ngIf="order.hasUnmappedItems">
           <div class="unmapped-alert">
             <nb-icon icon="alert-triangle-outline"></nb-icon>
-            Este pedido contém itens não mapeados no catálogo PrometheusHUB.
+            Este pedido contem itens nao mapeados no catalogo PrometheusHUB.
           </div>
         </div>
 
         <div class="inline-loading" *ngIf="detailLoading[order.id]">
           <div class="spinner spinner-sm"></div>
-          <span>Carregando pacotes e etiquetas...</span>
+          <span>Carregando pacotes, produtos e etiquetas...</span>
+        </div>
+
+        <div class="detail-section" *ngIf="!detailLoading[order.id] && orderDetails[order.id]?.items?.length">
+          <h3>Itens do pedido</h3>
+          <div class="shipment-stack">
+            <div class="shipment-card" *ngFor="let item of orderDetails[order.id].items">
+              <div class="shipment-header">
+                <div>
+                  <span class="shipment-id">{{ item.sabrVariantSku || 'SEM-SKU' }}</span>
+                  <span class="shipment-provider">{{ item.productName || 'Item sem nome' }}</span>
+                </div>
+                <span class="status-badge badge-neutral">{{ itemStockLabel(item.stockStatus) }}</span>
+              </div>
+
+              <div class="shipment-grid">
+                <div>
+                  <small>Quantidade</small>
+                  <strong>{{ item.quantity }}</strong>
+                </div>
+                <div>
+                  <small>Reservado</small>
+                  <strong>{{ item.reservedQuantity }}</strong>
+                </div>
+                <div>
+                  <small>Faltante</small>
+                  <strong>{{ item.missingQuantity }}</strong>
+                </div>
+                <div>
+                  <small>Estoque visivel</small>
+                  <strong>{{ item.availableStock ?? '—' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="shipment-stack" *ngIf="!detailLoading[order.id] && getExpandedShipments(order).length > 0">
@@ -170,12 +214,12 @@
                 <strong>{{ shipment.trackingNumber || 'Pendente' }}</strong>
               </div>
               <div>
-                <small>Envio</small>
-                <strong>{{ shipment.shippingMode || shipment.logisticType || 'Marketplace' }}</strong>
+                <small>Codigo PHUB</small>
+                <strong>{{ shipment.shipmentScanCode || 'Gerado no packing label' }}</strong>
               </div>
               <div>
-                <small>Substatus</small>
-                <strong>{{ shipment.substatus || '—' }}</strong>
+                <small>Envio</small>
+                <strong>{{ shipment.shippingMode || shipment.logisticType || 'Marketplace' }}</strong>
               </div>
               <div>
                 <small>Etiqueta</small>
@@ -245,7 +289,7 @@
         </div>
 
         <div class="detail-empty-note" *ngIf="order.requiresLabelForPayment && !order.canMarkPaid">
-          Este pedido exige etiqueta liberada pelo canal antes da confirmação de pagamento.
+          Este pedido exige etiqueta operacional, mapeamento e estoque antes da confirmacao de pagamento.
         </div>
 
         <div class="action-form" *ngIf="showCancelForm[order.id]">
@@ -262,7 +306,7 @@
               nbButton status="danger" size="small"
               (click)="submitCancel(order.id)"
               [disabled]="actionLoading[order.id]">
-              {{ actionLoading[order.id] ? 'Aguarde...' : 'Enviar solicitação' }}
+              {{ actionLoading[order.id] ? 'Aguarde...' : 'Enviar solicitacao' }}
             </button>
           </div>
         </div>
@@ -293,7 +337,7 @@
     <button nbButton size="small" outline (click)="prevPage()" [disabled]="skip === 0 || loading">
       <nb-icon icon="chevron-left-outline"></nb-icon>
     </button>
-    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <span class="page-info">Pagina {{ currentPage }} de {{ totalPages }}</span>
     <button nbButton size="small" outline (click)="nextPage()" [disabled]="skip + limit >= total || loading">
       <nb-icon icon="chevron-right-outline"></nb-icon>
     </button>

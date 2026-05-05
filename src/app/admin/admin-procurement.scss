@@ -1,0 +1,94 @@
+.orders-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.total-badge,
+.status-badge,
+.tenant-tag,
+.milestone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  background: #eef2ff;
+}
+
+.state-loading,
+.state-error,
+.state-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 1rem;
+}
+
+.table-wrap {
+  overflow: auto;
+  background: #fff;
+  border-radius: 1rem;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: top;
+}
+
+.date-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mono {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+}
+
+.badge-info {
+  background: #dbeafe;
+}
+
+.badge-purple {
+  background: #ede9fe;
+}
+
+.badge-tiktok {
+  background: #fee2e2;
+}
+
+.badge-danger {
+  background: #fee2e2;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+}

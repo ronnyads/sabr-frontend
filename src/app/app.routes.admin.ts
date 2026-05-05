@@ -36,6 +36,7 @@ export const adminRoutes: Routes = [
         loadComponent: () => import('./admin/admin-integrations-detail').then((m) => m.AdminIntegrationsDetail)
       },
       { path: 'orders', loadComponent: () => import('./admin/admin-orders').then((m) => m.AdminOrders) },
+      { path: 'procurement', loadComponent: () => import('./admin/admin-procurement').then((m) => m.AdminProcurement) },
       { path: 'fulfillment', loadComponent: () => import('./admin/admin-fulfillment').then((m) => m.AdminFulfillment) },
       { path: 'ai-prompts', loadComponent: () => import('./admin/admin-ai-prompts').then((m) => m.AdminAiPrompts) },
 

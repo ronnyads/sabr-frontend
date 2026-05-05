@@ -17,7 +17,7 @@
       <select class="filter-select" [(ngModel)]="filterProvider" (change)="onFilterChange()">
         <option *ngFor="let opt of providerOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
-      <input class="filter-input" [(ngModel)]="filterTenant" (change)="onFilterChange()" placeholder="Filtrar por cliente..." />
+      <input class="filter-input" [(ngModel)]="filterTenant" (change)="onFilterChange()" placeholder="Tenant/cliente..." />
     </div>
   </div>
 
@@ -56,16 +56,24 @@
         <ng-container *ngFor="let order of orders">
           <tr [class.row-expanded]="expandedOrderId === order.id" (click)="toggleExpand(order.id)">
             <td>
-              <span class="mono">#{{ order.mlOrderId }}</span>
-              <span class="tenant-tag">{{ order.tenantId }}</span>
+              <div class="date-col">
+                <span class="mono">{{ order.internalOrderNumber || 'PHUB pendente' }}</span>
+                <span class="tenant-tag">Marketplace #{{ order.mlOrderId }}</span>
+                <span class="tenant-tag">{{ order.tenantId }}</span>
+              </div>
             </td>
             <td>
               <span class="status-badge" [ngClass]="providerClass(order.provider)">{{ providerLabel(order.provider) }}</span>
             </td>
             <td>{{ order.clientName ?? '—' }}</td>
             <td>
-              <span class="status-badge" [class]="statusClass(order.channelStatus.stage)">{{ order.channelStatus.label }}</span>
-              <span class="status-badge" [class]="internalStageClass(order.currentInternalStage)">{{ order.internalFulfillmentSummary?.label || order.currentInternalStage }}</span>
+              <div class="date-col">
+                <span class="status-badge" [class]="statusClass(order.channelStatus.stage)">{{ order.channelStatus.label }}</span>
+                <span class="status-badge" [class]="internalStageClass(order.currentInternalStage)">
+                  {{ order.internalFulfillmentSummary?.label || order.currentInternalStage }}
+                </span>
+                <span class="status-badge badge-neutral">{{ labelAvailabilityLabel(order.labelAvailability) }}</span>
+              </div>
             </td>
             <td>
               <div class="date-col">
@@ -77,22 +85,30 @@
                   <nb-icon icon="clock-outline"></nb-icon>
                   {{ order.shipByDeadlineAt | date:'dd/MM HH:mm' }}
                 </span>
+                <span class="tenant-tag">Importado {{ order.importedAt | date:'dd/MM HH:mm' }}</span>
               </div>
             </td>
             <td>
-              <span class="items-count">{{ order.totalItems }}</span>
-              <span class="unmapped-dot" *ngIf="order.hasUnmappedItems" title="Itens não mapeados">!</span>
+              <div class="date-col">
+                <span class="items-count">{{ order.totalItems }}</span>
+                <span class="status-badge badge-neutral">{{ inventoryStatusLabel(order.inventoryStatus) }}</span>
+              </div>
             </td>
             <td>
-              <span class="risk-flag" *ngIf="hasRisk(order)" title="Possui flags de risco">
-                <nb-icon icon="alert-triangle-outline"></nb-icon>
-              </span>
-              <span class="label-flag" *ngIf="order.labelAvailability !== 'pending'" [title]="labelAvailabilityLabel(order.labelAvailability)">
-                <nb-icon icon="checkmark-square-2-outline"></nb-icon>
-              </span>
-              <span class="risk-flag" *ngIf="order.cancellationRequest?.isPending" title="Cancelamento solicitado">
-                <nb-icon icon="person-done-outline"></nb-icon>
-              </span>
+              <div class="date-col">
+                <span class="risk-flag" *ngIf="hasRisk(order)" title="Possui flags de risco">
+                  <nb-icon icon="alert-triangle-outline"></nb-icon>
+                </span>
+                <span
+                  class="status-badge"
+                  *ngFor="let blocker of order.paymentBlockers"
+                  [class]="blockerBadgeClass(blocker)">
+                  {{ paymentBlockerLabel(blocker) }}
+                </span>
+                <span class="status-badge badge-purple" *ngIf="order.cancellationRequest?.isPending">
+                  Cancelamento solicitado
+                </span>
+              </div>
             </td>
             <td class="actions-cell" (click)="$event.stopPropagation()">
               <button

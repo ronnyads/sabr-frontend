@@ -21,6 +21,7 @@ export interface MarketplaceInternalFulfillmentSummaryResult {
 
 export interface MarketplaceShipmentResult {
   shipmentId: string;
+  shipmentScanCode?: string | null;
   status?: string | null;
   substatus?: string | null;
   shippingMode?: string | null;
@@ -61,11 +62,16 @@ export interface MarketplaceOrderItemDetail {
   sabrVariantSku?: string | null;
   productName?: string | null;
   quantity: number;
+  reservedQuantity: number;
+  missingQuantity: number;
+  availableStock?: number | null;
+  stockStatus: string;
   mappingState: string;
 }
 
 export interface MarketplaceOrderListItem {
   id: string;
+  internalOrderNumber?: string | null;
   provider: number;
   sellerId: string;
   mlOrderId: string;
@@ -82,6 +88,9 @@ export interface MarketplaceOrderListItem {
   labelAvailability: string;
   requiresLabelForPayment: boolean;
   canMarkPaid: boolean;
+  inventoryStatus: string;
+  paymentBlockers: string[];
+  canEnterFulfillment: boolean;
   shipmentsCount: number;
   trackingNumber?: string | null;
   trackingUrl?: string | null;
@@ -97,6 +106,7 @@ export interface MarketplaceOrderListItem {
 
 export interface MarketplaceOrderDetail {
   id: string;
+  internalOrderNumber?: string | null;
   provider: number;
   sellerId: string;
   mlOrderId: string;
@@ -112,6 +122,9 @@ export interface MarketplaceOrderDetail {
   canRefund: boolean;
   requiresLabelForPayment: boolean;
   canMarkPaid: boolean;
+  inventoryStatus: string;
+  paymentBlockers: string[];
+  canEnterFulfillment: boolean;
   canAutoCancel: boolean;
   currentInternalStage: string;
   currentChannelStage: string;
@@ -147,6 +160,7 @@ export interface MarketplacePullShipmentLabelResult {
   cachedNow: boolean;
   hasLabel: boolean;
   labelAvailability: string;
+  reasonCode?: string | null;
   message: string;
 }
 

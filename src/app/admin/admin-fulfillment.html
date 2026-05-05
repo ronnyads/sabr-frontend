@@ -1,22 +1,29 @@
 <div class="fulfillment-page">
   <div class="page-header">
     <div class="page-title">
-      <h1>Expedição</h1>
+      <h1>Expedicao</h1>
       <span class="total-badge" *ngIf="total > 0">{{ total }} pedido{{ total !== 1 ? 's' : '' }}</span>
       <span class="urgent-badge" *ngIf="urgentCount > 0">
         <nb-icon icon="clock-outline"></nb-icon>
         {{ urgentCount }} urgente{{ urgentCount !== 1 ? 's' : '' }}
       </span>
     </div>
-    <button nbButton size="small" outline (click)="load()" [disabled]="loading">
-      <nb-icon icon="refresh-outline"></nb-icon>
-      Atualizar
-    </button>
+    <div class="shipment-actions">
+      <input class="scan-input" [(ngModel)]="scanValue" placeholder="Bipar tracking ou codigo PHUB" />
+      <button nbButton size="small" status="success" (click)="submitScan()" [disabled]="scanLoading || !scanValue.trim()">
+        <nb-icon icon="radio-button-on-outline"></nb-icon>
+        {{ scanLoading ? 'Bipando...' : 'Confirmar bipagem' }}
+      </button>
+      <button nbButton size="small" outline (click)="load()" [disabled]="loading">
+        <nb-icon icon="refresh-outline"></nb-icon>
+        Atualizar
+      </button>
+    </div>
   </div>
 
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
-    <span>Carregando pedidos para expedição...</span>
+    <span>Carregando pedidos para expedicao...</span>
   </div>
 
   <div class="state-error" *ngIf="!loading && error">
@@ -28,14 +35,14 @@
   <div class="state-empty" *ngIf="!loading && !error && orders.length === 0">
     <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
     <h3>Tudo em dia!</h3>
-    <p>Não há pedidos aguardando expedição no momento.</p>
+    <p>Nao ha pedidos aguardando expedicao no momento.</p>
   </div>
 
   <div class="fulfillment-grid" *ngIf="!loading && !error && orders.length > 0">
     <div class="fulfillment-card" *ngFor="let order of orders" [class.urgent]="order.isUrgent">
       <div class="card-header">
         <div class="card-title-row">
-          <span class="ml-order-id">#{{ order.mlOrderId }}</span>
+          <span class="ml-order-id">{{ order.internalOrderNumber || ('#' + order.mlOrderId) }}</span>
           <span class="urgent-pill" *ngIf="order.isUrgent">
             <nb-icon icon="clock-outline"></nb-icon> Urgente
           </span>
@@ -45,15 +52,16 @@
           <span class="label-status" [ngClass]="fulfillmentStageClass(order.internalFulfillmentSummary)">
             {{ order.internalFulfillmentSummary?.label || 'Aguardando processamento' }}
           </span>
+          <span class="label-status">{{ inventoryStatusLabel(order.inventoryStatus) }}</span>
         </div>
-        <span class="client-name">{{ order.clientName ?? order.tenantId }}</span>
+        <span class="client-name">{{ order.clientName ?? order.tenantId }} • Marketplace #{{ order.mlOrderId }}</span>
       </div>
 
       <div class="card-info">
         <div class="info-row" *ngIf="order.shipByDeadlineAt">
           <nb-icon icon="calendar-outline"></nb-icon>
           <span [class]="deadlineClass(order)">
-            Despachar até {{ order.shipByDeadlineAt | date:'dd/MM/yyyy HH:mm' }}
+            Despachar ate {{ order.shipByDeadlineAt | date:'dd/MM/yyyy HH:mm' }}
           </span>
         </div>
         <div class="info-row" *ngIf="order.logisticType">
@@ -75,6 +83,14 @@
         <span>Cancelamento solicitado pelo cliente</span>
       </div>
 
+      <div class="milestone-strip" *ngIf="order.items.length > 0">
+        <div class="milestone-pill" *ngFor="let item of order.items">
+          <strong>{{ item.sabrVariantSku || 'SEM-SKU' }}</strong>
+          <span>{{ item.productName || 'Item sem nome' }}</span>
+          <span>{{ item.quantity }} un • {{ itemStockLabel(item.stockStatus) }}</span>
+        </div>
+      </div>
+
       <div class="shipment-stack">
         <div class="shipment-box" *ngFor="let shipment of order.shipments">
           <div class="shipment-box__header">
@@ -89,6 +105,7 @@
 
           <div class="shipment-box__meta">
             <span>Tracking: {{ shipment.trackingNumber || 'Pendente' }}</span>
+            <span>Codigo PHUB: {{ shipment.shipmentScanCode || 'Gerado na packing label' }}</span>
             <span>Status canal: {{ shipment.status || '—' }}</span>
           </div>
 
@@ -111,6 +128,12 @@
               [disabled]="shipment.labelAvailability === 'pending' || isLabelLoading(order, shipment)"
               (click)="downloadLabel(order, shipment)">
               {{ isLabelLoading(order, shipment) ? 'Baixando...' : 'Etiqueta' }}
+            </button>
+            <button
+              nbButton status="basic" size="tiny"
+              [disabled]="isPackingLabelLoading(order, shipment)"
+              (click)="printPackingLabel(order, shipment)">
+              {{ isPackingLabelLoading(order, shipment) ? 'Gerando...' : 'Packing label' }}
             </button>
             <button
               nbButton status="basic" size="tiny"
@@ -161,7 +184,7 @@
     <button nbButton size="small" outline (click)="prevPage()" [disabled]="skip === 0 || loading">
       <nb-icon icon="chevron-left-outline"></nb-icon>
     </button>
-    <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+    <span class="page-info">Pagina {{ currentPage }} de {{ totalPages }}</span>
     <button nbButton size="small" outline (click)="nextPage()" [disabled]="skip + limit >= total || loading">
       <nb-icon icon="chevron-right-outline"></nb-icon>
     </button>

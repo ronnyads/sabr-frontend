@@ -180,6 +180,39 @@ export class AdminOrders implements OnInit, OnDestroy {
     }
   }
 
+  inventoryStatusLabel(value?: string | null): string {
+    switch (value) {
+      case 'mapped_in_stock': return 'Mapeado com estoque';
+      case 'mapped_partial_stock': return 'Estoque parcial';
+      case 'out_of_stock': return 'Sem estoque';
+      default: return 'Sem mapeamento';
+    }
+  }
+
+  paymentBlockerLabel(value: string): string {
+    switch (value) {
+      case 'unmapped_item': return 'Sem mapeamento';
+      case 'out_of_stock': return 'Sem estoque';
+      case 'label_missing': return 'Etiqueta pendente';
+      case 'cancellation_pending': return 'Cancelamento solicitado';
+      default: return value;
+    }
+  }
+
+  blockerBadgeClass(value: string): string {
+    switch (value) {
+      case 'out_of_stock':
+      case 'unmapped_item':
+        return 'badge-danger';
+      case 'label_missing':
+        return 'badge-warning';
+      case 'cancellation_pending':
+        return 'badge-purple';
+      default:
+        return 'badge-neutral';
+    }
+  }
+
   hasRisk(order: AdminOrderListItem): boolean {
     try {
       if (!order.riskFlagsJson) return false;

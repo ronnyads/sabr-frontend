@@ -21,6 +21,7 @@ export interface MarketplaceInternalFulfillmentSummaryResult {
 
 export interface MarketplaceShipmentResult {
   shipmentId: string;
+  shipmentScanCode?: string | null;
   status?: string | null;
   substatus?: string | null;
   shippingMode?: string | null;
@@ -65,6 +66,7 @@ export interface MarketplaceCancellationRequestResult {
 
 export interface AdminOrderListItem {
   id: string;
+  internalOrderNumber?: string | null;
   tenantId: string;
   clientId: string;
   clientName?: string | null;
@@ -84,6 +86,9 @@ export interface AdminOrderListItem {
   labelAvailability: string;
   requiresLabelForPayment: boolean;
   canMarkPaid: boolean;
+  inventoryStatus: string;
+  paymentBlockers: string[];
+  canEnterFulfillment: boolean;
   currentInternalStage: string;
   channelStatus: MarketplaceChannelStatusResult;
   cancellationRequest?: MarketplaceCancellationRequestResult | null;
@@ -100,6 +105,9 @@ export interface AdminOrderItemResult {
   productName?: string | null;
   quantity: number;
   reservedQuantity: number;
+  missingQuantity: number;
+  availableStock?: number | null;
+  stockStatus: string;
   mappingState: string;
 }
 
@@ -109,6 +117,7 @@ export interface AdminOrderDetail extends AdminOrderListItem {
 
 export interface AdminFulfillmentOrderResult {
   id: string;
+  internalOrderNumber?: string | null;
   tenantId: string;
   clientId: string;
   clientName?: string | null;
@@ -123,10 +132,48 @@ export interface AdminFulfillmentOrderResult {
   labelAvailability: string;
   totalItems: number;
   sabrPaymentConfirmedAt: string;
+  inventoryStatus: string;
+  paymentBlockers: string[];
+  items: AdminFulfillmentOrderItemResult[];
   shipments: MarketplaceShipmentResult[];
   channelStatus: MarketplaceChannelStatusResult;
   cancellationRequest?: MarketplaceCancellationRequestResult | null;
   internalFulfillmentSummary?: MarketplaceInternalFulfillmentSummaryResult | null;
+}
+
+export interface AdminFulfillmentOrderItemResult {
+  id: string;
+  sabrVariantSku?: string | null;
+  productName?: string | null;
+  quantity: number;
+  reservedQuantity: number;
+  missingQuantity: number;
+  availableStock?: number | null;
+  stockStatus: string;
+}
+
+export interface AdminProcurementOrderResult {
+  orderId: string;
+  internalOrderNumber?: string | null;
+  tenantId: string;
+  clientId: string;
+  clientName?: string | null;
+  provider: number;
+  mlOrderId: string;
+  inventoryStatus: string;
+  importedAt: string;
+  items: AdminProcurementOrderItemResult[];
+}
+
+export interface AdminProcurementOrderItemResult {
+  orderItemId: string;
+  sabrVariantSku?: string | null;
+  productName?: string | null;
+  quantity: number;
+  reservedQuantity: number;
+  missingQuantity: number;
+  availableStock?: number | null;
+  stockStatus: string;
 }
 
 export interface OrderActionResult {
@@ -145,6 +192,17 @@ export interface MarketplacePullShipmentLabelResult {
   cachedNow: boolean;
   hasLabel: boolean;
   labelAvailability: string;
+  reasonCode?: string | null;
+  message: string;
+}
+
+export interface MarketplaceShipmentScanResult {
+  orderId: string;
+  internalOrderNumber?: string | null;
+  shipmentId: string;
+  scanType: string;
+  action: string;
+  updatedAt: string;
   message: string;
 }
 
@@ -232,6 +290,21 @@ export class AdminOrdersService {
   listFulfillment(skip = 0, limit = 20): Observable<PagedResult<AdminFulfillmentOrderResult>> {
     const params = new HttpParams().set('skip', skip).set('limit', limit);
     return this.http.get<PagedResult<AdminFulfillmentOrderResult>>(`${this.apiBaseUrl}/admin/fulfillment`, { params });
+  }
+
+  listProcurement(skip = 0, limit = 20): Observable<PagedResult<AdminProcurementOrderResult>> {
+    const params = new HttpParams().set('skip', skip).set('limit', limit);
+    return this.http.get<PagedResult<AdminProcurementOrderResult>>(`${this.apiBaseUrl}/admin/orders/procurement`, { params });
+  }
+
+  scanShipment(value: string): Observable<MarketplaceShipmentScanResult> {
+    return this.http.post<MarketplaceShipmentScanResult>(`${this.apiBaseUrl}/admin/fulfillment/scan`, { value });
+  }
+
+  getPackingLabel(orderId: string, shipmentId: string): Observable<Blob> {
+    return this.http.get(`${this.apiBaseUrl}/admin/fulfillment/${orderId}/packing-labels/${shipmentId}`, {
+      responseType: 'blob'
+    });
   }
 
   approveCancellationRequest(orderId: string): Observable<OrderActionResult> {

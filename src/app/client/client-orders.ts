@@ -422,6 +422,51 @@ export class ClientOrders implements OnInit, OnDestroy {
     ];
   }
 
+  inventoryStatusLabel(value?: string | null): string {
+    switch (value) {
+      case 'mapped_in_stock':
+        return 'Mapeado com estoque';
+      case 'mapped_partial_stock':
+        return 'Estoque parcial';
+      case 'out_of_stock':
+        return 'Sem estoque';
+      default:
+        return 'Sem mapeamento';
+    }
+  }
+
+  itemStockLabel(value?: string | null): string {
+    switch (value) {
+      case 'in_stock':
+        return 'Estoque ok';
+      case 'partial':
+        return 'Estoque parcial';
+      case 'out_of_stock':
+        return 'Sem estoque';
+      default:
+        return 'Sem mapeamento';
+    }
+  }
+
+  paymentBlockerLabel(value: string): string {
+    switch (value) {
+      case 'unmapped_item':
+        return 'Item sem mapeamento';
+      case 'out_of_stock':
+        return 'Sem estoque';
+      case 'label_missing':
+        return 'Etiqueta pendente';
+      case 'cancellation_pending':
+        return 'Cancelamento solicitado';
+      default:
+        return value;
+    }
+  }
+
+  paymentBlockerSummary(values: string[]): string {
+    return values.map((value) => this.paymentBlockerLabel(value)).join(' • ');
+  }
+
   get currentPage(): number {
     return Math.floor(this.skip / this.limit) + 1;
   }

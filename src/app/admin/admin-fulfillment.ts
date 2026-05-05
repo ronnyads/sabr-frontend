@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { NbButtonModule, NbIconModule, NbToastrService } from '@nebular/theme';
 import { Subject, takeUntil } from 'rxjs';
 import {
@@ -13,7 +14,7 @@ import {
 @Component({
   selector: 'app-admin-fulfillment',
   standalone: true,
-  imports: [CommonModule, NbButtonModule, NbIconModule],
+  imports: [CommonModule, FormsModule, NbButtonModule, NbIconModule],
   templateUrl: './admin-fulfillment.html',
   styleUrls: ['./admin-fulfillment.scss']
 })
@@ -24,6 +25,8 @@ export class AdminFulfillment implements OnInit, OnDestroy {
   limit = 20;
   loading = false;
   error: string | null = null;
+  scanValue = '';
+  scanLoading = false;
 
   actionLoading: Record<string, boolean> = {};
 
@@ -55,7 +58,7 @@ export class AdminFulfillment implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: () => {
-          this.error = 'Erro ao carregar pedidos para expedição.';
+          this.error = 'Erro ao carregar pedidos para expedicao.';
           this.loading = false;
         }
       });
@@ -87,7 +90,6 @@ export class AdminFulfillment implements OnInit, OnDestroy {
   fulfillmentStageClass(summary?: MarketplaceInternalFulfillmentSummaryResult | null): string {
     switch (summary?.stage) {
       case 'dispatched':
-        return 'label-ready';
       case 'separated':
         return 'label-ready';
       case 'label_printed':
@@ -100,7 +102,6 @@ export class AdminFulfillment implements OnInit, OnDestroy {
   channelStatusClass(stage?: string | null): string {
     switch (stage) {
       case 'channel_dispatched':
-        return 'label-ready';
       case 'delivered':
         return 'label-ready';
       case 'cancelled':
@@ -116,9 +117,35 @@ export class AdminFulfillment implements OnInit, OnDestroy {
       case 'available_cached':
         return 'Etiqueta cacheada';
       case 'available_remote':
-        return 'Etiqueta disponível';
+        return 'Etiqueta remota';
       default:
         return 'Etiqueta pendente';
+    }
+  }
+
+  inventoryStatusLabel(value?: string | null): string {
+    switch (value) {
+      case 'mapped_in_stock':
+        return 'Mapeado com estoque';
+      case 'mapped_partial_stock':
+        return 'Estoque parcial';
+      case 'out_of_stock':
+        return 'Sem estoque';
+      default:
+        return 'Sem mapeamento';
+    }
+  }
+
+  itemStockLabel(value?: string | null): string {
+    switch (value) {
+      case 'in_stock':
+        return 'Estoque ok';
+      case 'partial':
+        return 'Estoque parcial';
+      case 'out_of_stock':
+        return 'Sem estoque';
+      default:
+        return 'Sem mapeamento';
     }
   }
 
@@ -137,7 +164,7 @@ export class AdminFulfillment implements OnInit, OnDestroy {
           URL.revokeObjectURL(url);
         },
         error: () => {
-          this.toastr.danger('Etiqueta não disponível.', 'Erro');
+          this.toastr.danger('Etiqueta nao disponivel.', 'Erro');
         },
         complete: () => {
           this.actionLoading[key] = false;
@@ -165,6 +192,55 @@ export class AdminFulfillment implements OnInit, OnDestroy {
       });
   }
 
+  printPackingLabel(order: AdminFulfillmentOrderResult, shipment: MarketplaceShipmentResult): void {
+    const key = `${order.id}_${shipment.shipmentId}_packing`;
+    this.actionLoading[key] = true;
+    this.ordersService.getPackingLabel(order.id, shipment.shipmentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `packing-${order.internalOrderNumber || order.mlOrderId}-${shipment.shipmentId}.html`;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Falha ao gerar packing label.', 'Expedicao');
+          this.actionLoading[key] = false;
+        },
+        complete: () => {
+          this.actionLoading[key] = false;
+        }
+      });
+  }
+
+  submitScan(): void {
+    const value = this.scanValue.trim();
+    if (!value || this.scanLoading) {
+      return;
+    }
+
+    this.scanLoading = true;
+    this.ordersService.scanShipment(value)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.toastr.success(result.message, 'Expedicao');
+          this.scanValue = '';
+          this.load();
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Falha ao processar bipagem.', 'Expedicao');
+          this.scanLoading = false;
+        },
+        complete: () => {
+          this.scanLoading = false;
+        }
+      });
+  }
+
   advanceMilestone(order: AdminFulfillmentOrderResult, shipment: MarketplaceShipmentResult, milestone: string): void {
     const key = `${order.id}_${shipment.shipmentId}_${milestone}`;
     this.actionLoading[key] = true;
@@ -172,11 +248,11 @@ export class AdminFulfillment implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toastr.success(`Pacote ${shipment.shipmentId} atualizado.`, 'Expedição');
+          this.toastr.success(`Pacote ${shipment.shipmentId} atualizado.`, 'Expedicao');
           this.load();
         },
         error: (err) => {
-          this.toastr.danger(err?.error?.message ?? 'Erro ao atualizar expedição.', 'Erro');
+          this.toastr.danger(err?.error?.message ?? 'Erro ao atualizar expedicao.', 'Erro');
         },
         complete: () => {
           this.actionLoading[key] = false;
@@ -194,6 +270,10 @@ export class AdminFulfillment implements OnInit, OnDestroy {
 
   isPullLabelLoading(order: AdminFulfillmentOrderResult, shipment: MarketplaceShipmentResult): boolean {
     return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_pull`];
+  }
+
+  isPackingLabelLoading(order: AdminFulfillmentOrderResult, shipment: MarketplaceShipmentResult): boolean {
+    return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_packing`];
   }
 
   milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null }> {
@@ -230,7 +310,7 @@ export class AdminFulfillment implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toastr.success('Solicitação recusada.', 'Pedidos');
+          this.toastr.success('Solicitacao recusada.', 'Pedidos');
           this.load();
         },
         error: (err) => {
@@ -242,7 +322,7 @@ export class AdminFulfillment implements OnInit, OnDestroy {
   }
 
   get urgentCount(): number {
-    return this.orders.filter(o => o.isUrgent).length;
+    return this.orders.filter((order) => order.isUrgent).length;
   }
 
   get currentPage(): number {
