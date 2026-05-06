@@ -16,15 +16,18 @@ import {
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { CatalogService, CatalogVariant } from '../core/services/catalog.service';
 import {
+  MarketplaceMappingResult,
+  MarketplaceMappingsService,
+  MarketplaceUnmappedItem
+} from '../core/services/marketplace-mappings.service';
+import {
   TikTokShopCategoryResult,
   TikTokShopIntegrationService,
   TikTokShopIntegrationStatus,
   TikTokShopListingResult,
-  TikTokShopMappingResult,
   TikTokShopOrderListItem,
   TikTokShopPublishResult,
   TikTokShopPublishValidateResult,
-  TikTokShopUnmappedItem
 } from '../core/services/tiktok-shop-integration.service';
 
 @Component({
@@ -35,6 +38,8 @@ import {
   styleUrls: ['./client-tiktok-shop-integration.scss']
 })
 export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
+  private static readonly provider = 'TikTokShop';
+
   loading = false;
   connecting = false;
   disconnecting = false;
@@ -54,14 +59,14 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
 
   mappingsLoading = false;
   mappingsError: string | null = null;
-  mappings: TikTokShopMappingResult[] = [];
+  mappings: MarketplaceMappingResult[] = [];
   deletingMappingId: string | null = null;
   savingMappingId: string | null = null;
   mappingSelection: Record<string, string> = {};
 
   unmappedItemsLoading = false;
   unmappedItemsError: string | null = null;
-  unmappedItems: TikTokShopUnmappedItem[] = [];
+  unmappedItems: MarketplaceUnmappedItem[] = [];
   savingUnmappedKey: string | null = null;
   unmappedSelection: Record<string, string> = {};
 
@@ -91,6 +96,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
 
   constructor(
     private readonly service: TikTokShopIntegrationService,
+    private readonly marketplaceMappingsService: MarketplaceMappingsService,
     private readonly catalogService: CatalogService,
     private readonly toastr: NbToastrService,
     private readonly route: ActivatedRoute
@@ -301,8 +307,8 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   loadMappings(): void {
     this.mappingsLoading = true;
     this.mappingsError = null;
-    this.service
-      .listMappings()
+    this.marketplaceMappingsService
+      .listMappings(ClientTikTokShopIntegration.provider)
       .pipe(finalize(() => (this.mappingsLoading = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
@@ -320,8 +326,8 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   loadUnmappedItems(): void {
     this.unmappedItemsLoading = true;
     this.unmappedItemsError = null;
-    this.service
-      .listUnmappedItems()
+    this.marketplaceMappingsService
+      .listUnmappedItems(ClientTikTokShopIntegration.provider)
       .pipe(finalize(() => (this.unmappedItemsLoading = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
@@ -356,18 +362,21 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       });
   }
 
-  saveUnmappedItem(item: TikTokShopUnmappedItem): void {
+  saveUnmappedItem(item: MarketplaceUnmappedItem): void {
     const selectedVariantSku = (this.unmappedSelection[item.mappingKey] ?? '').trim();
     if (!selectedVariantSku) {
       return;
     }
 
     this.savingUnmappedKey = item.mappingKey;
-    this.service
+    this.marketplaceMappingsService
       .createMapping({
-        tikTokItemId: item.tikTokItemId,
-        tikTokSkuId: item.tikTokSkuId ?? null,
-        sabrVariantSku: selectedVariantSku
+        provider: ClientTikTokShopIntegration.provider,
+        sellerId: item.sellerId ?? null,
+        integrationId: item.integrationId ?? null,
+        externalItemId: item.externalItemId,
+        externalVariationId: item.externalVariationId ?? null,
+        selectedCatalogSku: selectedVariantSku
       })
       .pipe(finalize(() => (this.savingUnmappedKey = null)), takeUntil(this.destroy$))
       .subscribe({
@@ -382,7 +391,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
       });
   }
 
-  saveExistingMapping(mapping: TikTokShopMappingResult): void {
+  saveExistingMapping(mapping: MarketplaceMappingResult): void {
     const selectedVariantSku = (this.mappingSelection[mapping.id] ?? '').trim();
     if (!selectedVariantSku || selectedVariantSku === mapping.sabrVariantSku) {
       return;
@@ -394,11 +403,14 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
     }
 
     this.savingMappingId = mapping.id;
-    this.service
+    this.marketplaceMappingsService
       .createMapping({
-        tikTokItemId: mapping.tikTokItemId,
-        tikTokSkuId: mapping.tikTokSkuId ?? null,
-        sabrVariantSku: selectedVariantSku
+        provider: ClientTikTokShopIntegration.provider,
+        sellerId: mapping.sellerId ?? null,
+        integrationId: mapping.integrationId ?? null,
+        externalItemId: mapping.externalItemId,
+        externalVariationId: mapping.externalVariationId ?? null,
+        selectedCatalogSku: selectedVariantSku
       })
       .pipe(finalize(() => (this.savingMappingId = null)), takeUntil(this.destroy$))
       .subscribe({
@@ -416,7 +428,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
 
   deleteMapping(id: string): void {
     this.deletingMappingId = id;
-    this.service
+    this.marketplaceMappingsService
       .deleteMapping(id)
       .pipe(finalize(() => (this.deletingMappingId = null)), takeUntil(this.destroy$))
       .subscribe({
@@ -530,6 +542,33 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   variantOptionLabel(variant: CatalogVariant): string {
     const details = [variant.productName, variant.variantName].filter(Boolean).join(' / ');
     return `${variant.variantSku}${details ? ` - ${details}` : ''}`;
+  }
+
+  mappingReasonLabel(reason?: string | null): string {
+    switch (reason) {
+      case 'unmapped_missing_channel_sku':
+        return 'SKU externa ausente no TikTok';
+      case 'unmapped_unknown_channel_sku':
+        return 'SKU externa desconhecida no catalogo';
+      case 'unmapped_sku_not_authorized':
+        return 'SKU externa encontrada, mas fora do catalogo autorizado';
+      case 'unmapped_mapping_not_authorized':
+        return 'Mapeamento atual aponta para SKU nao autorizada';
+      case 'mapped_by_exact_sku':
+        return 'Auto-mapeado por SKU exata';
+      case 'mapped_by_listing_map':
+        return 'Mapeado manualmente';
+      default:
+        return 'Pendente de mapeamento';
+    }
+  }
+
+  tikTokItemLabel(item: { externalItemId: string; productName?: string | null }): string {
+    return item.productName?.trim() || item.externalItemId;
+  }
+
+  tikTokSkuLabel(item: { channelSku?: string | null; variantName?: string | null; externalVariationId?: string | null }): string {
+    return item.channelSku?.trim() || item.variantName?.trim() || item.externalVariationId?.trim() || '-';
   }
 
   responsibilityWarningMessage(): string {

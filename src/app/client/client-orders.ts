@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NbButtonModule, NbIconModule, NbSelectModule, NbToastrService } from '@nebular/theme';
 import { Subject, takeUntil } from 'rxjs';
 import { CatalogService, CatalogVariant } from '../core/services/catalog.service';
+import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
 import {
   MarketplaceInternalFulfillmentSummaryResult,
   MarketplaceOrderDetail,
@@ -13,7 +14,6 @@ import {
   MarketplaceShipmentMilestonesResult,
   MarketplaceShipmentResult
 } from '../core/services/marketplace-orders.service';
-import { TikTokShopIntegrationService } from '../core/services/tiktok-shop-integration.service';
 
 const CHANNEL_STATUS_LABELS: Record<string, string> = {
   pending: 'Aguardando canal',
@@ -95,7 +95,7 @@ export class ClientOrders implements OnInit, OnDestroy {
   constructor(
     private readonly ordersService: MarketplaceOrdersService,
     private readonly catalogService: CatalogService,
-    private readonly tikTokShopIntegrationService: TikTokShopIntegrationService,
+    private readonly marketplaceMappingsService: MarketplaceMappingsService,
     private readonly toastr: NbToastrService
   ) {}
 
@@ -462,10 +462,12 @@ export class ClientOrders implements OnInit, OnDestroy {
     }
 
     this.itemMappingSaving[item.id] = true;
-    this.tikTokShopIntegrationService.createMapping({
-      tikTokItemId: item.mlItemId,
-      tikTokSkuId: item.mlVariationId ?? null,
-      sabrVariantSku: selectedVariantSku
+    this.marketplaceMappingsService.createMapping({
+      provider: 'TikTokShop',
+      sellerId: order.sellerId,
+      externalItemId: item.mlItemId,
+      externalVariationId: item.mlVariationId ?? null,
+      selectedCatalogSku: selectedVariantSku
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -553,6 +555,8 @@ export class ClientOrders implements OnInit, OnDestroy {
         return 'Estoque parcial';
       case 'out_of_stock':
         return 'Sem estoque';
+      case 'no_imported_items':
+        return 'Sem itens importados';
       default:
         return 'Sem mapeamento';
     }
@@ -573,6 +577,8 @@ export class ClientOrders implements OnInit, OnDestroy {
 
   paymentBlockerLabel(value: string): string {
     switch (value) {
+      case 'no_imported_items':
+        return 'Nenhum item importado do canal';
       case 'unmapped_item':
         return 'Item sem mapeamento';
       case 'out_of_stock':
@@ -588,6 +594,25 @@ export class ClientOrders implements OnInit, OnDestroy {
 
   paymentBlockerSummary(values: string[]): string {
     return values.map((value) => this.paymentBlockerLabel(value)).join(' • ');
+  }
+
+  itemMappingReasonLabel(value?: string | null): string {
+    switch (value) {
+      case 'mapped_by_exact_sku':
+        return 'Auto-mapeado por SKU exata';
+      case 'mapped_by_listing_map':
+        return 'Mapeado manualmente';
+      case 'unmapped_missing_channel_sku':
+        return 'SKU externa ausente';
+      case 'unmapped_unknown_channel_sku':
+        return 'SKU externa desconhecida';
+      case 'unmapped_sku_not_authorized':
+        return 'SKU externa fora do catalogo autorizado';
+      case 'unmapped_mapping_not_authorized':
+        return 'Mapeamento atual nao autorizado';
+      default:
+        return 'Pendente de mapeamento';
+    }
   }
 
   get currentPage(): number {

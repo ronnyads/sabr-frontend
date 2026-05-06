@@ -209,7 +209,12 @@
               </div>
 
               <div class="mapping-summary" *ngIf="isTikTokOrder(order)">
-                <span class="mapping-channel-id">TikTok product {{ item.mlItemId }}<span *ngIf="item.mlVariationId"> / sku {{ item.mlVariationId }}</span></span>
+                <span class="mapping-channel-id">
+                  TikTok product {{ item.mlItemId }}
+                  <span *ngIf="item.mlVariationId"> / sku {{ item.mlVariationId }}</span>
+                  <span *ngIf="item.channelSku"> / seller_sku {{ item.channelSku }}</span>
+                </span>
+                <span class="mapping-channel-id">{{ itemMappingReasonLabel(item.mappingReason) }}</span>
                 <button
                   nbButton
                   size="tiny"

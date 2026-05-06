@@ -59,6 +59,7 @@ export interface MarketplaceOrderItemDetail {
   id: string;
   mlItemId: string;
   mlVariationId?: string | null;
+  channelSku?: string | null;
   sabrVariantSku?: string | null;
   productName?: string | null;
   quantity: number;
@@ -67,6 +68,7 @@ export interface MarketplaceOrderItemDetail {
   availableStock?: number | null;
   stockStatus: string;
   mappingState: string;
+  mappingReason?: string | null;
 }
 
 export interface MarketplaceOrderListItem {

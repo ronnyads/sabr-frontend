@@ -217,7 +217,8 @@
           <thead>
             <tr>
               <th>Produto TikTok</th>
-              <th>SKU TikTok</th>
+              <th>SKU externa</th>
+              <th>Motivo</th>
               <th>Pedidos afetados</th>
               <th>Qtd total</th>
               <th>Variante autorizada</th>
@@ -227,12 +228,15 @@
           <tbody>
             <tr *ngFor="let item of unmappedItems">
               <td>
-                <strong>{{ item.productName || item.tikTokItemId }}</strong>
-                <div class="mapping-meta">Product ID {{ item.tikTokItemId }}</div>
+                <strong>{{ tikTokItemLabel(item) }}</strong>
+                <div class="mapping-meta">Product ID {{ item.externalItemId }}</div>
               </td>
               <td>
-                <strong>{{ item.variantName || item.tikTokSkuId || '-' }}</strong>
-                <div class="mapping-meta" *ngIf="item.tikTokSkuId">SKU ID {{ item.tikTokSkuId }}</div>
+                <strong>{{ tikTokSkuLabel(item) }}</strong>
+                <div class="mapping-meta" *ngIf="item.externalVariationId">SKU ID {{ item.externalVariationId }}</div>
+              </td>
+              <td>
+                <strong>{{ mappingReasonLabel(item.mappingReason) }}</strong>
               </td>
               <td>{{ item.ordersAffected }}</td>
               <td>{{ item.totalUnits }}</td>
@@ -280,8 +284,9 @@
           <thead>
             <tr>
               <th>Produto TikTok</th>
-              <th>SKU TikTok</th>
+              <th>SKU externa</th>
               <th>Mapeado para</th>
+              <th>Pedidos afetados</th>
               <th>Trocar variante</th>
               <th>Atualizado em</th>
               <th></th>
@@ -290,17 +295,18 @@
           <tbody>
             <tr *ngFor="let m of mappings">
               <td>
-                <strong>{{ m.productName || m.tikTokItemId }}</strong>
-                <div class="mapping-meta">Product ID {{ m.tikTokItemId }}</div>
+                <strong>{{ tikTokItemLabel(m) }}</strong>
+                <div class="mapping-meta">Product ID {{ m.externalItemId }}</div>
               </td>
               <td>
-                <strong>{{ m.variantName || m.tikTokSkuId || '-' }}</strong>
-                <div class="mapping-meta" *ngIf="m.tikTokSkuId">SKU ID {{ m.tikTokSkuId }}</div>
+                <strong>{{ tikTokSkuLabel(m) }}</strong>
+                <div class="mapping-meta" *ngIf="m.externalVariationId">SKU ID {{ m.externalVariationId }}</div>
               </td>
               <td>
                 <strong>{{ m.sabrVariantSku }}</strong>
-                <div class="mapping-meta" *ngIf="m.variantName">{{ m.variantName }}</div>
+                <div class="mapping-meta" *ngIf="m.baseSku">Base {{ m.baseSku }}</div>
               </td>
+              <td>{{ m.ordersAffected }}</td>
               <td>
                 <div class="mapping-actions-cell">
                   <select class="status-select mapping-select" [(ngModel)]="mappingSelection[m.id]">
