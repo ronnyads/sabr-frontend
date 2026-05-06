@@ -33,6 +33,16 @@
     </button>
   </div>
 
+  <div class="state-warning" *ngIf="!loading && !error && connected && syncWarning && !connectionWarning">
+    <div class="state-warning__content">
+      <nb-icon icon="alert-triangle-outline"></nb-icon>
+      <p>{{ syncWarning }}</p>
+    </div>
+    <button nbButton status="info" size="small" [disabled]="syncing" (click)="syncNow()">
+      {{ syncing ? 'Sincronizando...' : 'Tentar sincronizar novamente' }}
+    </button>
+  </div>
+
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
     <span>Carregando...</span>
@@ -82,6 +92,14 @@
           <div class="status-item">
             <small>Mapeamentos ativos</small>
             <strong>{{ status?.mappingsCount ?? 0 }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Saude do sync</small>
+            <strong>{{ syncHealthLabel() }}</strong>
+          </div>
+          <div class="status-item">
+            <small>Pedidos sem itens</small>
+            <strong>{{ status?.ordersMissingItemsCount ?? 0 }}</strong>
           </div>
         </div>
       </div>
@@ -208,9 +226,21 @@
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="!unmappedItemsLoading && !unmappedItemsError && unmappedItems.length === 0">
+        <div class="inline-category-error" *ngIf="showBrokenIngestionWarning()">
+          <div class="inline-category-error__content">
+            <nb-icon icon="alert-circle-outline" status="warning"></nb-icon>
+            <p>{{ emptyUnmappedStateMessage() }}</p>
+          </div>
+          <div class="inline-category-error__actions">
+            <button nbButton status="basic" size="small" [disabled]="syncing" (click)="syncNow()">
+              {{ syncing ? 'Sincronizando...' : 'Sincronizar agora' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!unmappedItemsLoading && !unmappedItemsError && unmappedItems.length === 0 && !showBrokenIngestionWarning()">
           <nb-icon icon="checkmark-circle-outline"></nb-icon>
-          <p>Nao ha itens TikTok pendentes de mapeamento neste momento.</p>
+          <p>{{ emptyUnmappedStateMessage() }}</p>
         </div>
 
         <table class="phub-table" *ngIf="!unmappedItemsLoading && !unmappedItemsError && unmappedItems.length > 0">

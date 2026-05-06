@@ -85,7 +85,9 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
   publishing = false;
   publishResult: TikTokShopPublishResult | null = null;
   connectionWarning: string | null = null;
+  syncWarning: string | null = null;
   private reconnectWarningToastShown = false;
+  private syncWarningToastKey: string | null = null;
 
   listings: TikTokShopListingResult[] = [];
   listingsLoading = false;
@@ -147,6 +149,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         next: (result) => {
           this.status = result;
           this.applyConnectionWarning(result);
+          this.applySyncWarning(result);
           if (this.pendingConnectToast) {
             if (result.requiresReconnect) {
               this.pendingConnectToast = false;
@@ -177,7 +180,9 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
           this.status = null;
           this.pendingConnectToast = false;
           this.connectionWarning = null;
+          this.syncWarning = null;
           this.reconnectWarningToastShown = false;
+          this.syncWarningToastKey = null;
           this.resetTikTokData();
           this.error = this.buildErrorMessage('Falha ao verificar status da integracao TikTok Shop.', err);
         }
@@ -207,7 +212,9 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         next: () => {
           this.status = null;
           this.connectionWarning = null;
+          this.syncWarning = null;
           this.reconnectWarningToastShown = false;
+          this.syncWarningToastKey = null;
           this.resetTikTokData();
           this.toastr.success('TikTok Shop desconectado com sucesso.', 'TikTok Shop');
         },
@@ -239,7 +246,9 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         next: () => {
           this.status = null;
           this.connectionWarning = null;
+          this.syncWarning = null;
           this.reconnectWarningToastShown = false;
+          this.syncWarningToastKey = null;
           this.resetTikTokData();
           this.toastr.success('Integracao TikTok Shop limpa com sucesso.', 'TikTok Shop');
         },
@@ -264,6 +273,7 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
         },
         error: (err: HttpErrorResponse) => {
           this.toastr.danger(this.buildErrorMessage('Falha ao sincronizar pedidos.', err), 'TikTok Shop');
+          this.loadStatus();
         }
       });
   }
@@ -575,6 +585,37 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
     return 'Voce esta trocando o produto/variante mapeado para um item do TikTok Shop. Essa escolha e de responsabilidade do cliente e pode impactar estoque, separacao e expedicao. Deseja continuar?';
   }
 
+  hasOperationalSyncIssue(): boolean {
+    const health = (this.status?.syncHealth ?? '').trim().toLowerCase();
+    return health.length > 0 && health !== 'healthy';
+  }
+
+  showBrokenIngestionWarning(): boolean {
+    return this.hasOperationalSyncIssue() && !this.unmappedItemsLoading && !this.unmappedItemsError && this.unmappedItems.length === 0;
+  }
+
+  syncHealthLabel(): string {
+    switch ((this.status?.syncHealth ?? '').trim().toLowerCase()) {
+      case 'blocked':
+        return 'Bloqueado';
+      case 'degraded':
+        return 'Degradado';
+      case 'healthy':
+        return 'Saudavel';
+      default:
+        return 'Sem leitura';
+    }
+  }
+
+  emptyUnmappedStateMessage(): string {
+    if (this.showBrokenIngestionWarning()) {
+      return this.syncWarning
+        ?? 'Existem pedidos do TikTok sem itens importados. Enquanto os itens nao forem hidratados, nada aparecera para mapear.';
+    }
+
+    return 'Nao ha itens TikTok pendentes de mapeamento neste momento.';
+  }
+
   mappingSuccessMessage(action: string): string {
     if (action === 'updated') {
       return 'Mapeamento trocado com sucesso. Os pedidos afetados foram reprocessados.';
@@ -636,6 +677,34 @@ export class ClientTikTokShopIntegration implements OnInit, OnDestroy {
     if (!this.reconnectWarningToastShown && this.connectionWarning) {
       this.toastr.warning(this.connectionWarning, 'TikTok Shop');
       this.reconnectWarningToastShown = true;
+    }
+  }
+
+  private applySyncWarning(status: TikTokShopIntegrationStatus): void {
+    const health = (status.syncHealth ?? '').trim().toLowerCase();
+    const missingItems = Math.max(0, Number(status.ordersMissingItemsCount ?? 0));
+
+    if (!health || health === 'healthy') {
+      this.syncWarning = null;
+      this.syncWarningToastKey = null;
+      return;
+    }
+
+    if (status.lastSyncErrorCode === 'TIKTOK_SHOP_ORDER_DETAIL_V2_REQUIRED') {
+      this.syncWarning = status.lastSyncErrorMessage?.trim()
+        || 'O TikTok Shop recusou o detalhe dos pedidos no endpoint legado. Os itens ainda nao puderam ser importados.';
+    } else if (missingItems > 0) {
+      this.syncWarning = status.lastSyncErrorMessage?.trim()
+        || `Existem ${missingItems} pedido(s) TikTok sem itens importados. Enquanto isso nao for corrigido, a fila de mapeamentos pode ficar vazia.`;
+    } else {
+      this.syncWarning = status.lastSyncErrorMessage?.trim()
+        || 'A integracao TikTok esta conectada, mas o ultimo sync nao ficou operacional.';
+    }
+
+    const toastKey = `${health}:${status.lastSyncErrorCode ?? ''}:${status.syncBlockingReason ?? ''}:${missingItems}`;
+    if (this.syncWarning && this.syncWarningToastKey !== toastKey) {
+      this.toastr.warning(this.syncWarning, 'TikTok Shop');
+      this.syncWarningToastKey = toastKey;
     }
   }
 }

@@ -13,6 +13,11 @@ export interface TikTokShopIntegrationStatus {
   ordersCount: number;
   mappingsCount: number;
   requiresReconnect?: boolean;
+  syncHealth?: string | null;
+  syncBlockingReason?: string | null;
+  lastSyncErrorCode?: string | null;
+  lastSyncErrorMessage?: string | null;
+  ordersMissingItemsCount?: number;
   connectionWarning?: string | null;
 }
 
