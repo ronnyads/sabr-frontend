@@ -403,6 +403,42 @@
       </div>
     </div>
 
+    <div class="risk-overlay" *ngIf="showOutOfSpCnpjWarning">
+      <div class="risk-modal onboarding-warning-modal">
+        <h4>Atenção: CNPJ com endereço fiscal fora de São Paulo</h4>
+        <p>
+          Atenção: identificamos que seu CNPJ possui endereço fiscal fora do estado de São Paulo.
+        </p>
+        <p>
+          Você pode continuar seu cadastro normalmente e vender através de loja própria, Shopify,
+          landing pages ou outros canais próprios, realizando os envios conosco.
+        </p>
+        <p>
+          Porém, para vendas em marketplaces, pode ser necessário ter um CNPJ com endereço fiscal
+          em São Paulo para conseguir emitir a nota fiscal e concluir o envio pelo nosso fluxo.
+          Caso contrário, o próprio marketplace poderá bloquear ou impedir a operação.
+        </p>
+        <p>
+          Em caso de dúvidas fiscais ou contábeis, recomendamos falar com o Paulo da Contabilidade
+          antes de iniciar as vendas em marketplaces.
+        </p>
+        <p>
+          Ao continuar, você declara estar ciente dessa informação.
+        </p>
+        <small class="hint" *ngIf="outOfSpCnpjWarningResolvedUf">
+          UF fiscal identificada: {{ outOfSpCnpjWarningResolvedUf }}
+        </small>
+        <div class="risk-actions">
+          <button nbButton status="basic" size="small" (click)="cancelOutOfSpCnpjWarning()" [disabled]="loadingProfile">
+            Cancelar
+          </button>
+          <button nbButton status="warning" size="small" (click)="confirmOutOfSpCnpjWarning()" [disabled]="loadingProfile">
+            Estou ciente e desejo continuar
+          </button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- ── Painel lateral de contexto (desktop only) ── -->

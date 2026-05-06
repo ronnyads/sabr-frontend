@@ -24,6 +24,7 @@ import {
 import { AuthService } from '../core/services/auth.service';
 import {
   ClientProfileService,
+  ClientProfileResult,
   ClientProfileView,
   ClientProfileUpdateRequest
 } from '../core/services/client-profile.service';
@@ -31,7 +32,7 @@ import { CepService } from '../core/services/cep.service';
 import { ClientDocumentResult, ClientDocumentsService } from '../core/services/client-documents.service';
 import { formatCep, normalizeCep } from '../core/services/cep.service';
 import { DocumentLookupService } from '../core/services/document-lookup.service';
-import { formatIE, isValidIE } from '../core/validators/ie.validator';
+import { formatIE } from '../core/validators/ie.validator';
 import { ClientOnboardingProgressService } from '../core/services/client-onboarding-progress.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
 import { DocumentStatus, REQUIRED_PJ_DOCUMENT_TYPES } from '../core/utils/document-status.constants';
@@ -79,6 +80,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   passwordError = '';
   cepError = '';
   documentIsError = false;
+  showOutOfSpCnpjWarning = false;
 
   showCurrentPassword = false;
   showNewPassword = false;
@@ -97,6 +99,16 @@ export class ClientOnboarding implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   private lastLookupDoc = '';
+  private lastResolvedCnpjUf: string | null = null;
+  private persistedCnpjUf: string | null = null;
+  private persistedIsCnpjOutsideSp = false;
+  private persistedOutOfSpCnpjWarningAccepted = false;
+  private persistedOutOfSpCnpjWarningAcceptedAt: string | null = null;
+  private persistedWarningDocumentDigits: string | null = null;
+  private pendingWarningAcceptedScenarioKey = '';
+  private lastWarningScenarioKey = '';
+  private pendingProfilePayload: ClientProfileUpdateRequest | null = null;
+  private pendingSubmitDocumentsAfterSave = false;
   private readonly ufList = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
     'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
@@ -287,6 +299,10 @@ export class ClientOnboarding implements OnInit, OnDestroy {
 
   get isCnpj(): boolean {
     return !this.isCpf;
+  }
+
+  get outOfSpCnpjWarningResolvedUf(): string {
+    return this.resolveCurrentCnpjUf() ?? '';
   }
 
   get progressPercent(): number {
@@ -597,8 +613,8 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       const ctrlIE = this.profileForm.get('stateRegistration');
       const isExempt = !!this.profileForm.get('isStateRegistrationExempt')?.value;
       const rawState = (ctrlIE?.value || '').toString().trim().toUpperCase();
-      if (!isExempt && rawState !== 'ISENTO' && (!rawState || !isValidIE(rawState, (this.profileForm.get('state')?.value || '').toString().toUpperCase()))) {
-        ctrlIE?.setErrors({ ieInvalid: true });
+      if (!isExempt && !rawState) {
+        ctrlIE?.setErrors({ required: true });
         ctrlIE?.markAsTouched();
         return false;
       }
@@ -657,6 +673,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       document: rawDoc,
       stateRegistration: isStateRegistrationExempt ? 'ISENTO' : this.onlyDigits(rawStateRegistration),
       isStateRegistrationExempt,
+      outOfSpCnpjWarningAccepted: this.hasCurrentWarningAcceptance(),
       email: raw.email ?? '',
       whatsapp: this.onlyDigits(raw.whatsapp ?? ''),
       birthDate: raw.birthDate || null,
@@ -671,6 +688,45 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       responsibleDocument: responsibleDigits
     };
 
+    if (this.requiresOutOfSpCnpjWarning(payload) && !this.hasCurrentWarningAcceptance()) {
+      this.openOutOfSpCnpjWarning(payload, submitDocumentsAfterSave);
+      return;
+    }
+
+    this.submitProfile(payload, submitDocumentsAfterSave);
+  }
+
+  confirmOutOfSpCnpjWarning(): void {
+    if (!this.pendingProfilePayload || this.loadingProfile) {
+      return;
+    }
+
+    const scenarioKey = this.getCurrentWarningScenarioKey();
+    if (!scenarioKey) {
+      this.showOutOfSpCnpjWarning = false;
+      this.pendingProfilePayload = null;
+      this.pendingSubmitDocumentsAfterSave = false;
+      return;
+    }
+
+    this.pendingWarningAcceptedScenarioKey = scenarioKey;
+    this.showOutOfSpCnpjWarning = false;
+    const payload: ClientProfileUpdateRequest = {
+      ...this.pendingProfilePayload,
+      outOfSpCnpjWarningAccepted: true
+    };
+    const submitDocumentsAfterSave = this.pendingSubmitDocumentsAfterSave;
+    this.submitProfile(payload, submitDocumentsAfterSave);
+  }
+
+  cancelOutOfSpCnpjWarning(): void {
+    this.showOutOfSpCnpjWarning = false;
+  }
+
+  private submitProfile(payload: ClientProfileUpdateRequest, submitDocumentsAfterSave: boolean): void {
+    this.pendingProfilePayload = payload;
+    this.pendingSubmitDocumentsAfterSave = submitDocumentsAfterSave;
+
     this.loadingProfile = true;
     this.profileMessage = '';
     this.profileError = '';
@@ -683,6 +739,17 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       .pipe(finalize(() => (this.loadingProfile = false)))
       .subscribe({
         next: (result) => {
+          this.applyPersistedCnpjWarningState({
+            personType: payload.personType,
+            document: payload.document,
+            cnpjUf: result.cnpjUf,
+            isCnpjOutsideSp: result.isCnpjOutsideSp,
+            outOfSpCnpjWarningAccepted: result.outOfSpCnpjWarningAccepted,
+            outOfSpCnpjWarningAcceptedAt: result.outOfSpCnpjWarningAcceptedAt
+          });
+          this.pendingWarningAcceptedScenarioKey = '';
+          this.pendingProfilePayload = null;
+          this.pendingSubmitDocumentsAfterSave = false;
           this.auth.updateCurrentUser({ status: result.status });
           this.persistProfileDraft();
           this.profileMessage = 'Cadastro atualizado. Prossiga com o envio de documentos.';
@@ -790,6 +857,15 @@ export class ClientOnboarding implements OnInit, OnDestroy {
         continue;
       }
 
+      if (field === 'outOfSpCnpjWarningAccepted') {
+        if (this.pendingProfilePayload && this.requiresOutOfSpCnpjWarning(this.pendingProfilePayload)) {
+          this.openOutOfSpCnpjWarning(this.pendingProfilePayload, this.pendingSubmitDocumentsAfterSave);
+        } else {
+          this.profileError = message || 'Confirme a ciencia do aviso para continuar.';
+        }
+        continue;
+      }
+
       if (field === 'zipCode') {
         // Mensagem do backend já é amigável (ex.: "CEP inexistente")
         this.cepError = message || 'CEP inválido.';
@@ -811,6 +887,124 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     this.currentStep = Math.max(0, Math.min(this.steps.length - 1, targetStep));
 
     return true;
+  }
+
+  private openOutOfSpCnpjWarning(payload: ClientProfileUpdateRequest, submitDocumentsAfterSave: boolean): void {
+    this.pendingProfilePayload = payload;
+    this.pendingSubmitDocumentsAfterSave = submitDocumentsAfterSave;
+    this.showOutOfSpCnpjWarning = true;
+    this.profileError = '';
+  }
+
+  private requiresOutOfSpCnpjWarning(payload: ClientProfileUpdateRequest): boolean {
+    if (payload.personType !== 2) {
+      return false;
+    }
+
+    const resolvedUf = this.resolveCurrentCnpjUf();
+    return !!resolvedUf && resolvedUf !== 'SP';
+  }
+
+  private hasCurrentWarningAcceptance(): boolean {
+    const scenarioKey = this.getCurrentWarningScenarioKey();
+    if (!scenarioKey) {
+      return false;
+    }
+
+    if (this.pendingWarningAcceptedScenarioKey === scenarioKey) {
+      return true;
+    }
+
+    return this.getPersistedWarningScenarioKey() === scenarioKey && this.persistedOutOfSpCnpjWarningAccepted;
+  }
+
+  private syncCnpjOutsideSpWarningState(): void {
+    const scenarioKey = this.getCurrentWarningScenarioKey();
+    if (scenarioKey !== this.lastWarningScenarioKey) {
+      this.pendingWarningAcceptedScenarioKey = '';
+      this.lastWarningScenarioKey = scenarioKey;
+    }
+
+    if (!scenarioKey) {
+      this.showOutOfSpCnpjWarning = false;
+    }
+  }
+
+  private getCurrentWarningScenarioKey(): string {
+    const document = this.onlyDigits(this.profileForm.get('document')?.value ?? '');
+    const resolvedUf = this.resolveCurrentCnpjUf();
+    return this.buildWarningScenarioKey(
+      Number(this.profileForm.get('personType')?.value ?? 2),
+      document,
+      resolvedUf,
+      !!resolvedUf && resolvedUf !== 'SP'
+    );
+  }
+
+  private getPersistedWarningScenarioKey(): string {
+    return this.buildWarningScenarioKey(
+      this.profileForm.get('personType')?.value ?? 2,
+      this.persistedWarningDocumentDigits,
+      this.persistedCnpjUf,
+      this.persistedIsCnpjOutsideSp
+    );
+  }
+
+  private buildWarningScenarioKey(
+    personType: number,
+    documentDigits: string | null | undefined,
+    cnpjUf: string | null | undefined,
+    isOutsideSp: boolean
+  ): string {
+    const normalizedDocument = this.onlyDigits(documentDigits ?? '');
+    const normalizedUf = this.normalizeUf(cnpjUf);
+    if (personType !== 2 || !normalizedDocument || !normalizedUf || !isOutsideSp) {
+      return '';
+    }
+
+    return `${normalizedDocument}:${normalizedUf}`;
+  }
+
+  private resolveCurrentCnpjUf(): string | null {
+    if (!this.isCnpj) {
+      return null;
+    }
+
+    return this.normalizeUf(this.lastResolvedCnpjUf) ?? this.normalizeUf(this.profileForm.get('state')?.value ?? '');
+  }
+
+  private normalizeUf(value: string | null | undefined): string | null {
+    const normalized = (value ?? '').toString().trim().toUpperCase();
+    return this.ufList.includes(normalized) ? normalized : null;
+  }
+
+  private applyPersistedCnpjWarningState(
+    profile: Pick<
+      ClientProfileView & ClientProfileResult,
+      'personType' | 'document' | 'cnpjUf' | 'isCnpjOutsideSp' | 'outOfSpCnpjWarningAccepted' | 'outOfSpCnpjWarningAcceptedAt'
+    >
+  ): void {
+    const personType = Number(profile.personType ?? this.profileForm.get('personType')?.value ?? 2);
+    const documentDigits = this.onlyDigits(profile.document ?? '');
+    const cnpjUf = this.normalizeUf(profile.cnpjUf);
+
+    if (personType === 2) {
+      this.persistedWarningDocumentDigits = documentDigits || null;
+      this.persistedCnpjUf = cnpjUf;
+      this.persistedIsCnpjOutsideSp = !!profile.isCnpjOutsideSp;
+      this.persistedOutOfSpCnpjWarningAccepted = !!profile.outOfSpCnpjWarningAccepted;
+      this.persistedOutOfSpCnpjWarningAcceptedAt = profile.outOfSpCnpjWarningAcceptedAt ?? null;
+      this.lastResolvedCnpjUf = cnpjUf;
+    } else {
+      this.persistedWarningDocumentDigits = null;
+      this.persistedCnpjUf = null;
+      this.persistedIsCnpjOutsideSp = false;
+      this.persistedOutOfSpCnpjWarningAccepted = false;
+      this.persistedOutOfSpCnpjWarningAcceptedAt = null;
+      this.lastResolvedCnpjUf = null;
+    }
+
+    this.syncCnpjOutsideSpWarningState();
   }
 
   loadDocuments(): void {
@@ -1130,6 +1324,15 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       ? personTypeRaw
       : Number(this.profileForm.get('personType')?.value ?? 2);
 
+    this.applyPersistedCnpjWarningState({
+      personType,
+      document: profile.document,
+      cnpjUf: profile.cnpjUf,
+      isCnpjOutsideSp: profile.isCnpjOutsideSp,
+      outOfSpCnpjWarningAccepted: profile.outOfSpCnpjWarningAccepted,
+      outOfSpCnpjWarningAcceptedAt: profile.outOfSpCnpjWarningAcceptedAt
+    });
+
     const stateRaw = (profile.state ?? '').toString().trim().toUpperCase();
     const stateRegistrationRaw = (profile.stateRegistration ?? '').toString();
     const isStateRegistrationExempt =
@@ -1168,6 +1371,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
 
     this.profileForm.patchValue(patch, { emitEvent: false });
     this.toggleStateRegistration();
+    this.syncCnpjOutsideSpWarningState();
   }
 
   private normalizeBirthDateForInput(value: string | null | undefined): string {
@@ -1265,6 +1469,14 @@ export class ClientOnboarding implements OnInit, OnDestroy {
           docControl.setValue(formatted, { emitEvent: false });
         }
 
+        if (personType !== 2 || digits !== this.lastLookupDoc) {
+          this.lastResolvedCnpjUf = null;
+          if (digits !== this.lastLookupDoc) {
+            this.lastLookupDoc = '';
+          }
+          this.syncCnpjOutsideSpWarningState();
+        }
+
         // lookup automático quando DV é válido e mudou
         if (personType === 1) {
           if (digits.length === 11 && this.isValidCpf(digits)) {
@@ -1327,10 +1539,12 @@ export class ClientOnboarding implements OnInit, OnDestroy {
           { tradeName: '', isStateRegistrationExempt: false },
           { emitEvent: false }
         );
+        this.lastResolvedCnpjUf = null;
       }
       this.profileForm.get('document')?.updateValueAndValidity();
       this.profileForm.get('stateRegistration')?.updateValueAndValidity();
       this.toggleStateRegistration();
+      this.syncCnpjOutsideSpWarningState();
     });
   }
 
@@ -1339,6 +1553,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     stateControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       const ctrl = this.profileForm.get('stateRegistration');
       ctrl?.updateValueAndValidity();
+      this.syncCnpjOutsideSpWarningState();
     });
   }
 
@@ -1388,6 +1603,8 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       next: (result) => {
         // CPF retorna 204 No Content (sem body), então result pode ser null
         if (!result) {
+          this.lastResolvedCnpjUf = null;
+          this.syncCnpjOutsideSpWarningState();
           return;
         }
 
@@ -1399,14 +1616,19 @@ export class ClientOnboarding implements OnInit, OnDestroy {
           patch.tradeName = result.tradeName;
         }
         if (this.isCnpj) {
+          const lookupUf = this.normalizeUf(result.address?.state);
           if (result.stateRegistration) {
-            patch.stateRegistration = formatIE(result.stateRegistration, this.profileForm.get('state')?.value || '');
+            patch.stateRegistration = formatIE(
+              result.stateRegistration,
+              lookupUf ?? (this.profileForm.get('state')?.value || '')
+            );
           }
           if (result.isStateRegistrationExempt) {
             patch.isStateRegistrationExempt = true;
             this.profileForm.get('stateRegistration')?.disable({ emitEvent: false });
             patch.stateRegistration = 'ISENTO';
           }
+          this.lastResolvedCnpjUf = lookupUf;
         }
 
         const addr = result.address;
@@ -1422,11 +1644,14 @@ export class ClientOnboarding implements OnInit, OnDestroy {
 
         this.profileForm.patchValue(patch, { emitEvent: false });
         this.toggleStateRegistration();
+        this.syncCnpjOutsideSpWarningState();
       },
       error: (err) => {
         // 404: documento não encontrado - permitir edição manual
         // 503: serviço indisponível - mostrar mensagem
         // Outros: permitir edição manual
+        this.lastResolvedCnpjUf = null;
+        this.syncCnpjOutsideSpWarningState();
         if (err.status === 503) {
           console.warn('[DocumentLookup] Serviço de validação indisponível (503). Preenchimento manual necessário.');
         }
@@ -1500,10 +1725,9 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       if (personType === 1 || exempt) {
         return null;
       }
-      const uf = (this.profileForm.get('state')?.value || '').toString().toUpperCase();
       const value = (control.value || '').toString();
       if (!value.trim()) return { required: true };
-      return isValidIE(value, uf, false) ? null : { ieInvalid: true };
+      return null;
     };
   }
 

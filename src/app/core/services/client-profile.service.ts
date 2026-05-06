@@ -10,6 +10,7 @@ export interface ClientProfileUpdateRequest {
   document: string;
   stateRegistration?: string | null;
   isStateRegistrationExempt: boolean;
+  outOfSpCnpjWarningAccepted?: boolean;
   email: string;
   whatsapp: string;
   phone?: string | null;
@@ -31,6 +32,10 @@ export interface ClientProfileResult {
   profileCompletedAt?: string | null;
   email: string;
   mustChangePassword?: boolean | null;
+  cnpjUf?: string | null;
+  isCnpjOutsideSp?: boolean;
+  outOfSpCnpjWarningAccepted?: boolean;
+  outOfSpCnpjWarningAcceptedAt?: string | null;
 }
 
 export interface ClientProfileView {
@@ -41,6 +46,10 @@ export interface ClientProfileView {
   document?: string | null;
   stateRegistration?: string | null;
   isStateRegistrationExempt?: boolean;
+  cnpjUf?: string | null;
+  isCnpjOutsideSp?: boolean;
+  outOfSpCnpjWarningAccepted?: boolean;
+  outOfSpCnpjWarningAcceptedAt?: string | null;
   email?: string | null;
   whatsapp?: string | null;
   birthDate?: string | null;

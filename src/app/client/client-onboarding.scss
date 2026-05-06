@@ -1396,3 +1396,39 @@ h1 {
 [data-theme="light"] .onboarding-shell .field-error {
   color: #d93025;
 }
+
+.risk-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.risk-modal {
+  width: min(640px, calc(100vw - 24px));
+  background: var(--phub-surface-raised);
+  border-radius: var(--phub-radius-card);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 24px;
+  box-shadow: var(--phub-shadow-hover);
+}
+
+.onboarding-warning-modal h4 {
+  margin: 0 0 12px;
+  color: var(--phub-warning);
+}
+
+.onboarding-warning-modal p {
+  margin: 0 0 12px;
+  color: var(--phub-text-muted);
+}
+
+.risk-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
