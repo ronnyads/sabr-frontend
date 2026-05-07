@@ -305,6 +305,22 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     return this.resolveCurrentCnpjUf() ?? '';
   }
 
+  get currentAddressUf(): string {
+    return this.normalizeUf(this.profileForm.get('state')?.value ?? '') ?? '';
+  }
+
+  get currentLookupFiscalUf(): string {
+    return this.normalizeUf(this.lastResolvedCnpjUf) ?? '';
+  }
+
+  get ieValidationUf(): string {
+    return this.resolveCurrentCnpjUf() ?? this.currentAddressUf;
+  }
+
+  get showFiscalUfDivergenceNotice(): boolean {
+    return this.isCnpj && !!this.currentLookupFiscalUf && !!this.currentAddressUf && this.currentLookupFiscalUf !== this.currentAddressUf;
+  }
+
   get progressPercent(): number {
     return ((this.currentStep + 1) / this.steps.length) * 100;
   }
@@ -853,7 +869,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
       if (field === 'stateRegistration') {
         // Evitar exibir a mensagem crua ("Invalid IE...") no passo 4. Mostra inline em PT-BR.
         if (/required/i.test(message)) mergeErrors('stateRegistration', { required: true });
-        else mergeErrors('stateRegistration', { ieInvalid: true });
+        else mergeErrors('stateRegistration', { ieInvalid: message || true });
         continue;
       }
 
@@ -971,6 +987,20 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     }
 
     return this.normalizeUf(this.lastResolvedCnpjUf) ?? this.normalizeUf(this.profileForm.get('state')?.value ?? '');
+  }
+
+  getStateRegistrationErrorMessage(): string {
+    const ieError = this.profileForm.get('stateRegistration')?.errors?.['ieInvalid'];
+    if (typeof ieError === 'string' && ieError.trim()) {
+      const ufMatch = ieError.match(/\b([A-Z]{2})\b/);
+      const uf = ufMatch?.[1] ?? this.ieValidationUf;
+      return `IE invalida para UF fiscal ${uf}. Use ISENTO se nao possuir IE.`;
+    }
+
+    const fallbackUf = this.ieValidationUf;
+    return fallbackUf
+      ? `IE invalida para UF fiscal ${fallbackUf}. Use ISENTO se nao possuir IE.`
+      : 'IE invalida. Use ISENTO se nao possuir IE.';
   }
 
   private normalizeUf(value: string | null | undefined): string | null {
@@ -1696,7 +1726,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
 
   onStateRegistrationBlur(): void {
     const ctrl = this.profileForm.get('stateRegistration');
-    const state = (this.profileForm.get('state')?.value || '').toString().toUpperCase();
+    const state = this.ieValidationUf;
     if (!ctrl || ctrl.disabled) return;
     const val = (ctrl.value || '').toString();
     if (!val.trim() || val.toUpperCase() === 'ISENTO') return;

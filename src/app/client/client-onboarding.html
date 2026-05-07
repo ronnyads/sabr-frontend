@@ -222,8 +222,11 @@
             <input class="premium-input" nbInput fullWidth formControlName="stateRegistration"
               (blur)="onStateRegistrationBlur()" placeholder="Ex: 110.042.490.114" />
             <small class="hint">Digite os d&iacute;gitos ou marque IE isento.</small>
+            <small class="hint fiscal-uf-notice" *ngIf="showFiscalUfDivergenceNotice">
+              A validacao fiscal e a regra de marketplace usam a UF do CNPJ ({{ currentLookupFiscalUf }}), mesmo que o endereco esteja como {{ currentAddressUf }}.
+            </small>
             <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('required')">IE obrigat&oacute;ria para PJ.</small>
-            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('ieInvalid')">IE inv&aacute;lida para UF {{ profileForm.get('state')?.value || '' }}. Use ISENTO se n&atilde;o possuir IE.</small>
+            <small class="field-error" *ngIf="(profileForm.get('stateRegistration')?.touched || submitAttempted) && profileForm.get('stateRegistration')?.hasError('ieInvalid')">{{ getStateRegistrationErrorMessage() }}</small>
           </div>
 
           <div class="field-group checkbox-row" *ngIf="isCnpj">
@@ -302,6 +305,9 @@
             <label class="input-label">UF</label>
             <input class="premium-input" nbInput fullWidth formControlName="state" maxlength="2" placeholder="SP" />
             <small class="field-error" *ngIf="(profileForm.get('state')?.touched || submitAttempted) && profileForm.get('state')?.invalid">UF inv&aacute;lida.</small>
+            <small class="hint fiscal-uf-notice" *ngIf="showFiscalUfDivergenceNotice">
+              UF do endereco: {{ currentAddressUf }}. UF fiscal do CNPJ: {{ currentLookupFiscalUf }}.
+            </small>
           </div>
           <div class="field-group">
             <label class="input-label">Complemento</label>
