@@ -58,7 +58,8 @@ export class AdminIntegrationsHub implements OnInit, OnDestroy {
       1: 'mercadolivre',
       2: 'tinyerp',
       3: 'shopify',
-      4: 'tiktokshop'
+      4: 'tiktokshop',
+      5: 'shopee'
     };
     const providerSlug = slugMap[card.provider] ?? 'mercadolivre';
     void this.router.navigate(['/integrations', providerSlug]);

@@ -75,6 +75,11 @@ export const clientRoutes: Routes = [
         canActivate: [clientOnboardingGuard]
       },
       {
+        path: 'integrations/shopee',
+        loadComponent: () => import('./client/client-shopee-integration').then((m) => m.ClientShopeeIntegration),
+        canActivate: [clientOnboardingGuard]
+      },
+      {
         path: 'integrations/tiktokshop',
         loadComponent: () =>
           import('./client/client-tiktok-shop-integration').then((m) => m.ClientTikTokShopIntegration),

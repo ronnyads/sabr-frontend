@@ -26,7 +26,7 @@ export interface PagedIntegrationClients {
   total: number;
 }
 
-export type IntegrationProviderSlug = 'mercadolivre' | 'tinyerp' | 'shopify' | 'tiktokshop';
+export type IntegrationProviderSlug = 'mercadolivre' | 'tinyerp' | 'shopify' | 'tiktokshop' | 'shopee';
 
 @Injectable({ providedIn: 'root' })
 export class AdminIntegrationsHubService {

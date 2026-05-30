@@ -1,0 +1,92 @@
+<section class="phub-page shopee-integration-page">
+  <div class="page-header">
+    <div class="page-title">
+      <div class="provider-logo">
+        <img src="assets/logos/shopee.svg" alt="Shopee" class="provider-logo-img" />
+      </div>
+      <div>
+        <h1>Shopee</h1>
+        <p class="subtitle">Conecte sua conta oficial Shopee para sincronizar pedidos com OAuth aprovado.</p>
+      </div>
+    </div>
+
+    <div class="header-actions" *ngIf="connected">
+      <button nbButton status="warning" size="small" [disabled]="syncing" (click)="syncNow()">
+        {{ syncing ? 'Sincronizando...' : 'Sincronizar pedidos' }}
+      </button>
+      <button nbButton status="danger" size="small" [disabled]="disconnecting" (click)="disconnect()">
+        {{ disconnecting ? 'Desconectando...' : 'Desconectar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Carregando status...</span>
+  </div>
+
+  <div class="state-error" *ngIf="!loading && error">
+    <nb-icon icon="alert-circle-outline"></nb-icon>
+    <p>{{ error }}</p>
+    <button nbButton size="small" (click)="loadStatus()">Tentar novamente</button>
+  </div>
+
+  <div class="phub-card panel" *ngIf="!loading && !error && connected">
+    <h3>Conta conectada</h3>
+
+    <div class="status-grid">
+      <div class="status-item">
+        <small>Loja</small>
+        <strong>{{ status?.shopName || '-' }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Conectado em</small>
+        <strong>{{ status?.connectedAt ? (status?.connectedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Ultimo sync</small>
+        <strong>{{ status?.lastSyncAt ? (status?.lastSyncAt | date: 'dd/MM/yyyy HH:mm') : 'Nunca' }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Token expira</small>
+        <strong>{{ status?.tokenExpiresAt ? (status?.tokenExpiresAt | date: 'dd/MM/yyyy HH:mm') : '-' }}</strong>
+      </div>
+      <div class="status-item">
+        <small>Pedidos importados</small>
+        <strong>{{ status?.ordersCount ?? 0 }}</strong>
+      </div>
+    </div>
+
+    <div class="sync-result" *ngIf="lastSync">
+      <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+      <span>{{ lastSync.ordersFetched }} pedidos sincronizados em {{ lastSync.syncedAt | date: 'HH:mm' }}</span>
+    </div>
+  </div>
+
+  <div class="phub-card panel connect-panel" *ngIf="!loading && !error && !connected">
+    <h3>Conectar conta Shopee</h3>
+    <p class="connect-desc">
+      Use a autorizacao oficial da Shopee para liberar leitura de pedidos e manter a sincronizacao do canal.
+    </p>
+
+    <div class="connect-highlights">
+      <div class="highlight-item">
+        <nb-icon icon="shield-outline"></nb-icon>
+        <span>Fluxo oficial com app aprovado</span>
+      </div>
+      <div class="highlight-item">
+        <nb-icon icon="shopping-bag-outline"></nb-icon>
+        <span>Importacao de pedidos e itens</span>
+      </div>
+      <div class="highlight-item">
+        <nb-icon icon="sync-outline"></nb-icon>
+        <span>Refresh automatico de token</span>
+      </div>
+    </div>
+
+    <button nbButton status="warning" [disabled]="connecting" (click)="connect()">
+      <nb-icon icon="external-link-outline"></nb-icon>
+      {{ connecting ? 'Redirecionando...' : 'Autorizar na Shopee' }}
+    </button>
+  </div>
+</section>

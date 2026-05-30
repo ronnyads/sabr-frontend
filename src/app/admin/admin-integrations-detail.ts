@@ -19,7 +19,8 @@ const PROVIDER_CONFIG: Record<IntegrationProviderSlug, ProviderConfig> = {
   mercadolivre: { name: 'Mercado Livre', supportsClientDetails: true },
   tinyerp: { name: 'Tiny ERP', supportsClientDetails: true },
   shopify: { name: 'Shopify', supportsClientDetails: false },
-  tiktokshop: { name: 'TikTok Shop', supportsClientDetails: true }
+  tiktokshop: { name: 'TikTok Shop', supportsClientDetails: true },
+  shopee: { name: 'Shopee', supportsClientDetails: false }
 };
 
 @Component({
@@ -173,7 +174,7 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
   }
 
   private resolveProvider(provider: string | null): IntegrationProviderSlug {
-    if (provider === 'tinyerp' || provider === 'shopify' || provider === 'tiktokshop') {
+    if (provider === 'tinyerp' || provider === 'shopify' || provider === 'tiktokshop' || provider === 'shopee') {
       return provider;
     }
 
