@@ -1221,6 +1221,37 @@ h1 {
   background: transparent;
 }
 
+:host-context([data-theme='dark']) .onboarding-shell-v1 .card,
+:host-context([data-theme='dark']) .onboarding-shell-v1 .mobile-progress {
+  background: rgba(14, 22, 38, 0.94);
+  border-color: rgba(180, 199, 226, 0.15);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
+}
+
+:host-context([data-theme='dark']) .onboarding-shell-v1 .premium-input,
+:host-context([data-theme='dark']) .onboarding-shell-v1 .premium-select {
+  background-color: #151f32 !important;
+  border-color: rgba(180, 199, 226, 0.20) !important;
+  color: #f4f7fc !important;
+}
+
+:host-context([data-theme='dark']) .onboarding-shell-v1 .premium-input:focus,
+:host-context([data-theme='dark']) .onboarding-shell-v1 .premium-select:focus {
+  background-color: #19263c !important;
+  border-color: #8b7cff !important;
+  box-shadow: 0 0 0 4px rgba(139, 124, 255, 0.16) !important;
+}
+
+:host-context([data-theme='dark']) .onboarding-shell-v1 .document-item,
+:host-context([data-theme='dark']) .onboarding-shell-v1 .secure-banner {
+  background: #151f32;
+  border-color: rgba(180, 199, 226, 0.14);
+}
+
+:host-context([data-theme='dark']) .onboarding-shell-v1 .cta-footer {
+  border-color: rgba(180, 199, 226, 0.12);
+}
+
 /* ════════════════════════════════════════
    RESPONSIVE
 ════════════════════════════════════════ */

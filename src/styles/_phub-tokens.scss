@@ -104,27 +104,30 @@
   --phub-border-focus:   var(--phub-primary);
 }
 
-// ── Dark — Prometheus Fire ────────────────────────────────────────────────
+// ── Dark — midnight navy (contraste alto sem preto absoluto) ─────────────
 :root[data-theme='dark'] {
-  --phub-primary:        #7C3AED;
-  --phub-primary-strong: #8B5CF6;
-  --phub-primary-weak:   rgba(124, 58, 237, 0.12);
-  --phub-accent:         #F59E0B;
-  --phub-accent-weak:    rgba(245, 158, 11, 0.12);
-  --phub-secondary:      #06B6D4;
-  --phub-info:           #38BDF8;
-  --phub-bg:             #000000;
-  --phub-bg-strong:      #000000;
-  --phub-bg-accent:      rgba(124, 58, 237, 0.06);
-  --phub-surface:        #0d0d0d;
-  --phub-surface-soft:   #141414;
-  --phub-surface-raised: #1a1a1a;
-  --phub-text:           #f8fafc;
-  --phub-text-muted:     #cbd5e1;
-  --phub-text-subtle:    #94a3b8;
-  --phub-border:         rgba(255, 255, 255, 0.06);
-  --phub-border-strong:  rgba(255, 255, 255, 0.12);
-  --phub-shadow-glow:    0 0 24px rgba(124, 58, 237, 0.25);
-  --phub-gradient-brand: linear-gradient(135deg, #312e81 0%, #7C3AED 100%);
+  --phub-primary:        #8B7CFF;
+  --phub-primary-strong: #A89FFF;
+  --phub-primary-weak:   rgba(139, 124, 255, 0.16);
+  --phub-accent:         #FBBF5A;
+  --phub-accent-weak:    rgba(251, 191, 90, 0.14);
+  --phub-secondary:      #35C8E6;
+  --phub-info:           #55C7FF;
+  --phub-bg:             #070B14;
+  --phub-bg-strong:      #0A1020;
+  --phub-bg-accent:      rgba(116, 97, 255, 0.12);
+  --phub-bg-accent-alt:  rgba(53, 200, 230, 0.07);
+  --phub-surface:        #0E1626;
+  --phub-surface-soft:   #151F32;
+  --phub-surface-raised: #1A263B;
+  --phub-text:           #F4F7FC;
+  --phub-text-muted:     #B7C3D6;
+  --phub-text-subtle:    #8796AD;
+  --phub-border:         rgba(180, 199, 226, 0.13);
+  --phub-border-strong:  rgba(180, 199, 226, 0.22);
+  --phub-shadow-soft:    0 10px 30px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(180, 199, 226, 0.05);
+  --phub-shadow-hover:   0 18px 44px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(180, 199, 226, 0.10);
+  --phub-shadow-glow:    0 0 30px rgba(139, 124, 255, 0.22);
+  --phub-gradient-brand: linear-gradient(135deg, #28235F 0%, #7357E8 58%, #2387A5 100%);
   --phub-border-focus:   var(--phub-primary);
 }
