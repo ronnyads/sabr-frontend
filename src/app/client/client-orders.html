@@ -206,6 +206,10 @@
                   <small>Estoque visivel</small>
                   <strong>{{ item.availableStock ?? '—' }}</strong>
                 </div>
+                <div *ngIf="item.unitPrice != null">
+                  <small>Valor vendido</small>
+                  <strong>{{ (item.unitPrice * item.quantity) | currency:(item.currencyId || 'BRL'):'symbol':'1.2-2':'pt-BR' }}</strong>
+                </div>
               </div>
 
               <div class="mapping-summary" *ngIf="isTikTokOrder(order)">

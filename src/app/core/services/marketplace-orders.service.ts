@@ -65,6 +65,9 @@ export interface MarketplaceOrderItemDetail {
   sabrVariantSku?: string | null;
   productName?: string | null;
   quantity: number;
+  currencyId?: string | null;
+  unitPrice?: number | null;
+  saleFee?: number | null;
   reservedQuantity: number;
   missingQuantity: number;
   availableStock?: number | null;
@@ -80,6 +83,10 @@ export interface MarketplaceOrderListItem {
   sellerId: string;
   mlOrderId: string;
   status: string;
+  channelCreatedAt?: string | null;
+  currencyId?: string | null;
+  totalAmount?: number | null;
+  paidAmount?: number | null;
   paidAt?: string | null;
   sabrPaymentConfirmedAt?: string | null;
   shippingMode?: string | null;
@@ -115,6 +122,10 @@ export interface MarketplaceOrderDetail {
   sellerId: string;
   mlOrderId: string;
   status: string;
+  channelCreatedAt?: string | null;
+  currencyId?: string | null;
+  totalAmount?: number | null;
+  paidAmount?: number | null;
   paidAt?: string | null;
   sabrPaymentConfirmedAt?: string | null;
   shipmentId?: string | null;

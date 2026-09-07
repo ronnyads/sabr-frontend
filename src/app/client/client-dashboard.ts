@@ -1,394 +1,128 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NbButtonModule, NbCardModule } from '@nebular/theme';
+import { NbButtonModule } from '@nebular/theme';
+import { finalize } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
-import { ClientDocumentResult, ClientDocumentsService } from '../core/services/client-documents.service';
+import {
+  ClientSalesDashboardResult,
+  ClientSalesDailyResult,
+  ClientSalesDashboardService,
+  ClientSalesStatusResult
+} from '../core/services/client-sales-dashboard.service';
 import { ClientProfileService } from '../core/services/client-profile.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
-import {
-  DocumentStatus,
-  REQUIRED_PJ_DOCUMENT_TYPES,
-  normalizeDocumentStatus
-} from '../core/utils/document-status.constants';
-import { environment } from '../../environments/environment';
-
-type DocsUiState =
-  | 'DOCS_PENDING'
-  | 'DOCS_UNDER_REVIEW'
-  | 'DOCS_REJECTED'
-  | 'DOCS_ALL_APPROVED'
-  | 'DOCS_UNKNOWN';
 
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
-  imports: [CommonModule, NbCardModule, NbButtonModule],
+  imports: [CommonModule, NbButtonModule],
   templateUrl: './client-dashboard.html',
   styleUrls: ['./client-dashboard.scss']
 })
 export class ClientDashboard implements OnInit {
-  readonly redesignV1 = !!environment.ui?.redesignClientDashboardV1;
-  docsUiState: DocsUiState = 'DOCS_UNKNOWN';
-  private docsByType: Partial<Record<number, ClientDocumentResult>> = {};
+  readonly periods = [{ label: '7 dias', days: 7 }, { label: '30 dias', days: 30 }, { label: '90 dias', days: 90 }];
+  selectedDays = 30;
+  readonly selectedProvider = 'MercadoLivre';
+  loading = true;
+  errorMessage = '';
+  dashboard?: ClientSalesDashboardResult;
 
   constructor(
-    private auth: AuthService,
-    private router: Router,
-    private documentsService: ClientDocumentsService,
-    private profileService: ClientProfileService
+    private readonly auth: AuthService,
+    private readonly router: Router,
+    private readonly salesDashboard: ClientSalesDashboardService,
+    private readonly profileService: ClientProfileService
   ) {}
 
   ngOnInit(): void {
     this.refreshClientStatus();
-    this.loadDocumentsState();
+    this.loadDashboard();
   }
 
-  get userName(): string {
-    return this.auth.currentUser?.name ?? 'Cliente';
+  get userName(): string { return this.auth.currentUser?.name?.split(' ')[0] ?? 'Cliente'; }
+  get status(): number { return this.auth.currentUser?.status ?? ClientStatus.PendingProfile; }
+  get isApproved(): boolean { return this.status === ClientStatus.Approved; }
+
+  get chartDays(): ClientSalesDailyResult[] {
+    const days = this.dashboard?.dailySales ?? [];
+    return days.length > 31 ? days.filter((_, index) => index % 3 === 0 || index === days.length - 1) : days;
   }
 
-  get statusLabel(): string {
-    const status = this.status;
-    if (status !== ClientStatus.Approved) {
-      if (this.docsUiState === 'DOCS_ALL_APPROVED') {
-        return 'Docs aprovados';
-      }
+  get maxDailyRevenue(): number { return Math.max(1, ...this.chartDays.map(day => day.revenue)); }
 
-      if (this.docsUiState === 'DOCS_UNDER_REVIEW') {
-        return 'Em analise';
-      }
-
-      if (this.docsUiState === 'DOCS_REJECTED') {
-        return 'Rejeitado';
-      }
-
-      if (this.docsUiState === 'DOCS_PENDING') {
-        return 'Pend. documentos';
-      }
-    }
-
-    switch (status) {
-      case ClientStatus.PendingProfile:
-        return 'Cadastro incompleto';
-      case ClientStatus.PendingAdminApproval:
-        return 'Aguardando aprovacao';
-      case ClientStatus.PendingDocuments:
-        return 'Pend. documentos';
-      case ClientStatus.UnderReview:
-        return 'Em analise';
-      case ClientStatus.Approved:
-        return 'Aprovado';
-      case ClientStatus.Rejected:
-        return 'Rejeitado';
-      case ClientStatus.Inactive:
-        return 'Inativo';
-      default:
-        return 'Status indefinido';
-    }
+  get statusGradient(): string {
+    const statuses = this.dashboard?.statuses ?? [];
+    if (statuses.length === 0) return 'conic-gradient(#e8edf5 0 100%)';
+    const colors = ['#16a57a', '#2f75ff', '#ffb547', '#f15b68', '#7c5cff', '#6f7d94'];
+    let cursor = 0;
+    const segments = statuses.map((status, index) => {
+      const start = cursor;
+      cursor += status.percentage;
+      return `${colors[index % colors.length]} ${start}% ${cursor}%`;
+    });
+    return `conic-gradient(${segments.join(', ')})`;
   }
 
-  get status(): number {
-    return this.auth.currentUser?.status ?? ClientStatus.PendingProfile;
+  loadDashboard(): void {
+    const to = new Date();
+    const from = new Date(to);
+    from.setDate(from.getDate() - (this.selectedDays - 1));
+    from.setHours(0, 0, 0, 0);
+    this.loading = true;
+    this.errorMessage = '';
+    this.salesDashboard.getSales({ from, to, provider: this.selectedProvider })
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: result => (this.dashboard = result),
+        error: () => (this.errorMessage = 'Não foi possível atualizar suas vendas. Verifique a integração e tente novamente.')
+      });
   }
 
-  get mustChangePassword(): boolean {
-    return !!this.auth.currentUser?.mustChangePassword;
+  selectPeriod(days: number): void {
+    if (this.selectedDays === days) return;
+    this.selectedDays = days;
+    this.loadDashboard();
   }
 
-  get showCompleteProfileCta(): boolean {
-    return this.mustChangePassword || this.status === ClientStatus.PendingProfile;
+  goToOrders(): void { void this.router.navigate(['/client/orders']); }
+  goToIntegration(): void { void this.router.navigate(['/client/integrations/mercadolivre']); }
+  goToOnboarding(): void { void this.router.navigate(['/client/onboarding']); }
+
+  formatMoney(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: this.dashboard?.currencyId || 'BRL', maximumFractionDigits: 2
+    }).format(value || 0);
   }
 
-  get showDocumentsCta(): boolean {
-    if (this.showCompleteProfileCta || this.status === ClientStatus.Inactive) {
-      return false;
-    }
-
-    if (this.docsUiState === 'DOCS_ALL_APPROVED') {
-      return false;
-    }
-
-    if (this.docsUiState === 'DOCS_UNKNOWN') {
-      return (
-        this.status === ClientStatus.PendingDocuments ||
-        this.status === ClientStatus.UnderReview ||
-        this.status === ClientStatus.Rejected
-      );
-    }
-
-    return true;
+  formatCompactMoney(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: this.dashboard?.currencyId || 'BRL', notation: 'compact', maximumFractionDigits: 1
+    }).format(value || 0);
   }
 
-  get bannerMessage(): string {
-    if (this.showCompleteProfileCta) {
-      return 'Cadastro pendente. Conclua seu cadastro para liberar recursos do painel.';
-    }
-
-    switch (this.docsUiState) {
-      case 'DOCS_PENDING':
-        return 'Documentos pendentes. Envie os documentos para liberar as integracoes.';
-      case 'DOCS_UNDER_REVIEW':
-        return 'Documentos em analise. As integracoes serao liberadas apos aprovacao.';
-      case 'DOCS_REJECTED':
-        return 'Documentos rejeitados. Reenvie documentos ou informacoes corrigidas.';
-      case 'DOCS_ALL_APPROVED':
-        if (this.status !== ClientStatus.Approved) {
-          return 'Documentos aprovados. Aguardando aprovacao final do admin.';
-        }
-
-        return '';
-      default:
-        if (this.status === ClientStatus.PendingDocuments) {
-          return 'Documentos pendentes. Envie os documentos para liberar as integracoes.';
-        }
-
-        if (this.status === ClientStatus.UnderReview) {
-          return 'Documentos em analise. As integracoes serao liberadas apos aprovacao.';
-        }
-
-        if (this.status === ClientStatus.Rejected) {
-          return 'Documentos rejeitados. Reenvie documentos ou informacoes corrigidas.';
-        }
-
-        return '';
-    }
+  barHeight(day: ClientSalesDailyResult): number {
+    return day.revenue <= 0 ? 3 : Math.max(8, Math.round((day.revenue / this.maxDailyRevenue) * 100));
   }
 
-  get accessMessage(): string {
-    switch (this.status) {
-      case ClientStatus.PendingDocuments:
-      case ClientStatus.UnderReview:
-      case ClientStatus.Rejected:
-        return 'Acesso parcial';
-      case ClientStatus.Approved:
-        return 'Acesso total';
-      case ClientStatus.Inactive:
-        return 'Sem acesso (bloqueado no proximo login/refresh)';
-      default:
-        return '';
-    }
+  statusLabel(status: ClientSalesStatusResult): string {
+    const labels: Record<string, string> = {
+      paid: 'Pagos', confirmed: 'Confirmados', payment_required: 'Aguardando pagamento',
+      payment_in_process: 'Pagamento em análise', partially_paid: 'Parcialmente pagos',
+      partially_refunded: 'Parcialmente estornados', cancelled: 'Cancelados', invalid: 'Inválidos', unknown: 'Não identificado'
+    };
+    return labels[status.status] ?? status.status.replaceAll('_', ' ');
   }
 
-  get ctaLabel(): string {
-    if (this.showCompleteProfileCta) return 'Completar cadastro';
-
-    switch (this.docsUiState) {
-      case 'DOCS_PENDING':
-        return 'Enviar documentos';
-      case 'DOCS_UNDER_REVIEW':
-        return 'Acompanhar documentos';
-      case 'DOCS_REJECTED':
-        return 'Reenviar documentos/informacoes';
-      case 'DOCS_ALL_APPROVED':
-        return '';
-      default:
-        if (this.status === ClientStatus.PendingDocuments) return 'Enviar documentos';
-        if (this.status === ClientStatus.UnderReview) return 'Acompanhar documentos';
-        if (this.status === ClientStatus.Rejected) return 'Reenviar documentos/informacoes';
-        return '';
-    }
-  }
-
-  get statusTone(): 'success' | 'warning' | 'danger' | 'info' {
-    if (this.docsUiState === 'DOCS_REJECTED' || this.status === ClientStatus.Rejected) {
-      return 'danger';
-    }
-
-    if (this.status === ClientStatus.Approved || this.docsUiState === 'DOCS_ALL_APPROVED') {
-      return 'success';
-    }
-
-    if (
-      this.docsUiState === 'DOCS_UNDER_REVIEW' ||
-      this.status === ClientStatus.UnderReview ||
-      this.status === ClientStatus.PendingAdminApproval
-    ) {
-      return 'info';
-    }
-
-    return 'warning';
-  }
-
-  get documentsSummaryLabel(): string {
-    switch (this.docsUiState) {
-      case 'DOCS_PENDING':
-        return 'Pendentes';
-      case 'DOCS_UNDER_REVIEW':
-        return 'Em analise';
-      case 'DOCS_REJECTED':
-        return 'Reenvio necessario';
-      case 'DOCS_ALL_APPROVED':
-        return 'Aprovados';
-      default:
-        return 'Sem dados';
-    }
-  }
-
-  get journeyStepLabel(): string {
-    if (this.showCompleteProfileCta) {
-      return 'Concluir cadastro';
-    }
-
-    if (this.showDocumentsCta) {
-      return 'Regularizar documentos';
-    }
-
-    return 'Operacao liberada';
-  }
-
-  goToCta(): void {
-    if (this.showCompleteProfileCta) {
-      void this.router.navigate(['/client/onboarding']);
-      return;
-    }
-
-    if (!this.showDocumentsCta) {
-      return;
-    }
-
-    void this.router
-      .navigate(['/client/onboarding'], { queryParams: { step: 3 } })
-      .catch(() => this.router.navigate(['/client/onboarding']));
-  }
+  trendClass(value: number): string { return value > 0 ? 'trend-up' : value < 0 ? 'trend-down' : 'trend-flat'; }
+  trackByDate(_: number, item: ClientSalesDailyResult): string { return item.date; }
 
   private refreshClientStatus(): void {
     this.profileService.getProfile().subscribe({
-      next: (profile) => {
+      next: profile => {
         const status = Number(profile.status);
-        if (Number.isFinite(status)) {
-          this.auth.updateCurrentUser({ status });
-        }
-      },
-      error: () => {
-        // Keep current session status when profile cannot be refreshed.
+        if (Number.isFinite(status)) this.auth.updateCurrentUser({ status });
       }
     });
-  }
-
-  private loadDocumentsState(): void {
-    const clientId = this.auth.currentUser?.id;
-    if (!clientId) {
-      this.applyFallbackDocsStateByClientStatus();
-      return;
-    }
-
-    this.documentsService.list(clientId, 0, 200).subscribe({
-      next: (response) => {
-        this.docsByType = this.buildLatestDocsByType(response.items ?? []);
-        this.docsUiState = this.computeDocsUiState(this.docsByType);
-      },
-      error: () => {
-        this.applyFallbackDocsStateByClientStatus();
-      }
-    });
-  }
-
-  private applyFallbackDocsStateByClientStatus(): void {
-    switch (this.status) {
-      case ClientStatus.Rejected:
-        this.docsUiState = 'DOCS_REJECTED';
-        break;
-      case ClientStatus.PendingDocuments:
-        this.docsUiState = 'DOCS_PENDING';
-        break;
-      case ClientStatus.UnderReview:
-        this.docsUiState = 'DOCS_UNDER_REVIEW';
-        break;
-      case ClientStatus.Approved:
-        this.docsUiState = 'DOCS_ALL_APPROVED';
-        break;
-      default:
-        this.docsUiState = 'DOCS_UNKNOWN';
-        break;
-    }
-  }
-
-  private buildLatestDocsByType(items: ClientDocumentResult[]): Partial<Record<number, ClientDocumentResult>> {
-    const byType: Partial<Record<number, ClientDocumentResult>> = {};
-
-    for (const item of items) {
-      const type = Number(item.documentType);
-      if (!Number.isFinite(type) || type <= 0) {
-        continue;
-      }
-
-      const current = byType[type];
-      if (!current || this.effectiveDocDate(item) >= this.effectiveDocDate(current)) {
-        byType[type] = item;
-      }
-    }
-
-    return byType;
-  }
-
-  private computeDocsUiState(byType: Partial<Record<number, ClientDocumentResult>>): DocsUiState {
-    let hasRejected = false;
-    let hasMissingOrPending = false;
-    let hasUnderReview = false;
-    let allApproved = true;
-
-    for (const docType of REQUIRED_PJ_DOCUMENT_TYPES) {
-      const doc = byType[docType];
-      if (!doc) {
-        hasMissingOrPending = true;
-        allApproved = false;
-        continue;
-      }
-
-      const status = normalizeDocumentStatus(doc.status);
-      switch (status) {
-        case DocumentStatus.Rejected:
-          hasRejected = true;
-          allApproved = false;
-          break;
-        case DocumentStatus.Pending:
-          hasMissingOrPending = true;
-          allApproved = false;
-          break;
-        case DocumentStatus.UnderReview:
-          hasUnderReview = true;
-          allApproved = false;
-          break;
-        case DocumentStatus.Approved:
-          break;
-        default:
-          allApproved = false;
-          break;
-      }
-    }
-
-    if (hasRejected) return 'DOCS_REJECTED';
-    if (hasMissingOrPending) return 'DOCS_PENDING';
-    if (hasUnderReview) return 'DOCS_UNDER_REVIEW';
-    if (allApproved) return 'DOCS_ALL_APPROVED';
-    return 'DOCS_UNKNOWN';
-  }
-
-  private effectiveDocDate(doc: ClientDocumentResult): number {
-    const dynamicDoc = doc as unknown as Record<string, unknown>;
-    const timestamps = [
-      this.parseDateSafe(dynamicDoc['submittedAt']),
-      this.parseDateSafe(dynamicDoc['updatedAt']),
-      this.parseDateSafe(dynamicDoc['createdAt']),
-      this.parseDateSafe(dynamicDoc['requestedAt']),
-      this.parseDateSafe(dynamicDoc['reviewedAt'])
-    ];
-
-    return Math.max(...timestamps);
-  }
-
-  private parseDateSafe(value: unknown): number {
-    if (value == null) {
-      return 0;
-    }
-
-    const raw = String(value).trim();
-    if (!raw) {
-      return 0;
-    }
-
-    const parsed = Date.parse(raw);
-    return Number.isNaN(parsed) ? 0 : parsed;
   }
 }
