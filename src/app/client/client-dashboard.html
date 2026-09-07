@@ -150,15 +150,27 @@
 
     <article class="panel sku-panel enter-item" style="--delay: 370ms">
       <div class="panel-heading">
-        <div><span class="panel-kicker">Inteligência de catálogo</span><h2>Produtos que mais venderam</h2></div>
-        <button class="text-action" type="button" (click)="goToOrders()">Abrir pedidos <span>→</span></button>
+        <div>
+          <span class="panel-kicker">Inteligência de catálogo</span>
+          <h2>Todos os produtos vendidos</h2>
+          <p>{{ data.totalProducts || data.products?.length || data.topSkus.length }} produtos diferentes no período</p>
+        </div>
+        <label class="product-search">
+          <span aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            [(ngModel)]="productSearch"
+            (ngModelChange)="onProductSearch()"
+            placeholder="Buscar produto ou SKU"
+            aria-label="Buscar produto ou SKU">
+        </label>
       </div>
 
-      <div class="sku-table" *ngIf="data.topSkus.length; else noSkus">
+      <div class="sku-table" *ngIf="filteredProducts.length; else noSkus">
         <div class="sku-table-head"><span>Produto / SKU</span><span>Pedidos</span><span>Unidades</span><span>Vendas</span></div>
-        <div class="sku-row" *ngFor="let sku of data.topSkus; let position = index">
+        <div class="sku-row" *ngFor="let sku of pagedProducts; let position = index">
           <div class="sku-identity">
-            <b>{{ position + 1 | number:'2.0-0' }}</b>
+            <b>{{ ((productPage - 1) * productPageSize) + position + 1 | number:'2.0-0' }}</b>
             <div><strong>{{ sku.productName || 'Produto do canal' }}</strong><span>{{ sku.sku }}</span></div>
             <em [class.unmapped]="!sku.isMapped">{{ sku.isMapped ? 'Mapeado' : 'Revisar SKU' }}</em>
           </div>
@@ -167,7 +179,15 @@
           <strong data-label="Vendas">{{ formatMoney(sku.revenue) }}</strong>
         </div>
       </div>
-      <ng-template #noSkus><div class="compact-empty">O ranking será montado assim que houver itens vendidos no período.</div></ng-template>
+      <footer class="product-pagination" *ngIf="filteredProducts.length">
+        <span>Exibindo {{ ((productPage - 1) * productPageSize) + 1 }}–{{ productPage * productPageSize > filteredProducts.length ? filteredProducts.length : productPage * productPageSize }} de {{ filteredProducts.length }}</span>
+        <div>
+          <button type="button" (click)="setProductPage(productPage - 1)" [disabled]="productPage === 1" aria-label="Página anterior">←</button>
+          <strong>{{ productPage }} / {{ productPageCount }}</strong>
+          <button type="button" (click)="setProductPage(productPage + 1)" [disabled]="productPage === productPageCount" aria-label="Próxima página">→</button>
+        </div>
+      </footer>
+      <ng-template #noSkus><div class="compact-empty">{{ productSearch ? 'Nenhum produto corresponde à busca.' : 'Os produtos aparecerão assim que houver vendas pagas no período.' }}</div></ng-template>
     </article>
   </ng-container>
 </section>

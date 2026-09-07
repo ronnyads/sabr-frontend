@@ -4,7 +4,16 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface ClientSalesDailyResult { date: string; orders: number; units: number; revenue: number; }
-export interface ClientSalesSkuResult { sku: string; productName?: string | null; orders: number; units: number; revenue: number; isMapped: boolean; }
+export interface ClientSalesSkuResult {
+  channelItemId: string;
+  channelVariationId?: string | null;
+  sku: string;
+  productName?: string | null;
+  orders: number;
+  units: number;
+  revenue: number;
+  isMapped: boolean;
+}
 export interface ClientSalesStatusResult { status: string; orders: number; percentage: number; }
 
 export interface ClientSalesDashboardResult {
@@ -25,6 +34,8 @@ export interface ClientSalesDashboardResult {
   ordersChangePercent: number;
   revenueChangePercent: number;
   dailySales: ClientSalesDailyResult[];
+  totalProducts?: number;
+  products?: ClientSalesSkuResult[];
   topSkus: ClientSalesSkuResult[];
   statuses: ClientSalesStatusResult[];
 }

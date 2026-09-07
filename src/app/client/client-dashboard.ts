@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NbButtonModule } from '@nebular/theme';
 import { finalize } from 'rxjs';
@@ -8,6 +9,7 @@ import {
   ClientSalesDashboardResult,
   ClientSalesDailyResult,
   ClientSalesDashboardService,
+  ClientSalesSkuResult,
   ClientSalesStatusResult
 } from '../core/services/client-sales-dashboard.service';
 import { ClientProfileService } from '../core/services/client-profile.service';
@@ -16,7 +18,7 @@ import { ClientStatus } from '../core/utils/client-status.constants';
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
-  imports: [CommonModule, NbButtonModule],
+  imports: [CommonModule, FormsModule, NbButtonModule],
   templateUrl: './client-dashboard.html',
   styleUrls: ['./client-dashboard.scss']
 })
@@ -27,6 +29,9 @@ export class ClientDashboard implements OnInit {
   loading = true;
   errorMessage = '';
   dashboard?: ClientSalesDashboardResult;
+  productSearch = '';
+  productPage = 1;
+  readonly productPageSize = 10;
 
   constructor(
     private readonly auth: AuthService,
@@ -51,6 +56,22 @@ export class ClientDashboard implements OnInit {
 
   get maxDailyRevenue(): number { return Math.max(1, ...this.chartDays.map(day => day.revenue)); }
 
+  get filteredProducts(): ClientSalesSkuResult[] {
+    const products = this.dashboard?.products ?? this.dashboard?.topSkus ?? [];
+    const query = this.productSearch.trim().toLocaleLowerCase('pt-BR');
+    if (!query) return products;
+    return products.filter(product =>
+      [product.productName, product.sku, product.channelItemId, product.channelVariationId]
+        .some(value => value?.toLocaleLowerCase('pt-BR').includes(query)));
+  }
+
+  get productPageCount(): number { return Math.max(1, Math.ceil(this.filteredProducts.length / this.productPageSize)); }
+
+  get pagedProducts(): ClientSalesSkuResult[] {
+    const start = (this.productPage - 1) * this.productPageSize;
+    return this.filteredProducts.slice(start, start + this.productPageSize);
+  }
+
   get statusGradient(): string {
     const statuses = this.dashboard?.statuses ?? [];
     if (statuses.length === 0) return 'conic-gradient(#e8edf5 0 100%)';
@@ -74,7 +95,10 @@ export class ClientDashboard implements OnInit {
     this.salesDashboard.getSales({ from, to, provider: this.selectedProvider })
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: result => (this.dashboard = result),
+        next: result => {
+          this.dashboard = result;
+          this.productPage = 1;
+        },
         error: () => (this.errorMessage = 'Não foi possível atualizar suas vendas. Verifique a integração e tente novamente.')
       });
   }
@@ -83,6 +107,12 @@ export class ClientDashboard implements OnInit {
     if (this.selectedDays === days) return;
     this.selectedDays = days;
     this.loadDashboard();
+  }
+
+  onProductSearch(): void { this.productPage = 1; }
+
+  setProductPage(page: number): void {
+    this.productPage = Math.min(this.productPageCount, Math.max(1, page));
   }
 
   goToOrders(): void { void this.router.navigate(['/client/orders']); }
