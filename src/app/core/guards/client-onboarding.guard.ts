@@ -1,7 +1,7 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { ClientStatus } from '../utils/client-status.constants';
+import { needsClientOnboarding } from '../utils/client-onboarding-flow';
 
 /**
  * Redirects to onboarding only for users who haven't even started their profile
@@ -19,13 +19,7 @@ export const clientOnboardingGuard: CanActivateFn = () => {
     return router.createUrlTree(['/login']);
   }
 
-  const status = user.status ?? ClientStatus.PendingProfile;
-
-  // Force onboarding only for users with incomplete profile or mandatory password change
-  const mustOnboard =
-    !!user.mustChangePassword || status === ClientStatus.PendingProfile;
-
-  if (mustOnboard) {
+  if (needsClientOnboarding(user)) {
     return router.createUrlTree(['/client/onboarding']);
   }
 

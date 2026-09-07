@@ -38,6 +38,11 @@ import { ClientStatus } from '../core/utils/client-status.constants';
 import { DocumentStatus, REQUIRED_PJ_DOCUMENT_TYPES } from '../core/utils/document-status.constants';
 import { environment } from '../../environments/environment';
 import { ThemeService } from '../core/services/theme.service';
+import {
+  isPasswordChangeOnly,
+  needsClientOnboarding,
+  postPasswordChangeAction
+} from '../core/utils/client-onboarding-flow';
 
 @Component({
   selector: 'app-client-onboarding',
@@ -84,6 +89,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
 
   showCurrentPassword = false;
   showNewPassword = false;
+  passwordChangeOnly = false;
 
   readonly requiredDocuments: Array<{ type: number; label: string }> = [
     { type: REQUIRED_PJ_DOCUMENT_TYPES[0], label: 'Certidao CNPJ' },
@@ -189,14 +195,14 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     // O onboarding só faz sentido para PendingProfile ou troca de senha obrigatória.
     const status = this.auth.currentUser?.status ?? ClientStatus.PendingProfile;
     const needsOnboarding =
-      this.mustChangePassword ||
-      status === ClientStatus.PendingProfile ||
-      status === ClientStatus.PendingDocuments;
+      needsClientOnboarding(this.auth.currentUser) || status === ClientStatus.PendingDocuments;
 
     if (!needsOnboarding) {
       void this.router.navigate(['/client/dashboard']);
       return;
     }
+
+    this.passwordChangeOnly = isPasswordChangeOnly(this.auth.currentUser);
 
     this.currentStep = this.computeInitialStep();
 
@@ -322,6 +328,10 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   }
 
   get progressPercent(): number {
+    if (this.passwordChangeOnly) {
+      return 100;
+    }
+
     return ((this.currentStep + 1) / this.steps.length) * 100;
   }
 
@@ -505,8 +515,22 @@ export class ClientOnboarding implements OnInit, OnDestroy {
           }
           // Disparar save e avancar automaticamente ao concluir
           this.savePassword(() => {
-            this.currentStep = 1;
+            const action = postPasswordChangeAction({
+              status: this.auth.currentUser?.status,
+              mustChangePassword: false
+            });
+
+            if (action === 'dashboard') {
+              this.passwordMessage = 'Senha atualizada com sucesso. Redirecionando para o painel...';
+              void this.router.navigate(['/client/dashboard']);
+              return;
+            }
+
+            this.currentStep = action === 'documents' ? this.documentsStepIndex : 1;
             this.persistStep(this.currentStep);
+            if (action === 'documents' && this.canUploadDocuments) {
+              this.loadDocuments();
+            }
           });
           return;
         }

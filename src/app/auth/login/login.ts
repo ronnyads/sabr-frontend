@@ -17,6 +17,7 @@ import { AUTH_REALM, AuthRealm } from '../../core/tokens/auth-realm';
 import { BACKEND_OFFLINE_HINT_KEY, BACKEND_OFFLINE_MESSAGE } from '../../core/services/csrf.service';
 import { environment } from '../../../environments/environment';
 import { ThemeService } from '../../core/services/theme.service';
+import { needsClientOnboarding } from '../../core/utils/client-onboarding-flow';
 
 @Component({
   selector: 'app-login',
@@ -131,7 +132,7 @@ export class Login implements OnDestroy, OnInit {
           }
 
           if (this.realm === 'client') {
-            const mustOnboard = !!response.user.mustChangePassword || response.user.status === 0;
+            const mustOnboard = needsClientOnboarding(response.user);
             const destination = mustOnboard ? '/client/onboarding' : '/client/dashboard';
             this.authDebugLog.logLoginSuccess({
               realm: this.resolveDebugRealm(),

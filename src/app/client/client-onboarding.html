@@ -21,7 +21,7 @@
     </div>
 
     <!-- Stepper nav -->
-    <nav class="stepper">
+    <nav class="stepper" *ngIf="!passwordChangeOnly">
       <div
         class="step"
         *ngFor="let step of steps; let i = index"
@@ -42,10 +42,18 @@
         </div>
       </div>
     </nav>
+    <nav class="stepper" *ngIf="passwordChangeOnly" aria-label="Troca obrigatória de senha">
+      <div class="step active">
+        <div class="circle"><span class="circle-num">1</span></div>
+        <div class="label">Nova senha</div>
+      </div>
+    </nav>
 
     <!-- Progress bar -->
     <div class="sidebar-progress">
-      <div class="sidebar-progress-label">Progresso geral</div>
+      <div class="sidebar-progress-label">
+        {{ passwordChangeOnly ? 'Etapa única' : 'Progresso geral' }}
+      </div>
       <div class="sidebar-progress-bar">
         <div class="sidebar-progress-fill" [style.width.%]="progressPercent"></div>
       </div>
@@ -81,16 +89,25 @@
     <!-- Header -->
     <header class="content-header">
       <div class="header-text">
-        <span class="eyebrow">Onboarding Corporativo</span>
+        <span class="eyebrow">
+          {{ passwordChangeOnly ? 'Segurança da conta' : 'Onboarding Corporativo' }}
+        </span>
         <h1>
           {{
-            currentStep === 0 ? 'Seguran&ccedil;a da conta'
+            passwordChangeOnly ? 'Defina sua nova senha'
+            : currentStep === 0 ? 'Seguran&ccedil;a da conta'
             : currentStep === 1 ? 'Perfil da empresa'
             : currentStep === 2 ? 'Contato &amp; Endere&ccedil;o'
             : 'Verifica&ccedil;&atilde;o final'
           }}
         </h1>
-        <p class="subhead">Complete o perfil da sua empresa para iniciar sua opera&ccedil;&atilde;o de dropshipping.</p>
+        <p class="subhead">
+          {{
+            passwordChangeOnly
+              ? 'Use a senha temporária recebida e escolha uma nova senha para acessar seu painel.'
+              : 'Complete o perfil da sua empresa para iniciar sua operação de dropshipping.'
+          }}
+        </p>
         <span class="status-pill" [ngClass]="'status-' + statusTone">{{ statusLabel }}</span>
       </div>
       <!-- theme toggle only visible on mobile (sidebar handles desktop) -->
@@ -99,7 +116,7 @@
     </header>
 
     <!-- Mobile progress -->
-    <div class="mobile-progress">
+    <div class="mobile-progress" *ngIf="!passwordChangeOnly">
       <div class="progress-top">
         <span>Passo {{ currentStep + 1 }} de {{ steps.length }}</span>
         <span class="progress-label">
@@ -138,10 +155,12 @@
 
         <div class="grid two">
           <div class="field-group">
-            <label class="input-label">Senha atual</label>
+            <label class="input-label" for="current-password">
+              {{ passwordChangeOnly ? 'Senha temporária' : 'Senha atual' }}
+            </label>
             <div style="position: relative;">
-              <input class="premium-input" [type]="showCurrentPassword ? 'text' : 'password'" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-                nbInput fullWidth formControlName="currentPassword" />
+              <input id="current-password" class="premium-input" [type]="showCurrentPassword ? 'text' : 'password'" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                nbInput fullWidth formControlName="currentPassword" autocomplete="current-password" />
               <button type="button" (click)="toggleCurrentPasswordVisibility()"
                 style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; padding: 0; display: flex; align-items: center; justify-content: center;">
                 <nb-icon [icon]="showCurrentPassword ? 'eye-off-outline' : 'eye-outline'" style="width: 20px; height: 20px;"></nb-icon>
@@ -150,12 +169,12 @@
           </div>
           <div class="field-group">
             <div class="label-row">
-              <label class="input-label">Nova senha</label>
+              <label class="input-label" for="new-password">Nova senha</label>
               <span class="badge-required">Obrigat&oacute;rio</span>
             </div>
             <div style="position: relative;">
-              <input class="premium-input" [type]="showNewPassword ? 'text' : 'password'" placeholder="Sua nova senha"
-                nbInput fullWidth formControlName="newPassword" />
+              <input id="new-password" class="premium-input" [type]="showNewPassword ? 'text' : 'password'" placeholder="Sua nova senha"
+                nbInput fullWidth formControlName="newPassword" autocomplete="new-password" />
               <button type="button" (click)="toggleNewPasswordVisibility()"
                 style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; padding: 0; display: flex; align-items: center; justify-content: center;">
                 <nb-icon [icon]="showNewPassword ? 'eye-off-outline' : 'eye-outline'" style="width: 20px; height: 20px;"></nb-icon>
@@ -395,14 +414,18 @@
         (click)="nextStep()" [disabled]="loadingProfile || submittingDocuments || loadingPassword">
         {{
           currentStep === 0 && mustChangePassword
-            ? (loadingPassword ? 'Salvando senha...' : 'Salvar senha e continuar')
+            ? (loadingPassword
+                ? 'Salvando senha...'
+                : passwordChangeOnly
+                  ? 'Salvar nova senha e acessar'
+                  : 'Salvar senha e continuar')
           : currentStep === steps.length - 1
             ? (loadingProfile || submittingDocuments ? 'Processando...' : 'Enviar para aprovação')
           : 'Continuar'
         }}
       </button>
       <div class="cta-secondary">
-        <button nbButton status="basic" ghost size="small" (click)="prevStep()" [disabled]="currentStep === 0">
+        <button *ngIf="!passwordChangeOnly" nbButton status="basic" ghost size="small" (click)="prevStep()" [disabled]="currentStep === 0">
           Voltar
         </button>
         <a class="link" routerLink="/login">Salvar depois / Voltar ao login</a>
