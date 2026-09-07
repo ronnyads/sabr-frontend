@@ -494,9 +494,10 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   logout(): void {
     this.auth
       .logout()
-      .pipe(finalize(() => this.router.navigate(['/login'])))
+      .pipe(finalize(() => this.router.navigate(['/login'], { replaceUrl: true })))
       .subscribe({
-        error: () => this.router.navigate(['/login'])
+        // AuthService clears the local session in finalize, including on errors.
+        error: () => {}
       });
   }
 
@@ -1398,32 +1399,54 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     const whatsappDigits = this.onlyDigits(profile.whatsapp ?? '');
     const zipDigits = this.onlyDigits(profile.zipCode ?? '');
 
+    const current = this.profileForm.getRawValue();
+    const preferPersistedValue = (serverValue: string | null | undefined, draftValue: unknown): string => {
+      const normalized = serverValue?.toString().trim();
+      return normalized ? normalized : (draftValue?.toString() ?? '');
+    };
+
+    // A partially populated legacy profile must not erase the local autosaved
+    // draft. Non-empty server values remain authoritative; missing values fall
+    // back to what the customer already typed on this browser.
+    const resolvedState = preferPersistedValue(stateRaw, current.state).toUpperCase();
+    const resolvedStateRegistration = stateRegistrationRaw.trim()
+      ? formatIE(stateRegistrationRaw, resolvedState)
+      : (current.stateRegistration ?? '');
+    const hasPersistedStateRegistration = !!stateRegistrationRaw.trim() || profile.isStateRegistrationExempt === true;
+
     const patch: Record<string, unknown> = {
       personType,
-      legalName: profile.legalName ?? '',
-      tradeName: profile.tradeName ?? '',
+      legalName: preferPersistedValue(profile.legalName, current.legalName),
+      tradeName: preferPersistedValue(profile.tradeName, current.tradeName),
       document: documentDigits
         ? (personType === 1 ? this.formatCpf(documentDigits) : this.formatCnpj(documentDigits))
-        : '',
+        : (current.document ?? ''),
       stateRegistration: isStateRegistrationExempt
         ? 'ISENTO'
-        : formatIE(stateRegistrationRaw, stateRaw),
-      isStateRegistrationExempt,
-      email: profile.email ?? this.profileForm.get('email')?.value ?? '',
-      whatsapp: whatsappDigits ? this.formatWhatsapp(whatsappDigits) : '',
-      birthDate: this.normalizeBirthDateForInput(profile.birthDate),
-      zipCode: zipDigits ? formatCep(zipDigits) : '',
-      street: profile.street ?? '',
-      number: profile.number ?? '',
-      district: profile.district ?? '',
-      city: profile.city ?? '',
-      state: stateRaw,
-      complement: profile.complement ?? '',
-      responsibleName: profile.responsibleName ?? this.profileForm.get('responsibleName')?.value ?? '',
-      responsibleDocument: responsibleDocumentDigits ? this.formatCpf(responsibleDocumentDigits) : ''
+        : resolvedStateRegistration,
+      isStateRegistrationExempt: hasPersistedStateRegistration
+        ? isStateRegistrationExempt
+        : !!current.isStateRegistrationExempt,
+      email: preferPersistedValue(profile.email, current.email),
+      whatsapp: whatsappDigits ? this.formatWhatsapp(whatsappDigits) : (current.whatsapp ?? ''),
+      birthDate: profile.birthDate
+        ? this.normalizeBirthDateForInput(profile.birthDate)
+        : (current.birthDate ?? ''),
+      zipCode: zipDigits ? formatCep(zipDigits) : (current.zipCode ?? ''),
+      street: preferPersistedValue(profile.street, current.street),
+      number: preferPersistedValue(profile.number, current.number),
+      district: preferPersistedValue(profile.district, current.district),
+      city: preferPersistedValue(profile.city, current.city),
+      state: resolvedState,
+      complement: preferPersistedValue(profile.complement, current.complement),
+      responsibleName: preferPersistedValue(profile.responsibleName, current.responsibleName),
+      responsibleDocument: responsibleDocumentDigits
+        ? this.formatCpf(responsibleDocumentDigits)
+        : (current.responsibleDocument ?? '')
     };
 
     this.profileForm.patchValue(patch, { emitEvent: false });
+    this.persistProfileDraft();
     this.toggleStateRegistration();
     this.syncCnpjOutsideSpWarningState();
   }
