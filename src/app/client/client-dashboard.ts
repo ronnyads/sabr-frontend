@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NbButtonModule } from '@nebular/theme';
@@ -48,6 +48,54 @@ export class ClientDashboard implements OnInit {
   get userName(): string { return this.auth.currentUser?.name?.split(' ')[0] ?? 'Cliente'; }
   get status(): number { return this.auth.currentUser?.status ?? ClientStatus.PendingProfile; }
   get isApproved(): boolean { return this.status === ClientStatus.Approved; }
+  get isAwaitingApproval(): boolean {
+    return this.status === ClientStatus.UnderReview || this.status === ClientStatus.PendingAdminApproval;
+  }
+  get accessAlertTone(): 'warning' | 'info' | 'danger' {
+    if (this.isAwaitingApproval) return 'info';
+    if (this.status === ClientStatus.Rejected || this.status === ClientStatus.Inactive) return 'danger';
+    return 'warning';
+  }
+  get accessAlertTitle(): string {
+    switch (this.status) {
+      case ClientStatus.PendingDocuments: return 'Documentos enviados';
+      case ClientStatus.UnderReview:
+      case ClientStatus.PendingAdminApproval: return 'Aguardando aprovação';
+      case ClientStatus.Rejected: return 'Cadastro precisa de ajustes';
+      case ClientStatus.Inactive: return 'Conta inativa';
+      default: return 'Conclua seu cadastro';
+    }
+  }
+  get accessAlertMessage(): string {
+    switch (this.status) {
+      case ClientStatus.PendingDocuments:
+        return 'Confirme o envio para que seus documentos entrem na fila de análise.';
+      case ClientStatus.UnderReview:
+      case ClientStatus.PendingAdminApproval:
+        return 'Seus dados e documentos foram recebidos e estão aguardando aprovação administrativa.';
+      case ClientStatus.Rejected:
+        return 'Revise os dados ou documentos indicados para continuar a liberação.';
+      case ClientStatus.Inactive:
+        return 'Entre em contato com o suporte para verificar a situação da conta.';
+      default:
+        return 'Finalize seus dados cadastrais para operar todos os recursos da plataforma.';
+    }
+  }
+  get accessAlertAction(): string {
+    if (this.status === ClientStatus.PendingDocuments) return 'Concluir envio';
+    if (this.status === ClientStatus.Rejected) return 'Revisar pendências';
+    return 'Continuar cadastro';
+  }
+  get showAccessAlertAction(): boolean {
+    return this.status === ClientStatus.PendingProfile ||
+      this.status === ClientStatus.PendingDocuments ||
+      this.status === ClientStatus.Rejected;
+  }
+
+  @HostListener('window:focus')
+  onWindowFocus(): void {
+    this.refreshClientStatus();
+  }
 
   get chartDays(): ClientSalesDailyResult[] {
     const days = this.dashboard?.dailySales ?? [];

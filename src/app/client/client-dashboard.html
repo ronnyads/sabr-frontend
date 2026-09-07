@@ -23,13 +23,13 @@
     </div>
   </header>
 
-  <aside class="access-alert" *ngIf="!isApproved">
-    <div class="alert-symbol">!</div>
+  <aside class="access-alert" *ngIf="!isApproved" [ngClass]="'access-alert--' + accessAlertTone" aria-live="polite">
+    <div class="alert-symbol">{{ isAwaitingApproval ? '✓' : '!' }}</div>
     <div>
-      <strong>Conclua sua liberação</strong>
-      <span>Finalize cadastro e documentos para operar todos os recursos da plataforma.</span>
+      <strong>{{ accessAlertTitle }}</strong>
+      <span>{{ accessAlertMessage }}</span>
     </div>
-    <button type="button" (click)="goToOnboarding()">Revisar cadastro</button>
+    <button *ngIf="showAccessAlertAction" type="button" (click)="goToOnboarding()">{{ accessAlertAction }}</button>
   </aside>
 
   <div class="dashboard-error" *ngIf="!loading && errorMessage">

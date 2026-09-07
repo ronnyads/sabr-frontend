@@ -143,6 +143,31 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
   font-weight: 900;
 }
 
+.access-alert--info {
+  border-color: rgba(47, 117, 255, 0.28);
+  background: #f2f7ff;
+
+  span { color: #526b8e; }
+
+  .alert-symbol {
+    color: #2163d6;
+    background: rgba(47, 117, 255, 0.13);
+  }
+}
+
+.access-alert--danger {
+  border-color: rgba(232, 79, 96, 0.3);
+  background: #fff6f7;
+
+  span { color: #8b5560; }
+  button { color: #b72e41; }
+
+  .alert-symbol {
+    color: #b72e41;
+    background: rgba(232, 79, 96, 0.12);
+  }
+}
+
 .dashboard-error {
   justify-content: space-between;
   border-color: rgba(232, 79, 96, 0.3);
@@ -376,6 +401,8 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 
   .attention-card.has-attention { background: rgba(251, 191, 90, 0.06); }
   .access-alert { background: rgba(251, 191, 90, 0.08); }
+  .access-alert--info { background: rgba(114, 163, 255, 0.09); }
+  .access-alert--danger { background: rgba(255, 123, 140, 0.08); }
   .dashboard-error { background: rgba(255, 123, 140, 0.08); }
   .status-ring > div { background: #0e1626; }
   .bar-chart { background: repeating-linear-gradient(to bottom, rgba(180, 199, 226, 0.10) 0 1px, transparent 1px 54px); }
