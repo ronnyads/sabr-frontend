@@ -90,6 +90,11 @@ export const clientRoutes: Routes = [
         loadComponent: () => import('./client/client-orders').then((m) => m.ClientOrders),
         canActivate: [clientOnboardingGuard]
       },
+      {
+        path: 'wallet',
+        loadComponent: () => import('./client/client-wallet').then((m) => m.ClientWalletPage),
+        canActivate: [clientFullAccessGuard]
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' }
     ]
   },

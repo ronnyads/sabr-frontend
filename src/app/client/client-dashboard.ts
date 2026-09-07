@@ -23,7 +23,7 @@ import { ClientStatus } from '../core/utils/client-status.constants';
   styleUrls: ['./client-dashboard.scss']
 })
 export class ClientDashboard implements OnInit {
-  readonly periods = [{ label: '7 dias', days: 7 }, { label: '30 dias', days: 30 }, { label: '90 dias', days: 90 }];
+  readonly periods = [{ label: '7 dias', days: 7 }, { label: '30 dias', days: 30 }, { label: '90 dias', days: 90 }, { label: '12 meses', days: 365 }];
   selectedDays = 30;
   readonly selectedProvider = 'MercadoLivre';
   loading = true;

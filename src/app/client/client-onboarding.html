@@ -428,7 +428,9 @@
         <button *ngIf="!passwordChangeOnly" nbButton status="basic" ghost size="small" (click)="prevStep()" [disabled]="currentStep === 0">
           Voltar
         </button>
-        <a class="link" routerLink="/login">Salvar depois / Voltar ao login</a>
+        <button class="link link-button" type="button" (click)="logout()">
+          Salvar depois / Voltar ao login
+        </button>
       </div>
     </div>
 

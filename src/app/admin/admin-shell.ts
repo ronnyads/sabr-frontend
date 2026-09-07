@@ -41,6 +41,7 @@ export class AdminShell implements OnInit, AfterViewInit, OnDestroy {
     { label: 'Pedidos', icon: 'shopping-bag-outline', link: '/orders' },
     { label: 'Compras', icon: 'clipboard-outline', link: '/procurement' },
     { label: 'Expedicao', icon: 'car-outline', link: '/fulfillment' },
+    { label: 'Depósitos', icon: 'credit-card-outline', link: '/wallet-deposits' },
     { label: 'Prompts de IA', icon: 'bulb-outline', link: '/ai-prompts' }
   ];
 

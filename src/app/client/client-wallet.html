@@ -1,0 +1,19 @@
+<main class="wallet-page">
+  <header class="page-head"><div><span class="eyebrow">FINANCEIRO</span><h1>Minha carteira</h1><p>Adicione saldo com comprovante e acompanhe cada movimentação.</p></div><div class="shield">Saldo protegido por histórico auditável</div></header>
+  <section class="balance" [class.skeleton]="loading"><div><span>Saldo disponível</span><strong>{{ format(wallet?.balanceCents) }}</strong><small>Pronto para pagamento de pedidos</small></div><div class="pending"><span>Em análise</span><strong>{{ format(wallet?.pendingDepositCents) }}</strong><small>Depósitos aguardando conferência</small></div></section>
+  <div class="grid">
+    <section class="card deposit-card"><span class="eyebrow">NOVO DEPÓSITO</span><h2>Enviar comprovante</h2><p>O saldo será liberado depois da conferência administrativa.</p>
+      <label>Valor do depósito <div class="money"><span>R$</span><input [(ngModel)]="amount" inputmode="decimal" placeholder="0,00"></div></label>
+      <label>Comprovante <input type="file" accept="application/pdf,image/jpeg,image/png" (change)="chooseFile($event)"><small>{{ proof?.name || 'PDF, JPG ou PNG • até 10 MB' }}</small></label>
+      <label>Observação <textarea [(ngModel)]="note" maxlength="500" placeholder="Ex.: transferência realizada pela conta da empresa"></textarea></label>
+      <div class="message error" *ngIf="error">{{ error }}</div><div class="message success" *ngIf="success">{{ success }}</div>
+      <button class="primary" type="button" [disabled]="sending" (click)="submit()">{{ sending ? 'Enviando…' : 'Enviar para análise' }}</button>
+    </section>
+    <section class="card history"><div class="section-title"><div><span class="eyebrow">HISTÓRICO</span><h2>Depósitos</h2></div><button type="button" (click)="load()">Atualizar</button></div>
+      <div class="empty" *ngIf="!loading && !wallet?.deposits?.length">Nenhum depósito enviado ainda.</div>
+      <article *ngFor="let item of wallet?.deposits"><div class="deposit-icon">↗</div><div class="deposit-main"><strong>{{ format(item.amountCents) }}</strong><span>{{ item.createdAt | date:'dd/MM/yyyy, HH:mm' }}</span><small *ngIf="item.reviewNote">{{ item.reviewNote }}</small></div><div class="deposit-actions"><span class="pill" [attr.data-status]="item.status">{{ status(item.status) }}</span><button (click)="proofDownload(item)">Comprovante</button></div></article>
+      <div class="ledger-title" *ngIf="wallet?.ledger?.length"><span class="eyebrow">MOVIMENTAÇÕES CONFIRMADAS</span></div>
+      <article *ngFor="let entry of wallet?.ledger"><div class="deposit-icon" [class.debit]="entry.type === 'Debit'">{{ entry.type === 'Debit' ? '↓' : '↑' }}</div><div class="deposit-main"><strong>{{ entry.type === 'Debit' ? '-' : '+' }} {{ format(entry.amountCents) }}</strong><span>{{ entry.createdAt | date:'dd/MM/yyyy, HH:mm' }}</span><small>{{ entry.referenceType || 'Ajuste de carteira' }}</small></div><div class="deposit-actions"><small>Saldo após</small><strong>{{ format(entry.balanceAfterCents) }}</strong></div></article>
+    </section>
+  </div>
+</main>

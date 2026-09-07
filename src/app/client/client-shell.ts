@@ -183,7 +183,8 @@ export class ClientShell implements OnInit, AfterViewInit {
       { label: 'Catalogo', icon: 'book-open-outline', link: '/client/catalog' },
       { label: 'Meus Produtos', icon: 'cube-outline', link: '/client/my-products' },
       { label: 'Integrações', icon: 'link-2-outline', link: '/client/integrations' },
-      { label: 'Meus Pedidos', icon: 'shopping-bag-outline', link: '/client/orders' }
+      { label: 'Meus Pedidos', icon: 'shopping-bag-outline', link: '/client/orders' },
+      { label: 'Carteira', icon: 'credit-card-outline', link: '/client/wallet' }
     ];
     if (environment.ui?.publicationsEnabled) {
       menu.splice(3, 0, { label: 'Publicacoes', icon: 'layers-outline', link: '/client/publications' });

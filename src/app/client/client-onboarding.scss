@@ -1109,6 +1109,15 @@ h1 {
   transition: opacity 150ms ease;
 }
 
+.link-button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
 .link:hover { opacity: 0.75; text-decoration: underline; }
 
 .theme-toggle {
