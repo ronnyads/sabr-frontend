@@ -331,6 +331,10 @@
   &.done strong {
     color: #0f172a;
   }
+
+  &.current strong {
+    color: #2563eb;
+  }
 }
 
 .milestone-dot {
@@ -343,6 +347,11 @@
 
 .milestone-item.done .milestone-dot {
   background: #10b981;
+}
+
+.milestone-item.current .milestone-dot {
+  background: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
 }
 
 .unmapped-alert {

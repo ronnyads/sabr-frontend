@@ -309,6 +309,11 @@
   &.done {
     background: rgba(16, 185, 129, 0.12);
   }
+
+  &.current {
+    background: rgba(59, 130, 246, 0.14);
+    outline: 1px solid rgba(59, 130, 246, 0.35);
+  }
 }
 
 .shipment-actions {

@@ -110,9 +110,9 @@
           </div>
 
           <div class="milestone-strip">
-            <div class="milestone-pill" *ngFor="let entry of milestoneEntries(shipment.milestones)" [class.done]="entry.value">
+            <div class="milestone-pill" *ngFor="let entry of milestoneEntries(shipment.milestones)" [class.done]="entry.value" [class.current]="entry.current">
               <strong>{{ entry.label }}</strong>
-              <span>{{ entry.value ? (entry.value | date:'dd/MM HH:mm') : 'Pendente' }}</span>
+              <span>{{ entry.value ? (entry.value | date:'dd/MM HH:mm') : (entry.current ? 'Etapa atual' : 'Pendente') }}</span>
             </div>
           </div>
 
@@ -136,28 +136,29 @@
               {{ isPackingLabelLoading(order, shipment) ? 'Gerando...' : 'Packing label' }}
             </button>
             <button
-              nbButton status="basic" size="tiny"
-              [disabled]="isActionLoading(order, shipment, 'processing_started')"
-              (click)="advanceMilestone(order, shipment, 'processing_started')">
-              Processar
-            </button>
-            <button
               nbButton status="warning" size="tiny"
-              [disabled]="isActionLoading(order, shipment, 'label_printed')"
+              title="Confirmar que a etiqueta foi impressa"
+              [disabled]="isActionLoading(order, shipment, 'label_printed') || isMilestoneDisabled(shipment, 'label_printed')"
               (click)="advanceMilestone(order, shipment, 'label_printed')">
-              Etiqueta
+              Marcar impressa
             </button>
             <button
               nbButton status="primary" size="tiny"
-              [disabled]="isActionLoading(order, shipment, 'separated')"
+              [disabled]="isActionLoading(order, shipment, 'separated') || isMilestoneDisabled(shipment, 'separated')"
               (click)="advanceMilestone(order, shipment, 'separated')">
-              Separado
+              Separar
+            </button>
+            <button
+              nbButton status="basic" size="tiny"
+              [disabled]="isActionLoading(order, shipment, 'processed') || isMilestoneDisabled(shipment, 'processed')"
+              (click)="advanceMilestone(order, shipment, 'processed')">
+              Processar
             </button>
             <button
               nbButton status="success" size="tiny"
-              [disabled]="isActionLoading(order, shipment, 'dispatched')"
+              [disabled]="isActionLoading(order, shipment, 'dispatched') || isMilestoneDisabled(shipment, 'dispatched')"
               (click)="advanceMilestone(order, shipment, 'dispatched')">
-              Enviar
+              Despachar
             </button>
           </div>
         </div>

@@ -90,10 +90,13 @@ export class AdminFulfillment implements OnInit, OnDestroy {
   fulfillmentStageClass(summary?: MarketplaceInternalFulfillmentSummaryResult | null): string {
     switch (summary?.stage) {
       case 'dispatched':
+      case 'processed':
       case 'separated':
         return 'label-ready';
       case 'label_printed':
         return 'label-warning';
+      case 'label_generated':
+        return 'label-ready';
       default:
         return 'label-neutral';
     }
@@ -276,15 +279,34 @@ export class AdminFulfillment implements OnInit, OnDestroy {
     return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_packing`];
   }
 
-  milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null }> {
-    return [
-      { label: 'Recebido', value: milestones.receivedAt },
-      { label: 'Pago', value: milestones.paidAt },
-      { label: 'Processamento', value: milestones.processingStartedAt },
+  isMilestoneDisabled(shipment: MarketplaceShipmentResult, milestone: string): boolean {
+    const milestones = shipment.milestones;
+    switch (milestone) {
+      case 'label_printed':
+        return !!milestones.labelPrintedAt || !milestones.labelGeneratedAt;
+      case 'separated':
+        return !!milestones.separatedAt || !milestones.labelPrintedAt;
+      case 'processed':
+        return !!(milestones.processedAt ?? milestones.processingStartedAt) || !milestones.separatedAt;
+      case 'dispatched':
+        return !!milestones.dispatchedAt || !(milestones.processedAt ?? milestones.processingStartedAt);
+      default:
+        return true;
+    }
+  }
+
+  milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null; current: boolean }> {
+    const entries = [
+      { label: 'Pedido baixado', value: milestones.receivedAt },
+      { label: 'Pedido pago', value: milestones.paidAt },
+      { label: 'Etiqueta gerada', value: milestones.labelGeneratedAt },
       { label: 'Etiqueta impressa', value: milestones.labelPrintedAt },
-      { label: 'Separado', value: milestones.separatedAt },
-      { label: 'Enviado', value: milestones.dispatchedAt }
+      { label: 'Pedido separado', value: milestones.separatedAt },
+      { label: 'Pedido processado', value: milestones.processedAt ?? milestones.processingStartedAt },
+      { label: 'Pedido despachado', value: milestones.dispatchedAt }
     ];
+    const currentIndex = entries.findIndex(entry => !entry.value);
+    return entries.map((entry, index) => ({ ...entry, current: index === currentIndex }));
   }
 
   approveCancellation(order: AdminFulfillmentOrderResult): void {

@@ -219,6 +219,50 @@
   }
 }
 
+.timeline-row td {
+  padding: 0;
+  background: rgba(59, 130, 246, 0.025);
+}
+
+.order-timeline {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  gap: 10px;
+  align-items: center;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.timeline-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 120px;
+  color: var(--phub-text-muted, #94a3b8);
+
+  strong, small { display: block; }
+  strong { color: inherit; font-size: 12px; }
+  small { margin-top: 3px; font-size: 11px; }
+
+  &.done { color: var(--phub-success, #10b981); }
+  &.current { color: #3b82f6; }
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.timeline-step.done .timeline-dot { background: var(--phub-success, #10b981); }
+.timeline-step.current .timeline-dot {
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}
+
 // ── Status badges ─────────────────────────────────────────────────────────────
 
 .status-badge {

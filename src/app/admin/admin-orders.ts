@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NbButtonModule, NbIconModule, NbToastrService } from '@nebular/theme';
 import { Subject, takeUntil } from 'rxjs';
-import { AdminOrderListItem, AdminOrdersService } from '../core/services/admin-orders.service';
+import { AdminOrderListItem, AdminOrdersService, MarketplaceShipmentMilestonesResult } from '../core/services/admin-orders.service';
 
 const CHANNEL_STATUS_LABELS: Record<string, string> = {
   awaiting_shipment: 'Aguardando envio',
@@ -60,12 +60,13 @@ export class AdminOrders implements OnInit, OnDestroy {
 
   readonly internalStatusOptions = [
     { value: '', label: 'Status interno' },
-    { value: 'received', label: 'Pedido recebido' },
+    { value: 'received', label: 'Pedido baixado' },
     { value: 'paid', label: 'Pedido pago' },
-    { value: 'processing_started', label: 'Em processamento' },
+    { value: 'label_generated', label: 'Etiqueta gerada' },
     { value: 'label_printed', label: 'Etiqueta impressa' },
     { value: 'separated', label: 'Pedido separado' },
-    { value: 'dispatched', label: 'Pedido enviado' }
+    { value: 'processed', label: 'Pedido processado' },
+    { value: 'dispatched', label: 'Pedido despachado' }
   ];
 
   readonly channelStatusOptions = [
@@ -166,10 +167,26 @@ export class AdminOrders implements OnInit, OnDestroy {
   internalStageClass(stage?: string | null): string {
     switch (stage) {
       case 'dispatched': return 'badge-info';
+      case 'processed':
       case 'separated': return 'badge-success';
+      case 'label_generated': return 'badge-info';
       case 'label_printed': return 'badge-warning';
       default: return 'badge-neutral';
     }
+  }
+
+  milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null; current: boolean }> {
+    const entries = [
+      { label: 'Pedido baixado', value: milestones.receivedAt },
+      { label: 'Pedido pago', value: milestones.paidAt },
+      { label: 'Etiqueta gerada', value: milestones.labelGeneratedAt },
+      { label: 'Etiqueta impressa', value: milestones.labelPrintedAt },
+      { label: 'Pedido separado', value: milestones.separatedAt },
+      { label: 'Pedido processado', value: milestones.processedAt ?? milestones.processingStartedAt },
+      { label: 'Pedido despachado', value: milestones.dispatchedAt }
+    ];
+    const currentIndex = entries.findIndex(entry => !entry.value);
+    return entries.map((entry, index) => ({ ...entry, current: index === currentIndex }));
   }
 
   labelAvailabilityLabel(value?: string | null): string {

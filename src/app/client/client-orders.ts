@@ -74,12 +74,13 @@ export class ClientOrders implements OnInit, OnDestroy {
 
   readonly internalStatusOptions = [
     { value: '', label: 'Status interno' },
-    { value: 'received', label: 'Pedido recebido' },
+    { value: 'received', label: 'Pedido baixado' },
     { value: 'paid', label: 'Pedido pago' },
-    { value: 'processing_started', label: 'Em processamento' },
+    { value: 'label_generated', label: 'Etiqueta gerada' },
     { value: 'label_printed', label: 'Etiqueta impressa' },
     { value: 'separated', label: 'Pedido separado' },
-    { value: 'dispatched', label: 'Pedido enviado' }
+    { value: 'processed', label: 'Pedido processado' },
+    { value: 'dispatched', label: 'Pedido despachado' }
   ];
 
   readonly channelStatusOptions = [
@@ -218,15 +219,18 @@ export class ClientOrders implements OnInit, OnDestroy {
   }
 
   internalStageLabel(summary?: MarketplaceInternalFulfillmentSummaryResult | null): string {
-    return summary?.label || 'Pedido recebido';
+    return summary?.label || 'Pedido baixado';
   }
 
   internalStageClass(stage?: string | null): string {
     switch (stage) {
       case 'dispatched':
         return 'badge-info';
+      case 'processed':
       case 'separated':
         return 'badge-success';
+      case 'label_generated':
+        return 'badge-info';
       case 'label_printed':
         return 'badge-warning';
       case 'processing_started':
@@ -536,15 +540,18 @@ export class ClientOrders implements OnInit, OnDestroy {
       });
   }
 
-  milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null }> {
-    return [
-      { label: 'Pedido recebido', value: milestones.receivedAt },
+  milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null; current: boolean }> {
+    const entries = [
+      { label: 'Pedido baixado', value: milestones.receivedAt },
       { label: 'Pedido pago', value: milestones.paidAt },
-      { label: 'Em processamento', value: milestones.processingStartedAt },
+      { label: 'Etiqueta gerada', value: milestones.labelGeneratedAt },
       { label: 'Etiqueta impressa', value: milestones.labelPrintedAt },
       { label: 'Pedido separado', value: milestones.separatedAt },
-      { label: 'Pedido enviado', value: milestones.dispatchedAt }
+      { label: 'Pedido processado', value: milestones.processedAt ?? milestones.processingStartedAt },
+      { label: 'Pedido despachado', value: milestones.dispatchedAt }
     ];
+    const currentIndex = entries.findIndex(entry => !entry.value);
+    return entries.map((entry, index) => ({ ...entry, current: index === currentIndex }));
   }
 
   inventoryStatusLabel(value?: string | null): string {

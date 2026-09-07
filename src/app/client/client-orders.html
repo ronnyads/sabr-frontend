@@ -126,11 +126,11 @@
               <span class="panel-pill">{{ internalStageLabel(order.internalFulfillmentSummary) }}</span>
             </div>
             <div class="milestone-list" *ngIf="order.internalFulfillmentSummary as summary">
-              <div class="milestone-item" *ngFor="let entry of milestoneEntries(summary.milestones)" [class.done]="entry.value">
+              <div class="milestone-item" *ngFor="let entry of milestoneEntries(summary.milestones)" [class.done]="entry.value" [class.current]="entry.current">
                 <div class="milestone-dot"></div>
                 <div>
                   <strong>{{ entry.label }}</strong>
-                  <span>{{ entry.value ? (entry.value | date:'dd/MM/yyyy HH:mm') : 'Pendente' }}</span>
+                  <span>{{ entry.value ? (entry.value | date:'dd/MM/yyyy HH:mm') : (entry.current ? 'Etapa atual' : 'Pendente') }}</span>
                 </div>
               </div>
             </div>

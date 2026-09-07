@@ -7,9 +7,11 @@ import { PagedResult } from './catalog.service';
 export interface MarketplaceShipmentMilestonesResult {
   receivedAt?: string | null;
   paidAt?: string | null;
+  labelGeneratedAt?: string | null;
   processingStartedAt?: string | null;
   labelPrintedAt?: string | null;
   separatedAt?: string | null;
+  processedAt?: string | null;
   dispatchedAt?: string | null;
 }
 

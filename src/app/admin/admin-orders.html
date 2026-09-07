@@ -175,6 +175,31 @@
             </td>
           </tr>
 
+          <tr *ngIf="expandedOrderId === order.id && order.internalFulfillmentSummary as summary" class="timeline-row">
+            <td colspan="8">
+              <div class="order-timeline" aria-label="Etapas operacionais do pedido">
+                <div
+                  class="timeline-step"
+                  *ngFor="let entry of milestoneEntries(summary.milestones)"
+                  [class.done]="entry.value"
+                  [class.current]="entry.current">
+                  <span class="timeline-dot" aria-hidden="true"></span>
+                  <div>
+                    <strong>{{ entry.label }}</strong>
+                    <small>{{ entry.value ? (entry.value | date:'dd/MM/yyyy HH:mm') : (entry.current ? 'Etapa atual' : 'Pendente') }}</small>
+                  </div>
+                </div>
+                <button
+                  *ngIf="order.labelAvailability !== 'pending'"
+                  nbButton status="info" size="small"
+                  [disabled]="actionLoading[order.id + '_label']"
+                  (click)="downloadLabel(order); $event.stopPropagation()">
+                  Ver etiqueta
+                </button>
+              </div>
+            </td>
+          </tr>
+
           <tr *ngIf="showCancelConfirm[order.id]" class="cancel-row">
             <td colspan="8">
               <div class="cancel-form">
