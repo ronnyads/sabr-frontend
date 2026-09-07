@@ -420,7 +420,7 @@
                   ? 'Salvar nova senha e acessar'
                   : 'Salvar senha e continuar')
           : currentStep === steps.length - 1
-            ? (loadingProfile || submittingDocuments ? 'Processando...' : 'Enviar para aprovação')
+            ? (loadingProfile || submittingDocuments ? 'Processando...' : 'Enviar documentos para análise')
           : 'Continuar'
         }}
       </button>
@@ -428,8 +428,8 @@
         <button *ngIf="!passwordChangeOnly" nbButton status="basic" ghost size="small" (click)="prevStep()" [disabled]="currentStep === 0">
           Voltar
         </button>
-        <button class="link link-button" type="button" (click)="logout()">
-          Salvar depois / Voltar ao login
+        <button class="link link-button" type="button" (click)="saveDraftAndLogout()">
+          Salvar rascunho e sair
         </button>
       </div>
     </div>

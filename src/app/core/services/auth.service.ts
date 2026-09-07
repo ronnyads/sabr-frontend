@@ -107,9 +107,14 @@ export class AuthService {
     // Capture the bearer token before clearing the browser session so the
     // best-effort server logout can still revoke it. The UI leaves immediately
     // even if the network request stalls or fails.
-    const headers = this.accessToken
-      ? new HttpHeaders({ Authorization: `Bearer ${this.accessToken}` })
-      : undefined;
+    let headers = new HttpHeaders();
+    if (this.accessToken) {
+      headers = headers.set('Authorization', `Bearer ${this.accessToken}`);
+    }
+    const tenantSlug = this.tenantService.slug;
+    if (tenantSlug) {
+      headers = headers.set('X-Tenant', tenantSlug);
+    }
     const request = this.http.post<void>(
       `${this.apiBaseUrl}${this.authBasePath()}/logout`,
       {},

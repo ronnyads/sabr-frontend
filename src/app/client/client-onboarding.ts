@@ -495,6 +495,11 @@ export class ClientOnboarding implements OnInit, OnDestroy {
     this.auth.logout().subscribe({ error: () => {} });
   }
 
+  saveDraftAndLogout(): void {
+    this.persistProfileDraft();
+    this.logout();
+  }
+
   nextStep(): void {
     // ao navegar, limpe mensagens de submit genéricas
     this.submitErrorSummary = '';
@@ -565,8 +570,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   private shouldSaveProfileBeforeDocuments(status: number): boolean {
     return (
       status === ClientStatus.PendingProfile ||
-      status === ClientStatus.PendingAdminApproval ||
-      status === ClientStatus.PendingDocuments
+      status === ClientStatus.PendingAdminApproval
     );
   }
 
