@@ -492,13 +492,7 @@ export class ClientOnboarding implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.auth
-      .logout()
-      .pipe(finalize(() => this.router.navigate(['/login'], { replaceUrl: true })))
-      .subscribe({
-        // AuthService clears the local session in finalize, including on errors.
-        error: () => {}
-      });
+    this.auth.logout().subscribe({ error: () => {} });
   }
 
   nextStep(): void {

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, finalize, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -104,8 +104,22 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.http
-      .post<void>(`${this.apiBaseUrl}${this.authBasePath()}/logout`, {}, { withCredentials: true })
+    // Capture the bearer token before clearing the browser session so the
+    // best-effort server logout can still revoke it. The UI leaves immediately
+    // even if the network request stalls or fails.
+    const headers = this.accessToken
+      ? new HttpHeaders({ Authorization: `Bearer ${this.accessToken}` })
+      : undefined;
+    const request = this.http.post<void>(
+      `${this.apiBaseUrl}${this.authBasePath()}/logout`,
+      {},
+      { withCredentials: true, headers }
+    );
+
+    this.clearSession();
+    void this.router.navigate(['/login'], { replaceUrl: true });
+
+    return request
       // The browser session must always be cleared. Previously this only happened
       // on a 2xx response, so a transient API/CORS error left the user authenticated
       // locally and the login route immediately sent them back to the protected flow.
