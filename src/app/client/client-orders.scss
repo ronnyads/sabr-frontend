@@ -365,6 +365,29 @@
   font-size: 13px;
 }
 
+.payment-blockers {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  color: #92400e;
+  font-size: 12px;
+
+  strong,
+  span {
+    display: block;
+  }
+
+  span {
+    margin-top: 3px;
+    color: #a16207;
+  }
+}
+
 .inline-loading,
 .detail-empty-note {
   display: flex;

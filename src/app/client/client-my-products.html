@@ -125,7 +125,7 @@
           >
             Publicar
           </button>
-          <button nbButton status="info" size="small" (click)="openLinkExisting()">Vincular existente</button>
+          <button nbButton status="info" size="small" (click)="openLinkExisting(row)">Vincular existente</button>
           <button nbButton status="primary" size="small" [disabled]="row.isSaving || !row.isDirty" (click)="save(row)">
             {{ row.isSaving ? 'Salvando...' : 'Salvar' }}
           </button>

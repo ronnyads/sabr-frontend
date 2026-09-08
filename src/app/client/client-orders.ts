@@ -291,9 +291,34 @@ export class ClientOrders implements OnInit, OnDestroy {
           this.load(order.id);
         },
         error: (err: any) => {
+          if (err?.status === 409 && err?.error?.code === 'PAYMENT_CONFIRMATION_REQUIRED') {
+            const message = err?.error?.errors?.message ?? 'Este pedido esta fora do prazo operacional. Deseja confirmar mesmo assim?';
+            this.actionLoading[key] = false;
+            if (window.confirm(message)) {
+              this.markPaidWithRisk(order);
+            }
+            return;
+          }
           const msg = err?.error?.message ?? 'Erro ao confirmar pagamento.';
           this.toastr.danger(msg, 'Erro');
           this.actionLoading[key] = false;
+        },
+        complete: () => { this.actionLoading[key] = false; }
+      });
+  }
+
+  private markPaidWithRisk(order: MarketplaceOrderListItem): void {
+    const key = `${order.id}_pay`;
+    this.actionLoading[key] = true;
+    this.ordersService.markPaid(order.id, true)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastr.success('Pagamento confirmado com ressalva de prazo.', 'Pedidos');
+          this.load(order.id);
+        },
+        error: (err: any) => {
+          this.toastr.danger(err?.error?.message ?? 'Erro ao confirmar pagamento.', 'Erro');
         },
         complete: () => { this.actionLoading[key] = false; }
       });
@@ -380,6 +405,27 @@ export class ClientOrders implements OnInit, OnDestroy {
       });
   }
 
+  downloadPackingLabel(order: MarketplaceOrderListItem, shipment: MarketplaceShipmentResult): void {
+    const key = `${order.id}_${shipment.shipmentId}_packing`;
+    this.actionLoading[key] = true;
+    this.ordersService.downloadPackingLabel(order.id, shipment.shipmentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = `declaracao-conteudo-${order.mlOrderId}-${shipment.shipmentId}.html`;
+          anchor.click();
+          URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          this.toastr.danger(err?.error?.message ?? 'Declaracao indisponivel no momento.', 'Expedicao');
+        },
+        complete: () => { this.actionLoading[key] = false; }
+      });
+  }
+
   toggleCancelForm(orderId: string): void {
     this.showCancelForm[orderId] = !this.showCancelForm[orderId];
     this.showRefundForm[orderId] = false;
@@ -446,8 +492,30 @@ export class ClientOrders implements OnInit, OnDestroy {
     return !!this.actionLoading[`${order.id}_${shipment.shipmentId}_label`];
   }
 
-  isTikTokOrder(order: MarketplaceOrderListItem): boolean {
-    return order.provider === 4;
+  supportsItemMapping(order: MarketplaceOrderListItem): boolean {
+    return [1, 2, 3, 4, 5].includes(order.provider);
+  }
+
+  providerMappingValue(provider: number): string {
+    switch (provider) {
+      case 1: return 'MercadoLivre';
+      case 2: return 'TinyErp';
+      case 3: return 'Shopify';
+      case 4: return 'TikTokShop';
+      case 5: return 'Shopee';
+      default: return 'MercadoLivre';
+    }
+  }
+
+  providerMappingLabel(provider: number): string {
+    switch (provider) {
+      case 1: return 'Mercado Livre';
+      case 2: return 'Tiny ERP';
+      case 3: return 'Shopify';
+      case 4: return 'TikTok Shop';
+      case 5: return 'Shopee';
+      default: return 'marketplace';
+    }
   }
 
   openItemMappingEditor(item: MarketplaceOrderItemDetail): void {
@@ -477,7 +545,7 @@ export class ClientOrders implements OnInit, OnDestroy {
 
     this.itemMappingSaving[item.id] = true;
     this.marketplaceMappingsService.createMapping({
-      provider: 'TikTokShop',
+      provider: this.providerMappingValue(order.provider),
       sellerId: order.sellerId,
       externalItemId: item.mlItemId,
       externalVariationId: item.mlVariationId ?? null,
@@ -488,11 +556,11 @@ export class ClientOrders implements OnInit, OnDestroy {
         next: (result) => {
           this.itemMappingEditorOpen[item.id] = false;
           this.itemMappingSelection[item.id] = result.sabrVariantSku;
-          this.toastr.success(this.mappingSuccessMessage(result.action), 'Mapeamento TikTok');
+          this.toastr.success(this.mappingSuccessMessage(result.action, result.ordersAffected), 'Mapeamento');
           this.load(order.id);
         },
         error: (err) => {
-          this.toastr.danger(err?.error?.message ?? 'Falha ao salvar mapeamento do item.', 'Mapeamento TikTok');
+          this.toastr.danger(err?.error?.message ?? 'Falha ao salvar mapeamento do item.', 'Mapeamento');
         },
         complete: () => {
           this.itemMappingSaving[item.id] = false;
@@ -506,19 +574,24 @@ export class ClientOrders implements OnInit, OnDestroy {
   }
 
   remapResponsibilityMessage(): string {
-    return 'Voce esta trocando o produto/variante mapeado para este item do TikTok Shop. Essa escolha e de responsabilidade do cliente e pode impactar estoque, separacao e expedicao. Deseja continuar?';
+    return 'Voce esta trocando o produto mapeado para este anuncio. Pedidos ja resolvidos preservam o vinculo historico; a alteracao vale para novos pedidos. Deseja continuar?';
   }
 
-  mappingSuccessMessage(action: string): string {
+  mappingSuccessMessage(action: string, ordersAffected = 0): string {
+    const suffix = ordersAffected > 0 ? ` ${ordersAffected} pedido(s) pendente(s) foram liberados para reserva e pagamento.` : '';
     if (action === 'updated') {
-      return 'Mapeamento trocado com sucesso. Os pedidos afetados foram reprocessados.';
+      return `Mapeamento atualizado para pedidos futuros.${suffix}`;
     }
 
     if (action === 'unchanged') {
       return 'Esse item ja estava mapeado para a variante selecionada.';
     }
 
-    return 'Mapeamento salvo com sucesso. Os pedidos afetados foram reprocessados.';
+    return `Mapeamento salvo com sucesso.${suffix}`;
+  }
+
+  canAttemptPayment(order: MarketplaceOrderListItem): boolean {
+    return !order.sabrPaymentConfirmedAt && !['cancelled', 'refunded', 'delivered'].includes(order.status);
   }
 
   isUrgent(order: MarketplaceOrderListItem): boolean {

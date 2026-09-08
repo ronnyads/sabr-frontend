@@ -296,8 +296,12 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     });
   }
 
-  openLinkExisting(): void {
-    void this.router.navigate(['/client/integrations/mercadolivre'], { fragment: 'mappings' });
+  openLinkExisting(row: MyProductRow): void {
+    const variantSku = (row.resolvedVariantSku ?? row.productSku).trim().toUpperCase();
+    void this.router.navigate(['/client/integrations/mercadolivre'], {
+      fragment: 'mappings',
+      queryParams: { mappingSku: variantSku }
+    });
   }
 
   manageListing(mapping: MarketplaceMappingResult): void {

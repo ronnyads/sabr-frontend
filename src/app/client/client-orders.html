@@ -159,10 +159,10 @@
           </div>
         </div>
 
-        <div class="detail-section detail-section-warning" *ngIf="isTikTokOrder(order)">
+        <div class="detail-section detail-section-warning" *ngIf="supportsItemMapping(order)">
           <div class="unmapped-alert">
             <nb-icon icon="shield-outline"></nb-icon>
-            O mapeamento e responsabilidade do cliente. Ao trocar produto ou variante, confira impacto em estoque, separacao e expedicao.
+            Vincule cada anúncio ao SKU correto. Pedidos já resolvidos preservam o vínculo histórico; alterações valem para pedidos futuros e pendentes sem vínculo.
           </div>
         </div>
 
@@ -212,11 +212,11 @@
                 </div>
               </div>
 
-              <div class="mapping-summary" *ngIf="isTikTokOrder(order)">
+              <div class="mapping-summary" *ngIf="supportsItemMapping(order)">
                 <span class="mapping-channel-id">
-                  TikTok product {{ item.mlItemId }}
-                  <span *ngIf="item.mlVariationId"> / sku {{ item.mlVariationId }}</span>
-                  <span *ngIf="item.channelSku"> / seller_sku {{ item.channelSku }}</span>
+                  {{ providerMappingLabel(order.provider) }} · anúncio {{ item.mlItemId }}
+                  <span *ngIf="item.mlVariationId"> / variação {{ item.mlVariationId }}</span>
+                  <span *ngIf="item.channelSku"> / SKU do canal {{ item.channelSku }}</span>
                 </span>
                 <span class="mapping-channel-id">{{ itemMappingReasonLabel(item.mappingReason) }}</span>
                 <button
@@ -230,15 +230,15 @@
                 </button>
               </div>
 
-              <div class="mapping-editor" *ngIf="isTikTokOrder(order) && isItemMappingEditorOpen(item.id)">
-                <label class="mapping-label">Selecione a variante autorizada para este item do TikTok Shop</label>
+              <div class="mapping-editor" *ngIf="supportsItemMapping(order) && isItemMappingEditorOpen(item.id)">
+                <label class="mapping-label">Vincule este anúncio a um produto do catálogo PrometheusHUB</label>
                 <select class="mapping-select" [(ngModel)]="itemMappingSelection[item.id]">
                   <option value="">Selecione uma variante</option>
                   <option *ngFor="let variant of allowedVariants" [value]="variant.variantSku">
                     {{ variantOptionLabel(variant) }}
                   </option>
                 </select>
-                <div class="mapping-hint">Ao trocar um mapeamento existente, a responsabilidade operacional e do cliente.</div>
+                <div class="mapping-hint">O vínculo libera a reserva de estoque e o pagamento dos pedidos ainda pendentes. Pedidos já processados preservam o histórico.</div>
                 <div class="shipment-actions">
                   <button
                     nbButton
@@ -311,6 +311,16 @@
                 <nb-icon icon="download-outline"></nb-icon>
                 {{ isLabelLoading(order, shipment) ? 'Baixando...' : 'Baixar etiqueta' }}
               </button>
+              <button
+                nbButton
+                size="small"
+                status="basic"
+                outline
+                [disabled]="actionLoading[order.id + '_' + shipment.shipmentId + '_packing']"
+                (click)="downloadPackingLabel(order, shipment)">
+                <nb-icon icon="file-text-outline"></nb-icon>
+                {{ actionLoading[order.id + '_' + shipment.shipmentId + '_packing'] ? 'Gerando...' : 'Declaração de conteúdo' }}
+              </button>
             </div>
           </div>
         </div>
@@ -322,15 +332,15 @@
         <div class="order-actions">
           <button
             nbButton status="success" size="small"
-            *ngIf="order.status === 'paid'"
+            *ngIf="canAttemptPayment(order)"
             [disabled]="!order.canMarkPaid || actionLoading[order.id + '_pay']"
             (click)="markPaid(order); $event.stopPropagation()">
             <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
-            {{ actionLoading[order.id + '_pay'] ? 'Confirmando...' : 'Confirmar pagamento' }}
+            {{ actionLoading[order.id + '_pay'] ? 'Confirmando...' : 'Pagar pedido' }}
           </button>
           <button
             nbButton status="primary" size="small" outline
-            *ngIf="order.status === 'paid' && !order.canMarkPaid"
+            *ngIf="canAttemptPayment(order) && order.paymentBlockers.includes('label_missing')"
             [disabled]="isPullLabelLoading(order)"
             (click)="pullLabel(order); $event.stopPropagation()">
             <nb-icon icon="refresh-outline"></nb-icon>
@@ -353,8 +363,12 @@
           </button>
         </div>
 
-        <div class="detail-empty-note" *ngIf="order.requiresLabelForPayment && !order.canMarkPaid">
-          Este pedido exige etiqueta operacional, mapeamento e estoque antes da confirmacao de pagamento.
+        <div class="payment-blockers" *ngIf="canAttemptPayment(order) && !order.canMarkPaid">
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          <div>
+            <strong>Antes de pagar, resolva:</strong>
+            <span>{{ paymentBlockerSummary(order.paymentBlockers) }}</span>
+          </div>
         </div>
 
         <div class="action-form" *ngIf="showCancelForm[order.id]">

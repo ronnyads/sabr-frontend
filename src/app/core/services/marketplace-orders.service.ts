@@ -241,6 +241,12 @@ export class MarketplaceOrdersService {
     });
   }
 
+  downloadPackingLabel(orderId: string, shipmentId: string): Observable<Blob> {
+    return this.http.get(`${this.apiBaseUrl}/client/orders/marketplace/${orderId}/packing-labels/${shipmentId}`, {
+      responseType: 'blob'
+    });
+  }
+
   pullLabel(orderId: string, shipmentId?: string | null): Observable<MarketplacePullShipmentLabelResult> {
     let params = new HttpParams();
     if ((shipmentId ?? '').trim()) {

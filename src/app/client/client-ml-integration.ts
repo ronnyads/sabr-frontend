@@ -19,6 +19,7 @@ import {
 } from '../core/services/mercado-livre-integration.service';
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
 import { UiStateComponent } from '../shared/ui-state/ui-state.component';
+import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
 
 interface RiskConfirmationState {
   orderId: string;
@@ -75,6 +76,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
 
   constructor(
     private readonly integrationService: MercadoLivreIntegrationService,
+    private readonly marketplaceMappingsService: MarketplaceMappingsService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly toastr: NbToastrService
@@ -82,6 +84,11 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.consumeOAuthSignalFromQuery();
+    const requestedSku = (this.route.snapshot.queryParamMap.get('mappingSku') ?? '').trim().toUpperCase();
+    if (requestedSku) {
+      this.mappingDraft.sabrVariantSku = requestedSku;
+      setTimeout(() => document.getElementById('mappings')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
     this.loadStatusAndData();
   }
 
@@ -285,12 +292,13 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
     }
 
     this.creatingMapping = true;
-    this.integrationService
+    this.marketplaceMappingsService
       .createMapping({
+        provider: 'MercadoLivre',
         sellerId,
-        mlItemId,
-        mlVariationId: mlVariationId || null,
-        sabrVariantSku
+        externalItemId: mlItemId,
+        externalVariationId: mlVariationId || null,
+        selectedCatalogSku: sabrVariantSku
       })
       .pipe(
         finalize(() => (this.creatingMapping = false)),
