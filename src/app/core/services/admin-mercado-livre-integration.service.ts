@@ -11,6 +11,25 @@ export interface MercadoLivreCatalogImportResult {
   productsUpdated: number;
   mappingsCreated: number;
   warnings: string[];
+  items: MercadoLivreCatalogImportItem[];
+}
+
+export interface MercadoLivreCatalogImportItem {
+  itemId: string;
+  title: string;
+  sku: string | null;
+  brand: string;
+  thumbnailUrl: string | null;
+  catalogPriceCents: number;
+  action: string;
+}
+
+export interface MercadoLivreSellerCatalogItem {
+  itemId: string;
+  title: string;
+  brand: string | null;
+  thumbnailUrl: string | null;
+  priceCents: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -35,12 +54,21 @@ export class AdminMercadoLivreIntegrationService {
     return this.http.delete<void>(`${url}${queryParams}`);
   }
 
-  importProducts(tenantSlug: string, clientId: string, previewOnly: boolean): Observable<MercadoLivreCatalogImportResult> {
+  importProducts(tenantSlug: string, clientId: string, previewOnly: boolean, itemIds: string[] = []): Observable<MercadoLivreCatalogImportResult> {
     const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
     const client = encodeURIComponent((clientId ?? '').trim());
     return this.http.post<MercadoLivreCatalogImportResult>(
       `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/catalog/import`,
-      { query: '', brands: ['Boca Rosa', 'Principia'], physicalStock: 1000, previewOnly }
+      { query: '', brands: [], physicalStock: 1000, previewOnly, itemIds }
+    );
+  }
+
+  searchSellerCatalog(tenantSlug: string, clientId: string, sellerId: string, query: string): Observable<MercadoLivreSellerCatalogItem[]> {
+    const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
+    const client = encodeURIComponent((clientId ?? '').trim());
+    const params = `sellerId=${encodeURIComponent(sellerId.trim())}&q=${encodeURIComponent(query.trim())}`;
+    return this.http.get<MercadoLivreSellerCatalogItem[]>(
+      `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/catalog/seller-preview?${params}`
     );
   }
 }

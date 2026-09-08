@@ -1,7 +1,7 @@
 <section class="phub-page admin-ml-page">
   <ng-template #headerActions>
-    <button nbButton status="primary" size="small" [disabled]="!status?.connected || importingCatalog" (click)="importProducts()">
-      {{ importingCatalog ? 'Importando...' : 'Importar produtos do ML' }}
+    <button nbButton status="primary" size="small" [disabled]="!status?.connected || loadingCatalogPreview" (click)="loadCatalogPreview()">
+      {{ loadingCatalogPreview ? 'Buscando...' : 'Buscar produtos do ML' }}
     </button>
     <button nbButton status="basic" size="small" (click)="loadStatus()">Atualizar</button>
   </ng-template>
@@ -88,6 +88,66 @@
       <button nbButton status="danger" (click)="forceDisconnect()">
         Desconectar TODOS os sellers
       </button>
+    </div>
+  </div>
+
+  <div class="phub-card catalog-import-panel" *ngIf="catalogPreview.length">
+    <div class="catalog-import-heading">
+      <div>
+        <h3>Selecionar produtos para importar</h3>
+        <p>Produtos com o mesmo SKU são agrupados; todos os anúncios espelhados serão vinculados juntos.</p>
+      </div>
+      <button nbButton status="primary" [disabled]="importingCatalog || selectedProductKeys.size === 0" (click)="importProducts()">
+        {{ importingCatalog ? 'Importando...' : 'Importar ' + selectedProductKeys.size + ' selecionado(s)' }}
+      </button>
+    </div>
+    <div class="catalog-import-tools">
+      <input type="search" [(ngModel)]="catalogSearch" placeholder="Filtrar por nome, SKU ou marca" aria-label="Filtrar produtos do Mercado Livre" />
+      <button nbButton status="basic" size="small" (click)="selectAllVisible()">Selecionar visíveis</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="phub-table">
+        <thead><tr><th></th><th>Produto</th><th>SKU</th><th>Marca</th><th>Preço ML</th><th>Anúncios</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let row of productGroups">
+            <td><input type="checkbox" [disabled]="!row.sku" [checked]="selectedProductKeys.has(row.key)" (change)="toggleProduct(row.key, $any($event.target).checked)" /></td>
+            <td class="product-cell"><img *ngIf="row.thumbnailUrl" [src]="row.thumbnailUrl" alt="" /><span>{{ row.title }}</span></td>
+            <td><strong>{{ row.sku || 'Sem SKU' }}</strong></td>
+            <td>{{ row.brand }}</td>
+            <td>{{ row.priceCents / 100 | currency:'BRL' }}</td>
+            <td>{{ row.itemIds.length }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="phub-card catalog-import-panel seller-research-panel">
+    <div class="catalog-import-heading">
+      <div>
+        <h3>Pesquisa de catálogo por seller</h3>
+        <p>Consulte anúncios públicos, preços e mix de produtos de qualquer vendedor pelo Seller ID.</p>
+      </div>
+    </div>
+    <div class="catalog-import-tools seller-research-tools">
+      <input type="text" inputmode="numeric" [(ngModel)]="sellerResearchId" placeholder="Seller ID" aria-label="Seller ID" />
+      <input type="search" [(ngModel)]="sellerResearchQuery" placeholder="Produto ou termo (opcional)" aria-label="Termo da pesquisa" />
+      <button nbButton status="info" [disabled]="sellerResearchLoading" (click)="searchSellerCatalog()">
+        {{ sellerResearchLoading ? 'Consultando...' : 'Analisar seller' }}
+      </button>
+    </div>
+    <div class="table-wrapper" *ngIf="sellerResearchItems.length">
+      <table class="phub-table">
+        <thead><tr><th>Produto</th><th>Marca</th><th>Preço</th><th>Anúncio</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let item of sellerResearchItems">
+            <td class="product-cell"><img *ngIf="item.thumbnailUrl" [src]="item.thumbnailUrl" alt="" /><span>{{ item.title }}</span></td>
+            <td>{{ item.brand || '-' }}</td>
+            <td>{{ item.priceCents / 100 | currency:'BRL' }}</td>
+            <td>{{ item.itemId }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>

@@ -61,3 +61,47 @@
 .phub-table td {
   color: var(--phub-text);
 }
+
+.catalog-import-panel {
+  padding: 20px;
+  animation: catalog-panel-in 180ms ease-out;
+}
+
+.catalog-import-heading,
+.catalog-import-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.catalog-import-heading h3 { margin: 0 0 4px; }
+.catalog-import-heading p { margin: 0; color: var(--phub-text-muted); }
+.catalog-import-tools { margin-top: 18px; }
+.catalog-import-tools input {
+  flex: 1;
+  min-width: 220px;
+  padding: 11px 13px;
+  border: 1px solid var(--phub-border);
+  border-radius: 10px;
+  background: var(--phub-surface);
+  color: var(--phub-text);
+}
+
+.product-cell { display: flex; align-items: center; gap: 10px; min-width: 320px; }
+.product-cell img { width: 44px; height: 44px; border-radius: 9px; object-fit: cover; background: var(--phub-surface-soft); }
+.seller-research-tools input:first-child { flex: 0 1 220px; }
+
+@keyframes catalog-panel-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .catalog-import-heading,
+  .catalog-import-tools { align-items: stretch; flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-import-panel { animation: none; }
+}
