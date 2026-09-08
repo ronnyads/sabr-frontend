@@ -96,6 +96,14 @@ export interface MarketplaceListingChangeSet {
   description?: string;
 }
 
+export interface MarketplaceListingChangeDraft {
+  draftId: string;
+  mappingId: string;
+  status: string;
+  changes: MarketplaceListingChangeSet;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MarketplaceMappingsService {
   private readonly base = `${environment.apiBaseUrl}/client/marketplace-mappings`;
@@ -140,5 +148,13 @@ export class MarketplaceMappingsService {
 
   synchronizeListingChanges(id: string, changes: MarketplaceListingChangeSet): Observable<MarketplaceListingWorkspace> {
     return this.http.post<MarketplaceListingWorkspace>(`${this.base}/${id}/listing/changes`, changes);
+  }
+
+  saveListingChangeDraft(id: string, changes: MarketplaceListingChangeSet): Observable<MarketplaceListingChangeDraft> {
+    return this.http.post<MarketplaceListingChangeDraft>(`${this.base}/${id}/listing/drafts`, changes);
+  }
+
+  applyListingChangeDraft(id: string, draftId: string): Observable<MarketplaceListingWorkspace> {
+    return this.http.post<MarketplaceListingWorkspace>(`${this.base}/${id}/listing/drafts/${draftId}/apply`, {});
   }
 }

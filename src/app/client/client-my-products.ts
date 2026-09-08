@@ -92,6 +92,8 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   listingLoadingId: string | null = null;
   listingSaving = false;
   listingReviewing = false;
+  listingDraftSaving = false;
+  pendingListingDraftId: string | null = null;
   pendingListingChanges: { evaluationHash: string; mappingVersion: number; title?: string; price?: number; description?: string } | null = null;
   editListingTitle = '';
   editListingPrice: number | null = null;
@@ -310,6 +312,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
         this.editListingDescription = '';
         this.listingReviewing = false;
         this.pendingListingChanges = null;
+        this.pendingListingDraftId = null;
       },
       error: (error: HttpErrorResponse) => {
         this.listingLoadingId = null;
@@ -322,6 +325,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     this.listingWorkspace = null;
     this.listingReviewing = false;
     this.pendingListingChanges = null;
+    this.pendingListingDraftId = null;
   }
 
   listingFieldEditable(field: string): boolean {
@@ -358,21 +362,41 @@ export class ClientMyProducts implements OnInit, OnDestroy {
       this.toastr.info('Nenhuma alteracao para sincronizar.', 'Anuncio');
       return;
     }
-    this.pendingListingChanges = changes;
-    this.listingReviewing = true;
+    this.listingDraftSaving = true;
+    this.marketplaceMappingsService.saveListingChangeDraft(workspace.listing.mappingId, changes)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (draft) => {
+          this.listingDraftSaving = false;
+          this.pendingListingChanges = draft.changes;
+          this.pendingListingDraftId = draft.draftId;
+          this.listingReviewing = true;
+          this.toastr.success('Rascunho salvo. Revise antes de sincronizar.', 'Anuncio');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.listingDraftSaving = false;
+          if (error.status === 409) {
+            this.toastr.warning('As permissoes expiraram. Reabra o anuncio e tente novamente.', 'Concorrencia');
+          } else {
+            this.toastr.danger(this.buildErrorMessage('Falha ao salvar o rascunho.', error), 'Anuncio');
+          }
+        }
+      });
   }
 
   cancelListingReview(): void {
     this.listingReviewing = false;
     this.pendingListingChanges = null;
+    this.pendingListingDraftId = null;
   }
 
   saveListingChanges(): void {
     const workspace = this.listingWorkspace;
     const changes = this.pendingListingChanges;
-    if (!workspace || !changes || this.listingSaving) return;
+    const draftId = this.pendingListingDraftId;
+    if (!workspace || !changes || !draftId || this.listingSaving) return;
     this.listingSaving = true;
-    this.marketplaceMappingsService.synchronizeListingChanges(workspace.listing.mappingId, changes)
+    this.marketplaceMappingsService.applyListingChangeDraft(workspace.listing.mappingId, draftId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (updated) => {
@@ -383,6 +407,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
           this.editListingDescription = '';
           this.listingReviewing = false;
           this.pendingListingChanges = null;
+          this.pendingListingDraftId = null;
           this.toastr.success('Alteracoes sincronizadas e auditadas.', 'Mercado Livre');
         },
         error: (error: HttpErrorResponse) => {

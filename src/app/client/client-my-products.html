@@ -183,7 +183,9 @@
         <a *ngIf="workspace.listing.permalink" [href]="workspace.listing.permalink" target="_blank" rel="noopener">Ver no Mercado Livre</a>
         <div class="review-actions">
           <button *ngIf="listingReviewing" nbButton status="basic" [disabled]="listingSaving" (click)="cancelListingReview()">Voltar e editar</button>
-          <button *ngIf="!listingReviewing" nbButton status="primary" (click)="prepareListingReview()">Revisar alteracoes</button>
+          <button *ngIf="!listingReviewing" nbButton status="primary" [disabled]="listingDraftSaving" (click)="prepareListingReview()">
+            {{ listingDraftSaving ? 'Salvando rascunho...' : 'Revisar alteracoes' }}
+          </button>
           <button *ngIf="listingReviewing" nbButton status="primary" [disabled]="listingSaving" (click)="saveListingChanges()">
             {{ listingSaving ? 'Sincronizando...' : 'Confirmar e sincronizar' }}
           </button>
