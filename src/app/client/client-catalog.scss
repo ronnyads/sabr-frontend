@@ -23,11 +23,13 @@
   flex-direction: column;
   gap: 10px;
   background: var(--phub-surface);
-  transition: border-color var(--phub-transition-fast), box-shadow var(--phub-transition-fast);
+  overflow: hidden;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 
   &:hover {
     border-color: var(--phub-border-strong);
     box-shadow: var(--phub-shadow-hover);
+    transform: translateY(-3px);
   }
 }
 
@@ -63,6 +65,32 @@
   color: var(--phub-text-muted);
 }
 
+.product-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stock {
+  padding: 4px 8px;
+  border-radius: var(--phub-radius-pill);
+  background: color-mix(in srgb, var(--phub-success) 12%, transparent);
+  color: var(--phub-success);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stock.stock-empty {
+  background: color-mix(in srgb, var(--phub-danger) 10%, transparent);
+  color: var(--phub-danger);
+}
+
+.price-label {
+  margin-top: 6px;
+  color: var(--phub-text-muted);
+}
+
 .product-content h4 {
   margin: 0;
   font-size: 1rem;
@@ -86,4 +114,9 @@
 .pager-actions {
   display: flex;
   gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card { transition: none; }
+  .product-card:hover { transform: none; }
 }

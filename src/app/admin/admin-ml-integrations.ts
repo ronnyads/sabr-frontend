@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NbButtonModule, NbToastrService } from '@nebular/theme';
+import { NbButtonModule, NbCheckboxModule, NbToastrService } from '@nebular/theme';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { AdminMercadoLivreIntegrationService, MercadoLivreCatalogImportItem, MercadoLivreSellerCatalogItem } from '../core/services/admin-mercado-livre-integration.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
@@ -14,7 +14,7 @@ import { UiStateComponent } from '../shared/ui-state/ui-state.component';
 @Component({
   selector: 'app-admin-ml-integrations',
   standalone: true,
-  imports: [CommonModule, FormsModule, NbButtonModule, PageHeaderComponent, UiStateComponent],
+  imports: [CommonModule, FormsModule, NbButtonModule, NbCheckboxModule, PageHeaderComponent, UiStateComponent],
   templateUrl: './admin-ml-integrations.html',
   styleUrls: ['./admin-ml-integrations.scss']
 })
@@ -148,19 +148,27 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
   }
 
   toggleProduct(key: string, checked: boolean): void {
-    checked ? this.selectedProductKeys.add(key) : this.selectedProductKeys.delete(key);
+    const next = new Set(this.selectedProductKeys);
+    checked ? next.add(key) : next.delete(key);
+    this.selectedProductKeys = next;
+  }
+
+  toggleRow(key: string): void {
+    this.toggleProduct(key, !this.selectedProductKeys.has(key));
   }
 
   selectAllVisible(): void {
-    const rows = this.productGroups.filter(row => !!row.sku);
+    const rows = this.productGroups;
     const allSelected = rows.length > 0 && rows.every(row => this.selectedProductKeys.has(row.key));
-    rows.forEach(row => allSelected ? this.selectedProductKeys.delete(row.key) : this.selectedProductKeys.add(row.key));
+    const next = new Set(this.selectedProductKeys);
+    rows.forEach(row => allSelected ? next.delete(row.key) : next.add(row.key));
+    this.selectedProductKeys = next;
   }
 
   importProducts(): void {
-    const itemIds = this.productGroups.filter(row => row.sku && this.selectedProductKeys.has(row.key)).flatMap(row => row.itemIds);
+    const itemIds = this.productGroups.filter(row => this.selectedProductKeys.has(row.key)).flatMap(row => row.itemIds);
     if (itemIds.length === 0) {
-      this.toastr.warning('Selecione ao menos um produto com SKU.', 'Importação');
+      this.toastr.warning('Selecione ao menos um produto.', 'Importação');
       return;
     }
     this.importingCatalog = true;

@@ -65,6 +65,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
     description: ['', [Validators.maxLength(600)]],
+    accessMode: ['PlanRestricted' as 'Public' | 'PlanRestricted'],
     isActive: [true]
   });
 
@@ -246,6 +247,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
     this.form.reset({
       name: '',
       description: '',
+      accessMode: 'PlanRestricted',
       isActive: true
     });
   }
@@ -257,6 +259,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
     this.form.reset({
       name: catalog.name,
       description: catalog.description ?? '',
+      accessMode: this.isPublic(catalog) ? 'Public' : 'PlanRestricted',
       isActive: catalog.isActive
     });
   }
@@ -277,6 +280,7 @@ export class AdminCatalogs implements OnInit, OnDestroy {
     const request: AdminCatalogUpsertRequest = {
       name: raw.name.trim(),
       description: raw.description.trim() || null,
+      accessMode: raw.accessMode,
       isActive: raw.isActive
     };
 
@@ -299,6 +303,10 @@ export class AdminCatalogs implements OnInit, OnDestroy {
         this.formError = this.buildErrorMessage('Falha ao salvar catalogo.', error);
       }
     });
+  }
+
+  isPublic(catalog: AdminCatalogResult): boolean {
+    return catalog.accessMode === 'Public' || catalog.accessMode === 0;
   }
 
   deactivate(catalog: AdminCatalogResult): void {

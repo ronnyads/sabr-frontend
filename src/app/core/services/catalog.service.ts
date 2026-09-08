@@ -15,6 +15,7 @@ export interface CatalogProduct {
   name: string;
   thumbnailUrl?: string | null;
   catalogPriceCents: number;
+  availableStock: number;
   isActive: boolean;
 }
 

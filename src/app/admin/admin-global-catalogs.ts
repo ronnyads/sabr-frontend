@@ -38,6 +38,13 @@ import { PageHeaderComponent } from '../shared/page-header/page-header.component
               </span>
             </div>
             <div class="form-field status-field">
+              <label>Acesso</label>
+              <select formControlName="accessMode" class="status-select">
+                <option value="PlanRestricted">Por plano</option>
+                <option value="Public">Público</option>
+              </select>
+            </div>
+            <div class="form-field status-field">
               <label>Status</label>
               <select formControlName="isActive" class="status-select">
                 <option [value]="true">Ativo</option>
@@ -92,6 +99,7 @@ import { PageHeaderComponent } from '../shared/page-header/page-header.component
                 <th>Descrição</th>
                 <th style="text-align: center;">Produtos</th>
                 <th style="text-align: center;">Planos</th>
+                <th>Acesso</th>
                 <th>Status</th>
                 <th style="width: 140px;">Ações</th>
               </tr>
@@ -102,6 +110,7 @@ import { PageHeaderComponent } from '../shared/page-header/page-header.component
                 <td class="description-cell">{{ catalog.description || '—' }}</td>
                 <td style="text-align: center;">{{ catalog.productCount }}</td>
                 <td style="text-align: center;">{{ catalog.planCount }}</td>
+                <td>{{ isPublic(catalog) ? 'Público' : 'Por plano' }}</td>
                 <td>
                   <span class="badge" [class.active]="catalog.isActive" [class.inactive]="!catalog.isActive">
                     {{ catalog.isActive ? 'Ativo' : 'Inativo' }}
@@ -271,6 +280,7 @@ export class AdminGlobalCatalogs implements OnInit, OnDestroy {
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
     description: ['', [Validators.maxLength(600)]],
+    accessMode: ['PlanRestricted' as 'Public' | 'PlanRestricted'],
     isActive: [true]
   });
 
@@ -333,14 +343,19 @@ export class AdminGlobalCatalogs implements OnInit, OnDestroy {
     this.formOpen = true;
     this.formError = null;
     this.editingId = null;
-    this.form.reset({ name: '', description: '', isActive: true });
+    this.form.reset({ name: '', description: '', accessMode: 'PlanRestricted', isActive: true });
   }
 
   openEdit(catalog: AdminCatalogResult): void {
     this.formOpen = true;
     this.formError = null;
     this.editingId = catalog.id;
-    this.form.reset({ name: catalog.name, description: catalog.description ?? '', isActive: catalog.isActive });
+    this.form.reset({
+      name: catalog.name,
+      description: catalog.description ?? '',
+      accessMode: this.isPublic(catalog) ? 'Public' : 'PlanRestricted',
+      isActive: catalog.isActive
+    });
   }
 
   cancelForm(): void {
@@ -359,6 +374,7 @@ export class AdminGlobalCatalogs implements OnInit, OnDestroy {
     const request: AdminCatalogUpsertRequest = {
       name: raw.name.trim(),
       description: raw.description.trim() || null,
+      accessMode: raw.accessMode,
       isActive: raw.isActive
     };
 
@@ -382,6 +398,10 @@ export class AdminGlobalCatalogs implements OnInit, OnDestroy {
         this.formError = apiMessage || 'Falha ao salvar catálogo.';
       }
     });
+  }
+
+  isPublic(catalog: AdminCatalogResult): boolean {
+    return catalog.accessMode === 'Public' || catalog.accessMode === 0;
   }
 
   deactivate(catalog: AdminCatalogResult): void {

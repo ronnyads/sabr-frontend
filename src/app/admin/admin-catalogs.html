@@ -30,6 +30,14 @@
         <input nbInput formControlName="description" />
       </div>
 
+      <div class="field">
+        <label>Acesso</label>
+        <select formControlName="accessMode">
+          <option value="PlanRestricted">Restrito aos planos vinculados</option>
+          <option value="Public">Público para clientes aprovados</option>
+        </select>
+      </div>
+
       <div class="field checkbox-field">
         <label class="checkbox-label">
           <input type="checkbox" formControlName="isActive" />
@@ -103,6 +111,7 @@
             <th>Descricao</th>
             <th>Produtos</th>
             <th>Planos</th>
+            <th>Acesso</th>
             <th>Status</th>
             <th class="actions-col">Acoes</th>
           </tr>
@@ -113,6 +122,11 @@
             <td>{{ catalog.description || '-' }}</td>
             <td>{{ catalog.productCount }}</td>
             <td>{{ catalog.planCount }}</td>
+            <td>
+              <span class="phub-badge" [class.phub-badge-success]="isPublic(catalog)">
+                {{ isPublic(catalog) ? 'Público' : 'Por plano' }}
+              </span>
+            </td>
             <td>
               <span class="phub-badge" [class.phub-badge-success]="catalog.isActive" [class.phub-badge-muted]="!catalog.isActive">
                 {{ catalog.isActive ? 'Ativo' : 'Inativo' }}

@@ -8,6 +8,7 @@ export interface AdminCatalogResult {
   id: string;
   name: string;
   description?: string | null;
+  accessMode: 'Public' | 'PlanRestricted' | 0 | 1;
   isActive: boolean;
   productCount: number;
   planCount: number;
@@ -19,6 +20,7 @@ export interface AdminCatalogDetailResult {
   id: string;
   name: string;
   description?: string | null;
+  accessMode: 'Public' | 'PlanRestricted' | 0 | 1;
   isActive: boolean;
   productSkus: string[];
   planIds: string[];
@@ -29,6 +31,7 @@ export interface AdminCatalogDetailResult {
 export interface AdminCatalogUpsertRequest {
   name: string;
   description?: string | null;
+  accessMode: 'Public' | 'PlanRestricted';
   isActive: boolean;
 }
 

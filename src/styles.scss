@@ -4,9 +4,9 @@
 
 // ─── Nebular — sobrescrever tema default (textos escuros e fundos brancos) ────
 
-// Forçar cor de texto global para todos os elementos Nebular
-.nb-theme-default,
-.nb-theme-default * {
+// Define a cor no contêiner; componentes e superfícies podem manter seus próprios
+// contrastes (por exemplo, texto branco sobre o hero escuro).
+.nb-theme-default {
   color: var(--phub-text);
 }
 
@@ -79,12 +79,6 @@ nb-select .select-button {
 .nb-theme-default table td {
   color: var(--phub-text) !important;
   border-color: var(--phub-border) !important;
-}
-
-// Paragrafos e textos gerais dentro das páginas admin/client
-.phub-page p, .phub-page span, .phub-page small,
-.phub-page h1, .phub-page h2, .phub-page h3, .phub-page h4 {
-  color: inherit;
 }
 
 // ─── Nebular reset ────────────────────────────────────────────────────────────

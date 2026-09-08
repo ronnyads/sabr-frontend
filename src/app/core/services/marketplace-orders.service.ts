@@ -186,6 +186,19 @@ export interface MarketplacePullLabelsBulkResult {
   items: MarketplacePullShipmentLabelResult[];
 }
 
+export interface MarketplaceOperationJobResult {
+  jobId: string;
+  operationType: string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'COMPLETED_WITH_ERRORS' | 'FAILED';
+  total: number;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  lastError?: string | null;
+  createdAt: string;
+  completedAt?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MarketplaceOrdersService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
@@ -241,10 +254,16 @@ export class MarketplaceOrdersService {
     );
   }
 
-  pullLabelsBulk(orderIds: string[]): Observable<MarketplacePullLabelsBulkResult> {
-    return this.http.post<MarketplacePullLabelsBulkResult>(
+  pullLabelsBulk(orderIds: string[]): Observable<MarketplaceOperationJobResult> {
+    return this.http.post<MarketplaceOperationJobResult>(
       `${this.apiBaseUrl}/client/orders/marketplace/labels/pull`,
       { orderIds }
+    );
+  }
+
+  getOperationJob(jobId: string): Observable<MarketplaceOperationJobResult> {
+    return this.http.get<MarketplaceOperationJobResult>(
+      `${this.apiBaseUrl}/client/orders/marketplace/jobs/${jobId}`
     );
   }
 

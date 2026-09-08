@@ -109,8 +109,14 @@
       <table class="phub-table">
         <thead><tr><th></th><th>Produto</th><th>SKU</th><th>Marca</th><th>Preço ML</th><th>Anúncios</th></tr></thead>
         <tbody>
-          <tr *ngFor="let row of productGroups">
-            <td><input type="checkbox" [disabled]="!row.sku" [checked]="selectedProductKeys.has(row.key)" (change)="toggleProduct(row.key, $any($event.target).checked)" /></td>
+          <tr *ngFor="let row of productGroups" class="selectable-product" tabindex="0"
+              [class.is-selected]="selectedProductKeys.has(row.key)"
+              (click)="toggleRow(row.key)" (keydown.enter)="toggleRow(row.key)" (keydown.space)="$event.preventDefault(); toggleRow(row.key)">
+            <td (click)="$event.stopPropagation()">
+              <nb-checkbox [checked]="selectedProductKeys.has(row.key)"
+                           (checkedChange)="toggleProduct(row.key, $event)"
+                           [attr.aria-label]="'Selecionar ' + row.title"></nb-checkbox>
+            </td>
             <td class="product-cell"><img *ngIf="row.thumbnailUrl" [src]="row.thumbnailUrl" alt="" /><span>{{ row.title }}</span></td>
             <td><strong>{{ row.sku || 'Sem SKU' }}</strong></td>
             <td>{{ row.brand }}</td>

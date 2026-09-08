@@ -1,7 +1,7 @@
 <section class="phub-page client-catalog-page">
   <app-page-header
-    [title]="'Catalogo'"
-    [subtitle]="'Produtos liberados para o seu plano ativo.'"
+    [title]="'Catálogo de produtos'"
+    [subtitle]="'Escolha produtos disponíveis, vincule seus anúncios ou publique diretamente no marketplace.'"
   ></app-page-header>
 
   <app-search-toolbar
@@ -30,18 +30,24 @@
           </ng-template>
         </div>
         <div class="product-content">
-          <small class="sku">{{ product.sku }}</small>
+          <div class="product-meta">
+            <small class="sku">SKU {{ product.sku }}</small>
+            <span class="stock" [class.stock-empty]="product.availableStock === 0">
+              {{ product.availableStock > 0 ? product.availableStock + ' disponíveis' : 'Sem estoque' }}
+            </span>
+          </div>
           <h4>{{ product.name }}</h4>
+          <small class="price-label">Preço de catálogo</small>
           <p class="price">{{ formatMoney(product.catalogPriceCents) }}</p>
         </div>
         <button
           nbButton
           status="primary"
           size="small"
-          [disabled]="isAdding(product.sku) || isAdded(product.sku)"
+          [disabled]="product.availableStock === 0 || isAdding(product.sku) || isAdded(product.sku)"
           (click)="addToMyProducts(product)"
         >
-          <ng-container *ngIf="!isAdding(product.sku) && !isAdded(product.sku)">Adicionar</ng-container>
+          <ng-container *ngIf="!isAdding(product.sku) && !isAdded(product.sku)">Adicionar aos meus produtos</ng-container>
           <ng-container *ngIf="isAdding(product.sku)">Adicionando...</ng-container>
           <ng-container *ngIf="isAdded(product.sku)">Adicionado</ng-container>
         </button>

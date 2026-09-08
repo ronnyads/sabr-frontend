@@ -62,6 +62,22 @@
   color: var(--phub-text);
 }
 
+.selectable-product {
+  cursor: pointer;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.selectable-product:hover,
+.selectable-product:focus-visible {
+  background: color-mix(in srgb, var(--phub-primary) 7%, var(--phub-surface));
+  outline: none;
+}
+
+.selectable-product.is-selected {
+  background: color-mix(in srgb, var(--phub-primary) 12%, var(--phub-surface));
+  box-shadow: inset 3px 0 0 var(--phub-primary);
+}
+
 .catalog-import-panel {
   padding: 20px;
   animation: catalog-panel-in 180ms ease-out;

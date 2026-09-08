@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NbButtonModule, NbIconModule, NbSelectModule, NbToastrService } from '@nebular/theme';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, finalize, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { CatalogService, CatalogVariant } from '../core/services/catalog.service';
 import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
 import {
@@ -328,12 +328,24 @@ export class ClientOrders implements OnInit, OnDestroy {
 
     this.actionLoading['bulk_pull'] = true;
     this.ordersService.pullLabelsBulk(this.orders.map(order => order.id))
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        switchMap(job => timer(0, 1500).pipe(
+          switchMap(() => this.ordersService.getOperationJob(job.jobId)),
+          takeWhile(current => current.status === 'PENDING' || current.status === 'PROCESSING', true)
+        )),
+        takeUntil(this.destroy$),
+        finalize(() => { this.actionLoading['bulk_pull'] = false; })
+      )
       .subscribe({
         next: (result) => {
+          if (result.status === 'PENDING' || result.status === 'PROCESSING') {
+            return;
+          }
           const title = result.failed > 0 ? 'Etiquetas' : 'Etiquetas atualizadas';
-          const message = `${result.succeeded} pedido(s) atualizado(s)` + (result.failed > 0 ? `, ${result.failed} falharam.` : '.');
-          if (result.failed > 0) {
+          const message = result.status === 'FAILED'
+            ? (result.lastError ?? 'A coleta não pôde ser concluída.')
+            : `${result.succeeded} etiqueta(s) atualizada(s)` + (result.failed > 0 ? `, ${result.failed} falharam.` : '.');
+          if (result.failed > 0 || result.status === 'FAILED') {
             this.toastr.warning(message, title);
           } else {
             this.toastr.success(message, title);
@@ -342,9 +354,7 @@ export class ClientOrders implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.toastr.danger(err?.error?.message ?? 'Falha ao puxar etiquetas em massa.', 'Etiquetas');
-          this.actionLoading['bulk_pull'] = false;
-        },
-        complete: () => { this.actionLoading['bulk_pull'] = false; }
+        }
       });
   }
 

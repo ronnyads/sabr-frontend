@@ -19,7 +19,7 @@
       </select>
       <button nbButton size="small" status="info" outline (click)="pullFilteredLabels()" [disabled]="loading || actionLoading['bulk_pull'] || orders.length === 0">
         <nb-icon icon="download-outline"></nb-icon>
-        {{ actionLoading['bulk_pull'] ? 'Puxando...' : 'Puxar etiquetas filtradas' }}
+        {{ actionLoading['bulk_pull'] ? 'Processando em segundo plano...' : 'Buscar etiquetas filtradas' }}
       </button>
     </div>
   </div>
