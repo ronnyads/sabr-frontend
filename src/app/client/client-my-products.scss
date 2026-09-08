@@ -241,3 +241,60 @@
   .listing-editor { animation: none; }
   .listing-chip { transition: none; }
 }
+
+.link-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 18, 38, 0.66);
+  backdrop-filter: blur(8px);
+}
+
+.link-dialog {
+  width: min(980px, 100%);
+  max-height: min(780px, calc(100vh - 48px));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border: 1px solid var(--phub-border);
+  border-radius: 20px;
+  background: var(--phub-surface);
+  box-shadow: 0 28px 90px rgba(2, 8, 23, 0.34);
+  animation: editor-enter 190ms ease-out;
+}
+
+.link-dialog-header { display: flex; justify-content: space-between; gap: 20px; }
+.link-dialog-header h2 { margin: 5px 0; color: var(--phub-text); }
+.link-dialog-header p { margin: 0; color: var(--phub-text-muted); }
+.link-search { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 20px 0 12px; }
+.link-feedback { padding: 28px; text-align: center; color: var(--phub-text-muted); }
+.link-error { color: var(--phub-danger); }
+.link-results { overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 2px; }
+.link-candidate {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--phub-border);
+  border-radius: 14px;
+  background: var(--phub-surface-soft);
+}
+.candidate-thumb { width: 72px; height: 72px; border-radius: 10px; overflow: hidden; background: var(--phub-surface); }
+.candidate-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.candidate-info h3 { margin: 0 0 5px; color: var(--phub-text); font-size: .95rem; }
+.candidate-info p, .candidate-info small { margin: 0; color: var(--phub-text-muted); }
+.candidate-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 4px; color: var(--phub-text-muted); font-size: .78rem; }
+
+@media (max-width: 700px) {
+  .link-overlay { padding: 10px; }
+  .link-dialog { max-height: calc(100vh - 20px); padding: 16px; }
+  .link-dialog-header, .link-search { grid-template-columns: 1fr; flex-direction: column; }
+  .link-candidate { grid-template-columns: 56px 1fr; }
+  .link-candidate button { grid-column: 1 / -1; width: 100%; }
+  .candidate-thumb { width: 56px; height: 56px; }
+}

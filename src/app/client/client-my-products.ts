@@ -9,7 +9,7 @@ import {
   NbSelectModule,
   NbToastrService
 } from '@nebular/theme';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
 import {
   MyProductDraft,
   MyProductsService,
@@ -25,6 +25,10 @@ import {
   MarketplaceMappingResult,
   MarketplaceMappingsService
 } from '../core/services/marketplace-mappings.service';
+import {
+  MercadoLivreIntegrationService,
+  MercadoLivreLinkCandidateResult
+} from '../core/services/mercado-livre-integration.service';
 
 interface MyProductRow {
   id: string;
@@ -98,6 +102,13 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   editListingTitle = '';
   editListingPrice: number | null = null;
   editListingDescription = '';
+  linkProduct: MyProductRow | null = null;
+  linkSellerId = '';
+  linkQuery = '';
+  linkCandidates: MercadoLivreLinkCandidateResult[] = [];
+  linkCandidatesLoading = false;
+  linkSavingKey: string | null = null;
+  linkError: string | null = null;
 
   skip = 0;
   limit = 20;
@@ -108,6 +119,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   constructor(
     private readonly myProductsService: MyProductsService,
     private readonly marketplaceMappingsService: MarketplaceMappingsService,
+    private readonly mercadoLivreService: MercadoLivreIntegrationService,
     private readonly toastr: NbToastrService,
     private readonly router: Router
   ) {}
@@ -297,10 +309,84 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   }
 
   openLinkExisting(row: MyProductRow): void {
+    this.linkProduct = row;
+    this.linkQuery = row.productName;
+    this.linkCandidates = [];
+    this.linkError = null;
+    this.linkCandidatesLoading = true;
+    this.mercadoLivreService.status().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (status) => {
+        const connection = status.connections[0];
+        if (!connection) {
+          this.linkCandidatesLoading = false;
+          this.linkError = 'Conecte uma conta do Mercado Livre antes de vincular um anúncio.';
+          return;
+        }
+        this.linkSellerId = connection.sellerId;
+        this.searchLinkCandidates();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.linkCandidatesLoading = false;
+        this.linkError = this.buildErrorMessage('Não foi possível consultar a integração.', error);
+      }
+    });
+  }
+
+  closeLinkExisting(): void {
+    if (this.linkSavingKey) return;
+    this.linkProduct = null;
+    this.linkCandidates = [];
+    this.linkError = null;
+  }
+
+  searchLinkCandidates(): void {
+    if (!this.linkProduct || !this.linkSellerId) return;
+    this.linkCandidatesLoading = true;
+    this.linkError = null;
+    this.mercadoLivreService.listSellerListings(this.linkSellerId, this.linkQuery)
+      .pipe(finalize(() => (this.linkCandidatesLoading = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (items) => { this.linkCandidates = items; },
+        error: (error: HttpErrorResponse) => {
+          this.linkError = this.buildErrorMessage('Não foi possível carregar seus anúncios.', error);
+        }
+      });
+  }
+
+  linkCandidateKey(candidate: MercadoLivreLinkCandidateResult): string {
+    return `${candidate.itemId}_${candidate.variationId ?? 'root'}`;
+  }
+
+  confirmLinkCandidate(candidate: MercadoLivreLinkCandidateResult): void {
+    const row = this.linkProduct;
+    if (!row || this.linkSavingKey) return;
     const variantSku = (row.resolvedVariantSku ?? row.productSku).trim().toUpperCase();
-    void this.router.navigate(['/client/integrations/mercadolivre'], {
-      fragment: 'mappings',
-      queryParams: { mappingSku: variantSku }
+    if (candidate.alreadyMapped && candidate.mappedSku !== variantSku
+        && !window.confirm(`Este anúncio está vinculado a ${candidate.mappedSku}. Deseja remapear para ${variantSku}?`)) return;
+
+    const key = this.linkCandidateKey(candidate);
+    this.linkSavingKey = key;
+    this.marketplaceMappingsService.createMapping({
+      provider: 'MercadoLivre',
+      sellerId: candidate.sellerId,
+      externalItemId: candidate.itemId,
+      externalVariationId: candidate.variationId ?? null,
+      selectedCatalogSku: variantSku
+    }).pipe(finalize(() => (this.linkSavingKey = null)), takeUntil(this.destroy$)).subscribe({
+      next: (result) => {
+        this.toastr.success(
+          result.ordersAffected > 0
+            ? `Anúncio vinculado. ${result.ordersAffected} pedido(s) pendente(s) atualizado(s).`
+            : 'Anúncio vinculado com sucesso.',
+          'Mercado Livre'
+        );
+        this.linkSavingKey = null;
+        this.closeLinkExisting();
+        this.loadDrafts();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.danger(this.buildErrorMessage('Falha ao vincular anúncio.', error), 'Mercado Livre');
+      }
     });
   }
 

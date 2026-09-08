@@ -144,6 +144,23 @@ export interface MercadoLivreListingItemDetails {
   updatedAt: string;
 }
 
+export interface MercadoLivreLinkCandidateResult {
+  sellerId: string;
+  itemId: string;
+  variationId?: string | null;
+  title: string;
+  sellerSku?: string | null;
+  thumbnailUrl?: string | null;
+  price: number;
+  availableQuantity: number;
+  status: string;
+  listingTypeId?: string | null;
+  userProductId?: string | null;
+  permalink?: string | null;
+  alreadyMapped: boolean;
+  mappedSku?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MercadoLivreIntegrationService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
@@ -264,6 +281,18 @@ export class MercadoLivreIntegrationService {
 
     return this.http.get<MercadoLivreListListingsResult>(
       `${this.apiBaseUrl}/client/integrations/mercadolivre/listings`,
+      { params }
+    );
+  }
+
+  listSellerListings(sellerId?: string | null, query?: string | null): Observable<MercadoLivreLinkCandidateResult[]> {
+    let params = new HttpParams();
+    const normalizedSeller = (sellerId ?? '').trim();
+    const normalizedQuery = (query ?? '').trim();
+    if (normalizedSeller) params = params.set('sellerId', normalizedSeller);
+    if (normalizedQuery) params = params.set('q', normalizedQuery);
+    return this.http.get<MercadoLivreLinkCandidateResult[]>(
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/seller-listings`,
       { params }
     );
   }

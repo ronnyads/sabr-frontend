@@ -201,4 +201,55 @@
       </div>
     </div>
   </div>
+
+  <div class="link-overlay" *ngIf="linkProduct as product" (click)="closeLinkExisting()">
+    <section class="link-dialog" role="dialog" aria-modal="true" aria-labelledby="link-dialog-title" (click)="$event.stopPropagation()">
+      <header class="link-dialog-header">
+        <div>
+          <span class="eyebrow">VINCULAR ANÚNCIO EXISTENTE</span>
+          <h2 id="link-dialog-title">Escolha o anúncio do Mercado Livre</h2>
+          <p>Produto HUB: <strong>{{ product.productName }}</strong> · SKU imutável <strong>{{ product.resolvedVariantSku || product.productSku }}</strong></p>
+        </div>
+        <button nbButton status="basic" size="small" [disabled]="!!linkSavingKey" (click)="closeLinkExisting()">Fechar</button>
+      </header>
+
+      <form class="link-search" (ngSubmit)="searchLinkCandidates()">
+        <input nbInput fullWidth name="linkQuery" [(ngModel)]="linkQuery" placeholder="Buscar por título, SKU ou item do Mercado Livre" />
+        <button nbButton status="primary" type="submit" [disabled]="linkCandidatesLoading">
+          {{ linkCandidatesLoading ? 'Buscando...' : 'Buscar anúncios' }}
+        </button>
+      </form>
+
+      <div class="link-feedback" *ngIf="linkCandidatesLoading">Consultando os anúncios da sua conta Mercado Livre…</div>
+      <div class="link-feedback link-error" *ngIf="!linkCandidatesLoading && linkError">{{ linkError }}</div>
+      <div class="link-feedback" *ngIf="!linkCandidatesLoading && !linkError && linkCandidates.length === 0">
+        Nenhum anúncio encontrado. Simplifique a busca ou apague o texto para consultar todos.
+      </div>
+
+      <div class="link-results" *ngIf="!linkCandidatesLoading && !linkError && linkCandidates.length > 0">
+        <article class="link-candidate" *ngFor="let candidate of linkCandidates">
+          <div class="candidate-thumb">
+            <img *ngIf="candidate.thumbnailUrl" [src]="candidate.thumbnailUrl" [alt]="candidate.title" />
+          </div>
+          <div class="candidate-info">
+            <h3>{{ candidate.title }}</h3>
+            <p>{{ candidate.itemId }}<span *ngIf="candidate.variationId"> · Variação {{ candidate.variationId }}</span></p>
+            <div class="candidate-meta">
+              <span>SKU ML: <strong>{{ candidate.sellerSku || 'Sem SKU' }}</strong></span>
+              <span>{{ candidate.price | currency:'BRL' }}</span>
+              <span>Estoque ML: {{ candidate.availableQuantity }}</span>
+              <span>{{ candidate.status }}</span>
+            </div>
+            <small *ngIf="candidate.alreadyMapped">Vinculado atualmente a {{ candidate.mappedSku }}</small>
+          </div>
+          <button nbButton status="info" size="small"
+            [disabled]="!!linkSavingKey || (candidate.alreadyMapped && candidate.mappedSku === (product.resolvedVariantSku || product.productSku))"
+            (click)="confirmLinkCandidate(candidate)">
+            {{ linkSavingKey === linkCandidateKey(candidate) ? 'Vinculando…' :
+              (candidate.alreadyMapped && candidate.mappedSku === (product.resolvedVariantSku || product.productSku) ? 'Já vinculado' : 'Vincular este') }}
+          </button>
+        </article>
+      </div>
+    </section>
+  </div>
 </section>
