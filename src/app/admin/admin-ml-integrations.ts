@@ -111,10 +111,10 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
       });
   }
 
-  importSerums(): void {
-    if (!confirm('Importar todos os séruns Boca Rosa e Principia com estoque 1.000? Produtos existentes não serão duplicados.')) return;
+  importProducts(): void {
+    if (!confirm('Importar os produtos Boca Rosa e Principia com estoque 1.000? Produtos existentes não serão duplicados.')) return;
     this.importingCatalog = true;
-    this.integrationService.importSerums(this.tenantId, this.clientId, false)
+    this.integrationService.importProducts(this.tenantId, this.clientId, false)
       .pipe(finalize(() => (this.importingCatalog = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {

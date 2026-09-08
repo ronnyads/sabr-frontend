@@ -35,12 +35,12 @@ export class AdminMercadoLivreIntegrationService {
     return this.http.delete<void>(`${url}${queryParams}`);
   }
 
-  importSerums(tenantSlug: string, clientId: string, previewOnly: boolean): Observable<MercadoLivreCatalogImportResult> {
+  importProducts(tenantSlug: string, clientId: string, previewOnly: boolean): Observable<MercadoLivreCatalogImportResult> {
     const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
     const client = encodeURIComponent((clientId ?? '').trim());
     return this.http.post<MercadoLivreCatalogImportResult>(
       `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/catalog/import`,
-      { query: 'serum', brands: ['Boca Rosa', 'Principia'], physicalStock: 1000, previewOnly }
+      { query: '', brands: ['Boca Rosa', 'Principia'], physicalStock: 1000, previewOnly }
     );
   }
 }
