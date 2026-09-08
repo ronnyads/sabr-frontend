@@ -23,6 +23,7 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
   loading = false;
   errorMessage: string | null = null;
   status: MercadoLivreIntegrationStatusResult | null = null;
+  importingCatalog = false;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -107,6 +108,21 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
           );
           this.toastr.danger(message, 'Force Disconnect');
         }
+      });
+  }
+
+  importSerums(): void {
+    if (!confirm('Importar todos os séruns Boca Rosa e Principia com estoque 1.000? Produtos existentes não serão duplicados.')) return;
+    this.importingCatalog = true;
+    this.integrationService.importSerums(this.tenantId, this.clientId, false)
+      .pipe(finalize(() => (this.importingCatalog = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          const detail = `${result.productsCreated} produtos criados, ${result.productsUpdated} atualizados e ${result.mappingsCreated} anúncios vinculados.`;
+          result.warnings.length ? this.toastr.warning(`${detail} ${result.warnings.length} aviso(s).`, 'Importação concluída') : this.toastr.success(detail, 'Importação concluída');
+          this.loadStatus();
+        },
+        error: (error: HttpErrorResponse) => this.toastr.danger(this.buildErrorMessage('Falha ao importar catálogo.', error), 'Importação')
       });
   }
 

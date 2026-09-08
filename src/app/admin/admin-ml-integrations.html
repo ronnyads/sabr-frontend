@@ -1,5 +1,8 @@
 <section class="phub-page admin-ml-page">
   <ng-template #headerActions>
+    <button nbButton status="primary" size="small" [disabled]="!status?.connected || importingCatalog" (click)="importSerums()">
+      {{ importingCatalog ? 'Importando...' : 'Importar séruns do ML' }}
+    </button>
     <button nbButton status="basic" size="small" (click)="loadStatus()">Atualizar</button>
   </ng-template>
 

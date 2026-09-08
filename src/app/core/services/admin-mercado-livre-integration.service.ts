@@ -4,6 +4,15 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MercadoLivreIntegrationStatusResult } from './mercado-livre-integration.service';
 
+export interface MercadoLivreCatalogImportResult {
+  listingsFound: number;
+  productsMatched: number;
+  productsCreated: number;
+  productsUpdated: number;
+  mappingsCreated: number;
+  warnings: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminMercadoLivreIntegrationService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
@@ -24,5 +33,14 @@ export class AdminMercadoLivreIntegrationService {
     const url = `${this.apiBaseUrl}/admin/tenants/${normalizedTenantSlug}/clients/${normalizedClientId}/integrations/mercadolivre`;
     const queryParams = sellerId ? `?sellerId=${encodeURIComponent(sellerId)}` : '';
     return this.http.delete<void>(`${url}${queryParams}`);
+  }
+
+  importSerums(tenantSlug: string, clientId: string, previewOnly: boolean): Observable<MercadoLivreCatalogImportResult> {
+    const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
+    const client = encodeURIComponent((clientId ?? '').trim());
+    return this.http.post<MercadoLivreCatalogImportResult>(
+      `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/catalog/import`,
+      { query: 'serum', brands: ['Boca Rosa', 'Principia'], physicalStock: 1000, previewOnly }
+    );
   }
 }
