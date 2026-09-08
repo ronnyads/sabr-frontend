@@ -105,6 +105,56 @@
       </article>
     </div>
 
+    <article class="panel shipping-today enter-item" style="--delay: 250ms">
+      <div class="shipping-heading">
+        <div class="shipping-title">
+          <span class="shipping-icon" aria-hidden="true">↗</span>
+          <div>
+            <span class="panel-kicker">Operação de hoje</span>
+            <h2>Pedidos para enviar hoje</h2>
+            <p>Prazo de despacho em {{ data.shippingToday.dueDate | date:'dd/MM/yyyy':'UTC' }}</p>
+          </div>
+        </div>
+        <button class="shipping-action" type="button" (click)="goToOrders()">
+          Abrir pedidos <span aria-hidden="true">→</span>
+        </button>
+      </div>
+
+      <div class="shipping-summary" aria-label="Resumo dos envios de hoje">
+        <div><span>Pedidos</span><strong>{{ data.shippingToday.totalOrders | number:'1.0-0' }}</strong></div>
+        <div><span>Unidades</span><strong>{{ data.shippingToday.totalUnits | number:'1.0-0' }}</strong></div>
+        <div class="ready"><span>Pagamento confirmado</span><strong>{{ data.shippingToday.paidOrders | number:'1.0-0' }}</strong></div>
+        <div [class.warning]="data.shippingToday.pendingPaymentOrders > 0">
+          <span>Aguardando pagamento</span><strong>{{ data.shippingToday.pendingPaymentOrders | number:'1.0-0' }}</strong>
+        </div>
+      </div>
+
+      <div class="shipping-table" *ngIf="data.shippingToday.products.length; else noShippingToday">
+        <div class="shipping-table-head"><span>Produto / SKU</span><span>Pedidos</span><span>Quantidade</span></div>
+        <div class="shipping-table-body">
+          <div class="shipping-row" *ngFor="let product of data.shippingToday.products">
+            <div class="shipping-product">
+              <span class="shipping-marker" [class.unmapped]="!product.isMapped">{{ product.isMapped ? '✓' : '!' }}</span>
+              <div><strong>{{ product.productName || 'Produto do canal' }}</strong><span>{{ product.sku }}</span></div>
+            </div>
+            <span data-label="Pedidos">{{ product.orders }}</span>
+            <strong data-label="Quantidade">{{ product.units }}</strong>
+          </div>
+        </div>
+      </div>
+      <ng-template #noShippingToday>
+        <div class="shipping-empty">
+          <span aria-hidden="true">✓</span>
+          <div><strong>Nenhum envio pendente para hoje</strong><small>Quando houver pedidos com prazo para hoje, os SKUs e quantidades aparecerão aqui.</small></div>
+        </div>
+      </ng-template>
+
+      <div class="shipping-warning" *ngIf="data.shippingToday.unmappedUnits > 0">
+        <strong>{{ data.shippingToday.unmappedUnits }} unidade(s) sem SKU mapeado.</strong>
+        Vincule os anúncios antes de pagar e separar esses pedidos.
+      </div>
+    </article>
+
     <div class="analytics-grid">
       <article class="panel sales-flow enter-item" style="--delay: 270ms">
         <div class="panel-heading">

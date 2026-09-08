@@ -15,6 +15,22 @@ export interface ClientSalesSkuResult {
   isMapped: boolean;
 }
 export interface ClientSalesStatusResult { status: string; orders: number; percentage: number; }
+export interface ClientShippingTodaySkuResult {
+  sku: string;
+  productName?: string | null;
+  orders: number;
+  units: number;
+  isMapped: boolean;
+}
+export interface ClientShippingTodayResult {
+  dueDate: string;
+  totalOrders: number;
+  paidOrders: number;
+  pendingPaymentOrders: number;
+  totalUnits: number;
+  unmappedUnits: number;
+  products: ClientShippingTodaySkuResult[];
+}
 
 export interface ClientSalesDashboardResult {
   from: string;
@@ -38,6 +54,7 @@ export interface ClientSalesDashboardResult {
   products?: ClientSalesSkuResult[];
   topSkus: ClientSalesSkuResult[];
   statuses: ClientSalesStatusResult[];
+  shippingToday: ClientShippingTodayResult;
 }
 
 @Injectable({ providedIn: 'root' })
