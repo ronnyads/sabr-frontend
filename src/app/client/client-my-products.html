@@ -1,7 +1,7 @@
 <section class="phub-page my-products-page">
   <app-page-header
     [title]="'Meus Produtos'"
-    [subtitle]="'Configure o modo de precificacao para cada draft.'"
+    [subtitle]="'Publique, vincule e administre seus produtos sem perder o controle do estoque central.'"
   ></app-page-header>
 
   <app-search-toolbar
@@ -62,6 +62,19 @@
               <span>Catalogo: {{ formatMoney(row.catalogPriceCentsSnapshot) }}</span>
               <strong>Preco final estimado: {{ formatMoney(row.finalPriceCentsSnapshot) }}</strong>
             </div>
+            <div class="listing-strip" *ngIf="row.mappings.length > 0">
+              <button
+                type="button"
+                class="listing-chip"
+                *ngFor="let mapping of row.mappings"
+                [disabled]="listingLoadingId === mapping.id"
+                (click)="manageListing(mapping)"
+              >
+                <span class="listing-dot"></span>
+                {{ mapping.externalItemId }}
+                <small>{{ listingLoadingId === mapping.id ? 'Consultando...' : 'Gerenciar anuncio' }}</small>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -112,6 +125,7 @@
           >
             Publicar
           </button>
+          <button nbButton status="info" size="small" (click)="openLinkExisting()">Vincular existente</button>
           <button nbButton status="primary" size="small" [disabled]="row.isSaving || !row.isDirty" (click)="save(row)">
             {{ row.isSaving ? 'Salvando...' : 'Salvar' }}
           </button>
@@ -120,6 +134,61 @@
           </button>
         </div>
       </article>
+    </section>
+
+    <section class="listing-editor" *ngIf="listingWorkspace as workspace" aria-live="polite">
+      <div class="editor-heading">
+        <div>
+          <span class="eyebrow">CAPABILITY ENGINE</span>
+          <h3>Editar anuncio {{ workspace.listing.identity.itemId }}</h3>
+          <p>
+            {{ workspace.listing.model === 2 ? 'User Product' : 'Legacy Item' }} ·
+            {{ workspace.listing.status }} · {{ workspace.listing.soldQuantity }} vendidos
+          </p>
+        </div>
+        <button nbButton status="basic" size="small" (click)="closeListingEditor()">Fechar</button>
+      </div>
+
+      <div class="capability-grid">
+        <label class="editor-field">
+          <span>Titulo</span>
+          <input nbInput fullWidth [(ngModel)]="editListingTitle" [disabled]="!listingFieldEditable('title')" />
+          <small *ngIf="!listingFieldEditable('title')">{{ listingFieldReason('title') }}</small>
+        </label>
+        <label class="editor-field">
+          <span>Preco no Mercado Livre</span>
+          <input nbInput fullWidth type="number" min="0.01" step="0.01" [(ngModel)]="editListingPrice" [disabled]="!listingFieldEditable('price')" />
+          <small *ngIf="!listingFieldEditable('price')">{{ listingFieldReason('price') }}</small>
+        </label>
+        <label class="editor-field editor-field-wide">
+          <span>Nova descricao <small>(opcional)</small></span>
+          <textarea nbInput fullWidth rows="4" [(ngModel)]="editListingDescription" [disabled]="!listingFieldEditable('description')"></textarea>
+          <small *ngIf="!listingFieldEditable('description')">{{ listingFieldReason('description') }}</small>
+        </label>
+      </div>
+
+      <div class="inventory-lock">
+        <strong>SKU e estoque protegidos</strong>
+        <span>{{ listingFieldReason('stock') }}</span>
+      </div>
+
+      <div class="change-review" *ngIf="listingReviewing && pendingListingChanges as changes">
+        <span class="eyebrow">REVISAO ANTES DE ENVIAR</span>
+        <div *ngIf="changes.title !== undefined"><strong>Titulo</strong><span>{{ workspace.listing.title }}</span><b>→</b><span>{{ changes.title }}</span></div>
+        <div *ngIf="changes.price !== undefined"><strong>Preco</strong><span>{{ workspace.listing.price | currency:'BRL' }}</span><b>→</b><span>{{ changes.price | currency:'BRL' }}</span></div>
+        <div *ngIf="changes.description !== undefined"><strong>Descricao</strong><span>Atual</span><b>→</b><span>Nova descricao informada</span></div>
+      </div>
+
+      <div class="editor-actions">
+        <a *ngIf="workspace.listing.permalink" [href]="workspace.listing.permalink" target="_blank" rel="noopener">Ver no Mercado Livre</a>
+        <div class="review-actions">
+          <button *ngIf="listingReviewing" nbButton status="basic" [disabled]="listingSaving" (click)="cancelListingReview()">Voltar e editar</button>
+          <button *ngIf="!listingReviewing" nbButton status="primary" (click)="prepareListingReview()">Revisar alteracoes</button>
+          <button *ngIf="listingReviewing" nbButton status="primary" [disabled]="listingSaving" (click)="saveListingChanges()">
+            {{ listingSaving ? 'Sincronizando...' : 'Confirmar e sincronizar' }}
+          </button>
+        </div>
+      </div>
     </section>
 
     <div class="pager" *ngIf="!loading && !errorMessage && total > 0">

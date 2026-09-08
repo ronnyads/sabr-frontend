@@ -46,6 +46,56 @@ export interface MarketplaceUpsertMappingRequest {
   selectedCatalogSku: string;
 }
 
+export interface MarketplaceListingFieldCapability {
+  editable: boolean;
+  reasonCode?: string | null;
+  reason?: string | null;
+  currentValue?: unknown;
+  allowedValues: string[];
+}
+
+export interface MarketplaceListingWorkspace {
+  listing: {
+    mappingId: string;
+    mappingVersion: number;
+    model: number;
+    masterSku: string;
+    channelSku?: string | null;
+    title: string;
+    price: number;
+    availableQuantity: number;
+    soldQuantity: number;
+    status: string;
+    permalink?: string | null;
+    isCatalogListing: boolean;
+    identity: {
+      provider: number;
+      integrationId: string;
+      sellerId: number;
+      itemId: string;
+      variationId?: string | null;
+      userProductId?: string | null;
+    };
+  };
+  capabilities: {
+    mappingId: string;
+    mappingVersion: number;
+    model: number;
+    evaluationHash: string;
+    evaluatedAt: string;
+    expiresAt: string;
+    fields: Record<string, MarketplaceListingFieldCapability>;
+  };
+}
+
+export interface MarketplaceListingChangeSet {
+  evaluationHash: string;
+  mappingVersion: number;
+  title?: string;
+  price?: number;
+  description?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MarketplaceMappingsService {
   private readonly base = `${environment.apiBaseUrl}/client/marketplace-mappings`;
@@ -82,5 +132,13 @@ export class MarketplaceMappingsService {
 
   deleteMapping(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  getListing(id: string): Observable<MarketplaceListingWorkspace> {
+    return this.http.get<MarketplaceListingWorkspace>(`${this.base}/${id}/listing`);
+  }
+
+  synchronizeListingChanges(id: string, changes: MarketplaceListingChangeSet): Observable<MarketplaceListingWorkspace> {
+    return this.http.post<MarketplaceListingWorkspace>(`${this.base}/${id}/listing/changes`, changes);
   }
 }

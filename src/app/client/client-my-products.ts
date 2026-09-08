@@ -20,6 +20,11 @@ import { formatBrlFromCents } from '../core/utils/money.utils';
 import { UiStateComponent } from '../shared/ui-state/ui-state.component';
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
 import { SearchToolbarComponent } from '../shared/search-toolbar/search-toolbar.component';
+import {
+  MarketplaceListingWorkspace,
+  MarketplaceMappingResult,
+  MarketplaceMappingsService
+} from '../core/services/marketplace-mappings.service';
 
 interface MyProductRow {
   id: string;
@@ -54,6 +59,7 @@ interface MyProductRow {
   origin?: string | null;
   purchaseCost?: number | null;
   catalogPrice?: number | null;
+  mappings: MarketplaceMappingResult[];
 }
 
 @Component({
@@ -82,6 +88,14 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   hasConcurrencyConflict = false;
   hasPreconditionRequired = false;
+  listingWorkspace: MarketplaceListingWorkspace | null = null;
+  listingLoadingId: string | null = null;
+  listingSaving = false;
+  listingReviewing = false;
+  pendingListingChanges: { evaluationHash: string; mappingVersion: number; title?: string; price?: number; description?: string } | null = null;
+  editListingTitle = '';
+  editListingPrice: number | null = null;
+  editListingDescription = '';
 
   skip = 0;
   limit = 20;
@@ -91,6 +105,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
 
   constructor(
     private readonly myProductsService: MyProductsService,
+    private readonly marketplaceMappingsService: MarketplaceMappingsService,
     private readonly toastr: NbToastrService,
     private readonly router: Router
   ) {}
@@ -279,6 +294,108 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     });
   }
 
+  openLinkExisting(): void {
+    void this.router.navigate(['/client/integrations/mercadolivre'], { fragment: 'mappings' });
+  }
+
+  manageListing(mapping: MarketplaceMappingResult): void {
+    this.listingLoadingId = mapping.id;
+    this.listingWorkspace = null;
+    this.marketplaceMappingsService.getListing(mapping.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (workspace) => {
+        this.listingLoadingId = null;
+        this.listingWorkspace = workspace;
+        this.editListingTitle = workspace.listing.title;
+        this.editListingPrice = workspace.listing.price;
+        this.editListingDescription = '';
+        this.listingReviewing = false;
+        this.pendingListingChanges = null;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.listingLoadingId = null;
+        this.toastr.danger(this.buildErrorMessage('Nao foi possivel consultar as permissoes do anuncio.', error), 'Anuncio');
+      }
+    });
+  }
+
+  closeListingEditor(): void {
+    this.listingWorkspace = null;
+    this.listingReviewing = false;
+    this.pendingListingChanges = null;
+  }
+
+  listingFieldEditable(field: string): boolean {
+    return !!this.listingWorkspace?.capabilities.fields?.[field]?.editable;
+  }
+
+  listingFieldReason(field: string): string {
+    return this.listingWorkspace?.capabilities.fields?.[field]?.reason ?? '';
+  }
+
+  prepareListingReview(): void {
+    const workspace = this.listingWorkspace;
+    if (!workspace) return;
+    const changes: {
+      evaluationHash: string;
+      mappingVersion: number;
+      title?: string;
+      price?: number;
+      description?: string;
+    } = {
+      evaluationHash: workspace.capabilities.evaluationHash,
+      mappingVersion: workspace.capabilities.mappingVersion
+    };
+    if (this.listingFieldEditable('title') && this.editListingTitle.trim() !== workspace.listing.title) {
+      changes.title = this.editListingTitle.trim();
+    }
+    if (this.listingFieldEditable('price') && this.editListingPrice != null && this.editListingPrice !== workspace.listing.price) {
+      changes.price = Number(this.editListingPrice);
+    }
+    if (this.listingFieldEditable('description') && this.editListingDescription.trim()) {
+      changes.description = this.editListingDescription.trim();
+    }
+    if (changes.title === undefined && changes.price === undefined && changes.description === undefined) {
+      this.toastr.info('Nenhuma alteracao para sincronizar.', 'Anuncio');
+      return;
+    }
+    this.pendingListingChanges = changes;
+    this.listingReviewing = true;
+  }
+
+  cancelListingReview(): void {
+    this.listingReviewing = false;
+    this.pendingListingChanges = null;
+  }
+
+  saveListingChanges(): void {
+    const workspace = this.listingWorkspace;
+    const changes = this.pendingListingChanges;
+    if (!workspace || !changes || this.listingSaving) return;
+    this.listingSaving = true;
+    this.marketplaceMappingsService.synchronizeListingChanges(workspace.listing.mappingId, changes)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.listingSaving = false;
+          this.listingWorkspace = updated;
+          this.editListingTitle = updated.listing.title;
+          this.editListingPrice = updated.listing.price;
+          this.editListingDescription = '';
+          this.listingReviewing = false;
+          this.pendingListingChanges = null;
+          this.toastr.success('Alteracoes sincronizadas e auditadas.', 'Mercado Livre');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.listingSaving = false;
+          if (error.status === 409) {
+            this.toastr.warning('O anuncio mudou. Reabra o editor para carregar as permissoes atuais.', 'Concorrencia');
+          } else {
+            this.toastr.danger(this.buildErrorMessage('Falha ao sincronizar o anuncio.', error), 'Mercado Livre');
+          }
+        }
+      });
+  }
+
   mlBadgeClass(status: string): string {
     const normalized = (status ?? '').trim().toLowerCase();
     if (normalized === 'error') {
@@ -320,7 +437,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
         next: (response) => {
           this.rows = (response.items ?? []).map((draft) => this.toRow(draft));
           this.total = response.total ?? 0;
-          this.loading = false;
+          this.loadMappings();
         },
         error: (error: HttpErrorResponse) => {
           this.loading = false;
@@ -368,8 +485,25 @@ export class ClientMyProducts implements OnInit, OnDestroy {
       ncm: draft.ncm ?? null,
       origin: draft.origin ?? null,
       purchaseCost: draft.purchaseCost ?? null,
-      catalogPrice: draft.catalogPrice ?? null
+      catalogPrice: draft.catalogPrice ?? null,
+      mappings: []
     };
+  }
+
+  private loadMappings(): void {
+    this.marketplaceMappingsService.listMappings('MercadoLivre').pipe(takeUntil(this.destroy$)).subscribe({
+      next: (mappings) => {
+        for (const row of this.rows) {
+          const skus = new Set([row.productSku, row.resolvedVariantSku].filter((item): item is string => !!item).map((item) => item.toUpperCase()));
+          row.mappings = mappings.filter((mapping) => skus.has((mapping.sabrVariantSku ?? '').toUpperCase()));
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.toastr.warning('Produtos carregados, mas os anuncios vinculados nao puderam ser consultados.', 'Sincronizacao');
+      }
+    });
   }
 
   private applyDraft(row: MyProductRow, draft: MyProductDraft): void {
