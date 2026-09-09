@@ -430,6 +430,62 @@
   flex-wrap: wrap;
 }
 
+.mapping-path {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, .8fr);
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+
+  > div {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+    padding: 11px 13px;
+    border: 1px solid var(--phub-border);
+    border-radius: 12px;
+    background: var(--phub-surface);
+  }
+
+  small {
+    color: var(--phub-primary);
+    font-size: .64rem;
+    font-weight: 850;
+    letter-spacing: .1em;
+  }
+
+  strong {
+    overflow: hidden;
+    color: var(--phub-text);
+    font-size: .82rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    color: var(--phub-text-muted);
+    font-size: .72rem;
+  }
+
+  b {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--phub-primary);
+    background: color-mix(in srgb, var(--phub-primary) 10%, var(--phub-surface));
+  }
+}
+
+.mapping-summary.mapping-missing .mapping-path > div:last-child {
+  border-color: color-mix(in srgb, var(--phub-warning) 45%, var(--phub-border));
+  background: color-mix(in srgb, var(--phub-warning) 8%, var(--phub-surface));
+
+  small,
+  strong { color: var(--phub-warning); }
+}
+
 .mapping-channel-id,
 .mapping-hint {
   font-size: 12px;
@@ -450,8 +506,93 @@
   border: 1px solid rgba(148, 163, 184, 0.28);
   padding: 10px 12px;
   font-size: 13px;
-  color: #0f172a;
-  background: #fff;
+  color: var(--phub-text);
+  background: var(--phub-surface);
+}
+
+.mapping-editor {
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--phub-warning) 38%, var(--phub-border));
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--phub-warning) 6%, var(--phub-surface));
+  animation: mapping-editor-in 180ms ease-out;
+}
+
+.mapping-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+
+  h4 {
+    margin: 4px 0 0;
+    color: var(--phub-text);
+    font-size: 1rem;
+  }
+}
+
+.mapping-impact {
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: var(--phub-warning);
+  background: color-mix(in srgb, var(--phub-warning) 12%, var(--phub-surface));
+  font-size: .7rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.mapping-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--phub-border);
+  border-radius: 10px;
+  outline: none;
+  color: var(--phub-text);
+  background: var(--phub-surface);
+
+  &:focus-visible {
+    border-color: var(--phub-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--phub-primary) 15%, transparent);
+  }
+}
+
+.mapping-selected-product {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--phub-success) 30%, var(--phub-border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--phub-success) 7%, var(--phub-surface));
+
+  img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 9px;
+    background: var(--phub-surface);
+  }
+
+  div { display: grid; gap: 2px; min-width: 0; }
+  small { color: var(--phub-success); font-size: .62rem; font-weight: 850; letter-spacing: .08em; }
+  strong { color: var(--phub-text); font-size: .82rem; }
+  span { color: var(--phub-text-muted); font-size: .73rem; }
+}
+
+.mapping-required {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+@keyframes mapping-editor-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .variants-warning {
@@ -783,6 +924,14 @@
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .mapping-path {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .mapping-path b { transform: rotate(90deg); }
+  .mapping-editor-heading, .mapping-required { display: flex; flex-direction: column; }
 
   .payment-review-backdrop {
     align-items: end;

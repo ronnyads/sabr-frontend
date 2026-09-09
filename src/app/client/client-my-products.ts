@@ -23,12 +23,14 @@ import { SearchToolbarComponent } from '../shared/search-toolbar/search-toolbar.
 import {
   MarketplaceListingWorkspace,
   MarketplaceMappingResult,
+  MarketplaceUnmappedItem,
   MarketplaceMappingsService
 } from '../core/services/marketplace-mappings.service';
 import {
   MercadoLivreIntegrationService,
   MercadoLivreLinkCandidateResult
 } from '../core/services/mercado-livre-integration.service';
+import { CatalogService, CatalogVariant } from '../core/services/catalog.service';
 
 interface MyProductRow {
   id: string;
@@ -109,6 +111,13 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   linkCandidatesLoading = false;
   linkSavingKey: string | null = null;
   linkError: string | null = null;
+  unmappedItems: MarketplaceUnmappedItem[] = [];
+  unmappedLoading = false;
+  unmappedError: string | null = null;
+  unmappedSelection: Record<string, string> = {};
+  unmappedSaving: Record<string, boolean> = {};
+  allowedVariants: CatalogVariant[] = [];
+  variantsLoading = false;
 
   skip = 0;
   limit = 20;
@@ -120,6 +129,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     private readonly myProductsService: MyProductsService,
     private readonly marketplaceMappingsService: MarketplaceMappingsService,
     private readonly mercadoLivreService: MercadoLivreIntegrationService,
+    private readonly catalogService: CatalogService,
     private readonly toastr: NbToastrService,
     private readonly router: Router
   ) {}
@@ -133,6 +143,8 @@ export class ClientMyProducts implements OnInit, OnDestroy {
       });
 
     this.loadDrafts();
+    this.loadUnmappedProducts();
+    this.loadAllowedVariants();
   }
 
   ngOnDestroy(): void {
@@ -154,6 +166,86 @@ export class ClientMyProducts implements OnInit, OnDestroy {
 
   rowById(_: number, row: MyProductRow): string {
     return row.id;
+  }
+
+  unmappedByKey(_: number, item: MarketplaceUnmappedItem): string {
+    return item.mappingKey;
+  }
+
+  loadUnmappedProducts(): void {
+    this.unmappedLoading = true;
+    this.unmappedError = null;
+    this.marketplaceMappingsService.listUnmappedItems('MercadoLivre')
+      .pipe(finalize(() => (this.unmappedLoading = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (items) => {
+          this.unmappedItems = items ?? [];
+          const activeKeys = new Set(this.unmappedItems.map(item => item.mappingKey));
+          for (const key of Object.keys(this.unmappedSelection)) {
+            if (!activeKeys.has(key)) delete this.unmappedSelection[key];
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          this.unmappedError = this.buildErrorMessage('Não foi possível carregar os produtos pendentes de vínculo.', error);
+        }
+      });
+  }
+
+  loadAllowedVariants(): void {
+    if (this.variantsLoading || this.allowedVariants.length > 0) return;
+    this.variantsLoading = true;
+    this.catalogService.listCatalogVariants(0, 200)
+      .pipe(finalize(() => (this.variantsLoading = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => { this.allowedVariants = result.items ?? []; },
+        error: () => {
+          this.toastr.warning('Não foi possível carregar os produtos liberados do catálogo.', 'Catálogo');
+        }
+      });
+  }
+
+  linkUnmappedProduct(item: MarketplaceUnmappedItem): void {
+    const selectedCatalogSku = (this.unmappedSelection[item.mappingKey] ?? '').trim();
+    if (!selectedCatalogSku || this.unmappedSaving[item.mappingKey]) return;
+
+    this.unmappedSaving[item.mappingKey] = true;
+    this.marketplaceMappingsService.createMapping({
+      provider: 'MercadoLivre',
+      integrationId: item.integrationId ?? null,
+      sellerId: item.sellerId ?? null,
+      externalItemId: item.externalItemId,
+      externalVariationId: item.externalVariationId ?? null,
+      selectedCatalogSku
+    }).pipe(
+      finalize(() => (this.unmappedSaving[item.mappingKey] = false)),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (result) => {
+        this.toastr.success(
+          result.ordersAffected > 0
+            ? result.ordersAffected + ' pedido(s) atualizado(s). O pagamento já pode ser revisado.'
+            : 'Produto vinculado ao catálogo.',
+          'Vínculo concluído'
+        );
+        delete this.unmappedSelection[item.mappingKey];
+        this.myProductsService.invalidate();
+        this.loadUnmappedProducts();
+        this.loadDrafts();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.danger(this.buildErrorMessage('Falha ao vincular o produto ao catálogo.', error), 'Vínculo');
+      }
+    });
+  }
+
+  selectedVariant(mappingKey: string): CatalogVariant | null {
+    const sku = this.unmappedSelection[mappingKey];
+    return this.allowedVariants.find(item => item.variantSku === sku) ?? null;
+  }
+
+  catalogVariantLabel(variant: CatalogVariant): string {
+    const name = [variant.productName, variant.variantName].filter(Boolean).join(' / ');
+    return variant.variantSku + ' — ' + name;
   }
 
   retry(): void {

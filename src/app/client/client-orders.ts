@@ -62,10 +62,12 @@ export class ClientOrders implements OnInit, OnDestroy {
   variantsError: string | null = null;
   itemMappingEditorOpen: Record<string, boolean> = {};
   itemMappingSelection: Record<string, string> = {};
+  itemMappingSearch: Record<string, string> = {};
   itemMappingSaving: Record<string, boolean> = {};
   paymentQuote: MarketplaceOrderPaymentQuote | null = null;
   paymentQuoteOrderId: string | null = null;
   paymentQuoteLoading = false;
+  pendingMappingOrderId: string | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -301,6 +303,28 @@ export class ClientOrders implements OnInit, OnDestroy {
         },
         complete: () => { this.paymentQuoteLoading = false; }
       });
+  }
+
+  startPaymentFlow(order: MarketplaceOrderListItem): void {
+    if (order.hasUnmappedItems || order.paymentBlockers.includes('unmapped_item')) {
+      this.openMappingForPayment(order);
+      return;
+    }
+
+    this.markPaid(order);
+  }
+
+  openMappingForPayment(order: MarketplaceOrderListItem): void {
+    this.closePaymentQuote();
+    this.pendingMappingOrderId = order.id;
+    this.expandedOrderId = order.id;
+    this.loadAllowedVariants();
+    const detail = this.orderDetails[order.id];
+    if (detail) {
+      this.focusFirstUnmappedItem(order.id, detail);
+      return;
+    }
+    if (!this.detailLoading[order.id]) this.loadOrderDetail(order.id);
   }
 
   closePaymentQuote(): void {
@@ -560,6 +584,7 @@ export class ClientOrders implements OnInit, OnDestroy {
     this.loadAllowedVariants();
     this.itemMappingEditorOpen[item.id] = true;
     this.itemMappingSelection[item.id] = item.sabrVariantSku ?? this.itemMappingSelection[item.id] ?? '';
+    this.itemMappingSearch[item.id] = this.itemMappingSearch[item.id] ?? '';
   }
 
   closeItemMappingEditor(itemId: string): void {
@@ -611,6 +636,20 @@ export class ClientOrders implements OnInit, OnDestroy {
     return `${variant.variantSku}${details ? ` - ${details}` : ''}`;
   }
 
+  filteredVariants(itemId: string): CatalogVariant[] {
+    const query = (this.itemMappingSearch[itemId] ?? '').trim().toLocaleLowerCase('pt-BR');
+    if (!query) return this.allowedVariants;
+    return this.allowedVariants.filter(variant =>
+      [variant.variantSku, variant.baseSku, variant.productName, variant.variantName]
+        .some(value => (value ?? '').toLocaleLowerCase('pt-BR').includes(query))
+    );
+  }
+
+  selectedMappingVariant(itemId: string): CatalogVariant | null {
+    const selected = this.itemMappingSelection[itemId];
+    return this.allowedVariants.find(variant => variant.variantSku === selected) ?? null;
+  }
+
   remapResponsibilityMessage(): string {
     return 'Voce esta trocando o produto mapeado para este anuncio. Pedidos ja resolvidos preservam o vinculo historico; a alteracao vale para novos pedidos. Deseja continuar?';
   }
@@ -650,6 +689,9 @@ export class ClientOrders implements OnInit, OnDestroy {
       .subscribe({
         next: (detail) => {
           this.orderDetails[orderId] = detail;
+          if (this.pendingMappingOrderId === orderId) {
+            this.focusFirstUnmappedItem(orderId, detail);
+          }
         },
         error: (err) => {
           const msg = err?.error?.message ?? 'Nao foi possivel carregar os detalhes do pedido.';
@@ -659,6 +701,22 @@ export class ClientOrders implements OnInit, OnDestroy {
           this.detailLoading[orderId] = false;
         }
       });
+  }
+
+  private focusFirstUnmappedItem(orderId: string, detail: MarketplaceOrderDetail): void {
+    const item = detail.items.find(candidate =>
+      !candidate.sabrVariantSku || (candidate.mappingState ?? '').toUpperCase().startsWith('UNMAPPED')
+    );
+    this.pendingMappingOrderId = null;
+    if (!item) {
+      this.toastr.info('Os produtos deste pedido já estão vinculados. Revise os demais bloqueios para pagar.', 'Pedido');
+      return;
+    }
+
+    this.openItemMappingEditor(item);
+    window.setTimeout(() => {
+      document.getElementById('mapping-' + item.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
   }
 
   milestoneEntries(milestones: MarketplaceShipmentMilestonesResult): Array<{ label: string; value?: string | null; current: boolean }> {
@@ -713,6 +771,10 @@ export class ClientOrders implements OnInit, OnDestroy {
         return 'Sem estoque';
       case 'label_missing':
         return 'Etiqueta pendente';
+      case 'pricing_missing':
+        return 'Preço do catálogo pendente';
+      case 'insufficient_balance':
+        return 'Saldo insuficiente';
       case 'cancellation_pending':
         return 'Cancelamento solicitado';
       default:

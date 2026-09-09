@@ -101,6 +101,17 @@
           </div>
         </div>
 
+        <div class="payment-warning mapping-required" *ngIf="quote.paymentBlockers.includes('unmapped_item') && paymentQuoteOrder as paymentOrder">
+          <nb-icon icon="link-2-outline"></nb-icon>
+          <div>
+            <strong>Produto sem vínculo com o catálogo</strong>
+            <span>Escolha qual SKU mestre corresponde ao anúncio vendido para calcular o custo e liberar o pagamento.</span>
+          </div>
+          <button nbButton status="warning" size="small" (click)="openMappingForPayment(paymentOrder)">
+            Vincular produto agora
+          </button>
+        </div>
+
         <footer class="payment-review-actions" *ngIf="paymentQuoteOrder as paymentOrder">
           <button nbButton status="basic" outline (click)="closePaymentQuote()">Voltar</button>
           <button
@@ -304,13 +315,20 @@
                 </div>
               </div>
 
-              <div class="mapping-summary" *ngIf="supportsItemMapping(order)">
-                <span class="mapping-channel-id">
-                  {{ providerMappingLabel(order.provider) }} · anúncio {{ item.mlItemId }}
-                  <span *ngIf="item.mlVariationId"> / variação {{ item.mlVariationId }}</span>
-                  <span *ngIf="item.channelSku"> / SKU do canal {{ item.channelSku }}</span>
-                </span>
-                <span class="mapping-channel-id">{{ itemMappingReasonLabel(item.mappingReason) }}</span>
+              <div class="mapping-summary" *ngIf="supportsItemMapping(order)" [class.mapping-missing]="!item.sabrVariantSku">
+                <div class="mapping-path">
+                  <div>
+                    <small>ANÚNCIO DO CLIENTE</small>
+                    <strong>{{ item.productName || 'Produto sem nome' }}</strong>
+                    <span>{{ providerMappingLabel(order.provider) }} · {{ item.mlItemId }} · SKU {{ item.channelSku || 'não informado' }}</span>
+                  </div>
+                  <b aria-hidden="true">→</b>
+                  <div>
+                    <small>PRODUTO DO CATÁLOGO</small>
+                    <strong>{{ item.sabrVariantSku || 'Vínculo obrigatório' }}</strong>
+                    <span>{{ item.sabrVariantSku ? itemMappingReasonLabel(item.mappingReason) : 'Selecione o SKU mestre para pagar este pedido' }}</span>
+                  </div>
+                </div>
                 <button
                   nbButton
                   size="tiny"
@@ -318,18 +336,38 @@
                   outline
                   *ngIf="!isItemMappingEditorOpen(item.id)"
                   (click)="openItemMappingEditor(item); $event.stopPropagation()">
-                  {{ item.sabrVariantSku ? 'Trocar mapeamento' : 'Mapear produto' }}
+                  {{ item.sabrVariantSku ? 'Trocar vínculo' : 'Vincular ao catálogo' }}
                 </button>
               </div>
 
-              <div class="mapping-editor" *ngIf="supportsItemMapping(order) && isItemMappingEditorOpen(item.id)">
-                <label class="mapping-label">Vincule este anúncio a um produto do catálogo PrometheusHUB</label>
+              <div class="mapping-editor" [id]="'mapping-' + item.id" *ngIf="supportsItemMapping(order) && isItemMappingEditorOpen(item.id)">
+                <div class="mapping-editor-heading">
+                  <div>
+                    <span class="payment-eyebrow">ETAPA OBRIGATÓRIA PARA PAGAR</span>
+                    <h4>Qual produto do catálogo foi vendido neste anúncio?</h4>
+                  </div>
+                  <span class="mapping-impact">{{ item.quantity }} unidade(s) neste pedido</span>
+                </div>
+                <label class="mapping-label" [for]="'mapping-search-' + item.id">Buscar por nome ou SKU do catálogo</label>
+                <input
+                  class="mapping-search-input"
+                  [id]="'mapping-search-' + item.id"
+                  [(ngModel)]="itemMappingSearch[item.id]"
+                  placeholder="Ex.: PH-AG10 ou Sérum Principia" />
                 <select class="mapping-select" [(ngModel)]="itemMappingSelection[item.id]">
                   <option value="">Selecione uma variante</option>
-                  <option *ngFor="let variant of allowedVariants" [value]="variant.variantSku">
+                  <option *ngFor="let variant of filteredVariants(item.id)" [value]="variant.variantSku">
                     {{ variantOptionLabel(variant) }}
                   </option>
                 </select>
+                <div class="mapping-selected-product" *ngIf="selectedMappingVariant(item.id) as variant">
+                  <img *ngIf="variant.thumbnailUrl" [src]="variant.thumbnailUrl" [alt]="variant.productName" />
+                  <div>
+                    <small>VÍNCULO QUE SERÁ CRIADO</small>
+                    <strong>{{ item.mlItemId }} → {{ variant.variantSku }}</strong>
+                    <span>{{ variant.productName }} · estoque disponível {{ variant.availableStock }}</span>
+                  </div>
+                </div>
                 <div class="mapping-hint">O vínculo libera a reserva de estoque e o pagamento dos pedidos ainda pendentes. Pedidos já processados preservam o histórico.</div>
                 <div class="shipment-actions">
                   <button
@@ -423,12 +461,14 @@
 
         <div class="order-actions">
           <button
-            nbButton status="success" size="small"
+            nbButton [status]="order.hasUnmappedItems ? 'warning' : 'success'" size="small"
             *ngIf="canAttemptPayment(order)"
-            [disabled]="!order.canMarkPaid || actionLoading[order.id + '_pay']"
-            (click)="markPaid(order); $event.stopPropagation()">
-            <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
-            {{ actionLoading[order.id + '_pay'] ? 'Confirmando...' : 'Pagar pedido' }}
+            [disabled]="actionLoading[order.id + '_pay'] || detailLoading[order.id]"
+            (click)="startPaymentFlow(order); $event.stopPropagation()">
+            <nb-icon [icon]="order.hasUnmappedItems ? 'link-2-outline' : 'checkmark-circle-2-outline'"></nb-icon>
+            {{ actionLoading[order.id + '_pay']
+              ? 'Confirmando...'
+              : (order.hasUnmappedItems ? 'Vincular produto para pagar' : 'Revisar e pagar pedido') }}
           </button>
           <button
             nbButton status="primary" size="small" outline
