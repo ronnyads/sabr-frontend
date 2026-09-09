@@ -166,6 +166,35 @@ export interface OrderActionResult {
   message?: string | null;
   cancellationRequestStatus?: string | null;
   updatedAt: string;
+  totalChargedCents?: number | null;
+  walletBalanceAfterCents?: number | null;
+  walletLedgerEntryId?: string | null;
+}
+
+export interface MarketplaceOrderPaymentQuoteItem {
+  orderItemId: string;
+  sku: string;
+  productName: string;
+  quantity: number;
+  unitPriceCents: number;
+  lineTotalCents: number;
+}
+
+export interface MarketplaceOrderPaymentQuote {
+  orderId: string;
+  currencyId: string;
+  productSubtotalCents: number;
+  freightCents: number;
+  additionalCents: number;
+  discountCents: number;
+  totalChargeCents: number;
+  walletBalanceCents: number;
+  walletBalanceAfterCents: number;
+  hasSufficientBalance: boolean;
+  quoteHash: string;
+  generatedAt: string;
+  paymentBlockers: string[];
+  items: MarketplaceOrderPaymentQuoteItem[];
 }
 
 export interface MarketplacePullShipmentLabelResult {
@@ -287,10 +316,16 @@ export class MarketplaceOrdersService {
     );
   }
 
-  markPaid(orderId: string, force = false): Observable<OrderActionResult> {
+  getPaymentQuote(orderId: string): Observable<MarketplaceOrderPaymentQuote> {
+    return this.http.get<MarketplaceOrderPaymentQuote>(
+      `${this.apiBaseUrl}/client/orders/${orderId}/payment-quote`
+    );
+  }
+
+  markPaid(orderId: string, force = false, quoteHash?: string | null): Observable<OrderActionResult> {
     return this.http.post<OrderActionResult>(
       `${this.apiBaseUrl}/client/orders/${orderId}/mark-paid`,
-      { force }
+      { force, quoteHash: quoteHash ?? null }
     );
   }
 }

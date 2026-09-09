@@ -24,6 +24,98 @@
     </div>
   </div>
 
+  <div class="payment-review-backdrop" *ngIf="paymentQuoteOrderId" (click)="closePaymentQuote()">
+    <section
+      class="payment-review"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="payment-review-title"
+      (click)="$event.stopPropagation()">
+      <header class="payment-review-header">
+        <div>
+          <span class="payment-eyebrow">Revisao segura</span>
+          <h2 id="payment-review-title">Confirmar pagamento do pedido</h2>
+          <p *ngIf="paymentQuoteOrder as paymentOrder">
+            {{ paymentOrder.internalOrderNumber || ('#' + paymentOrder.mlOrderId) }} · confira produtos e saldo antes de concluir.
+          </p>
+        </div>
+        <button class="payment-close" type="button" aria-label="Fechar revisao" (click)="closePaymentQuote()">×</button>
+      </header>
+
+      <div class="payment-review-loading" *ngIf="paymentQuoteLoading">
+        <div class="spinner"></div>
+        <span>Calculando valores e validando estoque...</span>
+      </div>
+
+      <ng-container *ngIf="paymentQuote as quote">
+        <div class="payment-items">
+          <div class="payment-item" *ngFor="let item of quote.items">
+            <div>
+              <strong>{{ item.productName }}</strong>
+              <span>SKU {{ item.sku }} · {{ item.quantity }} × {{ formatCents(item.unitPriceCents) }}</span>
+            </div>
+            <strong>{{ formatCents(item.lineTotalCents) }}</strong>
+          </div>
+        </div>
+
+        <div class="payment-summary-grid">
+          <div>
+            <span>Produtos</span>
+            <strong>{{ formatCents(quote.productSubtotalCents) }}</strong>
+          </div>
+          <div>
+            <span>Frete e adicionais</span>
+            <strong>{{ formatCents(quote.freightCents + quote.additionalCents - quote.discountCents) }}</strong>
+          </div>
+          <div class="payment-total">
+            <span>Total a debitar</span>
+            <strong>{{ formatCents(quote.totalChargeCents) }}</strong>
+          </div>
+        </div>
+
+        <div class="wallet-impact" [class.insufficient]="!quote.hasSufficientBalance">
+          <div>
+            <span>Saldo atual</span>
+            <strong>{{ formatCents(quote.walletBalanceCents) }}</strong>
+          </div>
+          <nb-icon icon="arrow-forward-outline"></nb-icon>
+          <div>
+            <span>Saldo depois</span>
+            <strong>{{ formatCents(quote.walletBalanceAfterCents) }}</strong>
+          </div>
+        </div>
+
+        <div class="payment-warning" *ngIf="!quote.hasSufficientBalance">
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          <div>
+            <strong>Saldo insuficiente</strong>
+            <span>Adicione saldo na Carteira para liberar o pagamento deste pedido.</span>
+          </div>
+        </div>
+
+        <div class="payment-warning" *ngIf="quote.paymentBlockers.includes('pricing_missing')">
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          <div>
+            <strong>Preco pendente</strong>
+            <span>Um produto precisa ter o preco do catalogo revisado pelo administrador.</span>
+          </div>
+        </div>
+
+        <footer class="payment-review-actions" *ngIf="paymentQuoteOrder as paymentOrder">
+          <button nbButton status="basic" outline (click)="closePaymentQuote()">Voltar</button>
+          <button
+            nbButton
+            status="success"
+            [disabled]="!quote.hasSufficientBalance || quote.paymentBlockers.length > 0 || actionLoading[paymentOrder.id + '_pay']"
+            (click)="confirmPayment(paymentOrder)">
+            <nb-icon icon="shield-checkmark-outline"></nb-icon>
+            {{ actionLoading[paymentOrder.id + '_pay'] ? 'Processando...' : 'Confirmar e pagar ' + formatCents(quote.totalChargeCents) }}
+          </button>
+        </footer>
+      </ng-container>
+    </section>
+  </div>
+
   <div class="state-loading" *ngIf="loading">
     <div class="spinner"></div>
     <span>Carregando pedidos...</span>

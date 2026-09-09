@@ -10,6 +10,7 @@ import {
   MarketplaceOrderDetail,
   MarketplaceOrderItemDetail,
   MarketplaceOrderListItem,
+  MarketplaceOrderPaymentQuote,
   MarketplaceOrdersService,
   MarketplaceShipmentMilestonesResult,
   MarketplaceShipmentResult
@@ -62,6 +63,9 @@ export class ClientOrders implements OnInit, OnDestroy {
   itemMappingEditorOpen: Record<string, boolean> = {};
   itemMappingSelection: Record<string, string> = {};
   itemMappingSaving: Record<string, boolean> = {};
+  paymentQuote: MarketplaceOrderPaymentQuote | null = null;
+  paymentQuoteOrderId: string | null = null;
+  paymentQuoteLoading = false;
 
   private destroy$ = new Subject<void>();
 
@@ -281,13 +285,50 @@ export class ClientOrders implements OnInit, OnDestroy {
   }
 
   markPaid(order: MarketplaceOrderListItem): void {
-    const key = `${order.id}_pay`;
-    this.actionLoading[key] = true;
-    this.ordersService.markPaid(order.id)
+    this.paymentQuoteLoading = true;
+    this.paymentQuoteOrderId = order.id;
+    this.paymentQuote = null;
+    this.ordersService.getPaymentQuote(order.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: (quote) => {
+          this.paymentQuote = quote;
+        },
+        error: (err: any) => {
+          this.paymentQuoteLoading = false;
+          this.paymentQuoteOrderId = null;
+          this.toastr.danger(err?.error?.message ?? 'Nao foi possivel calcular o pagamento.', 'Pagamento');
+        },
+        complete: () => { this.paymentQuoteLoading = false; }
+      });
+  }
+
+  closePaymentQuote(): void {
+    if (this.paymentQuote && this.actionLoading[`${this.paymentQuote.orderId}_pay`]) {
+      return;
+    }
+    this.paymentQuote = null;
+    this.paymentQuoteOrderId = null;
+    this.paymentQuoteLoading = false;
+  }
+
+  confirmPayment(order: MarketplaceOrderListItem, force = false): void {
+    if (!this.paymentQuote || this.paymentQuote.orderId !== order.id || !this.paymentQuote.hasSufficientBalance) {
+      return;
+    }
+    const key = `${order.id}_pay`;
+    this.actionLoading[key] = true;
+    this.ordersService.markPaid(order.id, force, this.paymentQuote.quoteHash)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.actionLoading[key] = false;
+          this.closePaymentQuote();
+          const total = this.formatCents(result.totalChargedCents ?? 0);
           this.toastr.success('Pagamento confirmado com sucesso.', 'Pedidos');
+          if (result.totalChargedCents != null) {
+            this.toastr.success(`${total} debitados da carteira.`, 'Pagamento');
+          }
           this.load(order.id);
         },
         error: (err: any) => {
@@ -295,8 +336,14 @@ export class ClientOrders implements OnInit, OnDestroy {
             const message = err?.error?.errors?.message ?? 'Este pedido esta fora do prazo operacional. Deseja confirmar mesmo assim?';
             this.actionLoading[key] = false;
             if (window.confirm(message)) {
-              this.markPaidWithRisk(order);
+              this.confirmPayment(order, true);
             }
+            return;
+          }
+          if (err?.status === 409 && err?.error?.code === 'PAYMENT_QUOTE_CHANGED') {
+            this.toastr.warning('Os valores mudaram. Confira o resumo atualizado.', 'Pagamento atualizado');
+            this.actionLoading[key] = false;
+            this.markPaid(order);
             return;
           }
           const msg = err?.error?.message ?? 'Erro ao confirmar pagamento.';
@@ -307,21 +354,12 @@ export class ClientOrders implements OnInit, OnDestroy {
       });
   }
 
-  private markPaidWithRisk(order: MarketplaceOrderListItem): void {
-    const key = `${order.id}_pay`;
-    this.actionLoading[key] = true;
-    this.ordersService.markPaid(order.id, true)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.toastr.success('Pagamento confirmado com ressalva de prazo.', 'Pedidos');
-          this.load(order.id);
-        },
-        error: (err: any) => {
-          this.toastr.danger(err?.error?.message ?? 'Erro ao confirmar pagamento.', 'Erro');
-        },
-        complete: () => { this.actionLoading[key] = false; }
-      });
+  formatCents(value: number): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((value || 0) / 100);
+  }
+
+  get paymentQuoteOrder(): MarketplaceOrderListItem | null {
+    return this.orders.find(order => order.id === this.paymentQuoteOrderId) ?? null;
   }
 
   pullLabel(order: MarketplaceOrderListItem, shipment?: MarketplaceShipmentResult): void {
