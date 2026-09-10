@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { platformSectionGuard } from './core/guards/platform-section.guard';
+import { sentinelFeatureGuard } from './core/guards/sentinel-feature.guard';
 
 export const adminRoutes: Routes = [
   { path: 'login', loadComponent: () => import('./auth/login/login').then((m) => m.Login) },
@@ -8,6 +10,7 @@ export const adminRoutes: Routes = [
     path: '',
     loadComponent: () => import('./admin/admin-shell').then((m) => m.AdminShell),
     canActivate: [authGuard, adminGuard],
+    canActivateChild: [platformSectionGuard],
     children: [
       { path: 'dashboard', loadComponent: () => import('./admin/admin-dashboard').then((m) => m.AdminDashboard) },
       // Platform pages (current model is 1 client per tenant)
@@ -38,6 +41,7 @@ export const adminRoutes: Routes = [
       { path: 'orders', loadComponent: () => import('./admin/admin-orders').then((m) => m.AdminOrders) },
       { path: 'procurement', loadComponent: () => import('./admin/admin-procurement').then((m) => m.AdminProcurement) },
       { path: 'fulfillment', loadComponent: () => import('./admin/admin-fulfillment').then((m) => m.AdminFulfillment) },
+      { path: 'sentinel', canMatch: [sentinelFeatureGuard], loadComponent: () => import('./admin/admin-sentinel').then((m) => m.AdminSentinel) },
       {
         path: 'wallet-deposits',
         loadComponent: () => import('./admin/admin-wallet-deposits').then((m) => m.AdminWalletDeposits)

@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export type PlatformUserRole = 1 | 2 | 4;
+export type PlatformUserRole = 1 | 2 | 4 | 8;
 
 export interface PlatformUserResult {
   id: string;

@@ -22,6 +22,9 @@ export function normalizeRole(role: RoleValue): number {
       return 2;
     case 'superadmin':
       return 4;
+    case 'analyst':
+    case 'analista':
+      return 8;
     default:
       return 0;
   }
@@ -51,6 +54,10 @@ export function roleLabelTenant(role: RoleValue): string {
 
 export function roleLabelSystem(role: RoleValue): string {
   const normalized = normalizeRole(role);
+
+  if ((normalized & 8) === 8) {
+    return 'Analista (SENTINEL)';
+  }
 
   if ((normalized & 4) === 4) {
     return 'SuperAdmin (Sistema)';

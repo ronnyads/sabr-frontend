@@ -61,7 +61,7 @@
         <div class="info-row" *ngIf="order.shipByDeadlineAt">
           <nb-icon icon="calendar-outline"></nb-icon>
           <span [class]="deadlineClass(order)">
-            Despachar ate {{ order.shipByDeadlineAt | date:'dd/MM/yyyy HH:mm' }}
+            Prazo oficial {{ order.shipByDeadlineAt | date:'dd/MM/yyyy HH:mm' }}
           </span>
         </div>
         <div class="info-row" *ngIf="order.logisticType">
@@ -144,21 +144,21 @@
             </button>
             <button
               nbButton status="primary" size="tiny"
-              [disabled]="isActionLoading(order, shipment, 'separated') || isMilestoneDisabled(shipment, 'separated')"
-              (click)="advanceMilestone(order, shipment, 'separated')">
-              Separar
+              [disabled]="isActionLoading(order, shipment, 'picking_started') || isMilestoneDisabled(shipment, 'picking_started')"
+              (click)="advanceMilestone(order, shipment, 'picking_started')">
+              Iniciar separação
             </button>
             <button
-              nbButton status="basic" size="tiny"
-              [disabled]="isActionLoading(order, shipment, 'processed') || isMilestoneDisabled(shipment, 'processed')"
-              (click)="advanceMilestone(order, shipment, 'processed')">
-              Processar
+              nbButton status="primary" size="tiny"
+              [disabled]="isActionLoading(order, shipment, 'separated') || isMilestoneDisabled(shipment, 'separated')"
+              (click)="advanceMilestone(order, shipment, 'separated')">
+              Confirmar separado
             </button>
             <button
               nbButton status="success" size="tiny"
-              [disabled]="isActionLoading(order, shipment, 'dispatched') || isMilestoneDisabled(shipment, 'dispatched')"
-              (click)="advanceMilestone(order, shipment, 'dispatched')">
-              Despachar
+              [disabled]="isActionLoading(order, shipment, 'packed') || isMilestoneDisabled(shipment, 'packed')"
+              (click)="advanceMilestone(order, shipment, 'packed')">
+              Confirmar embalado
             </button>
           </div>
         </div>

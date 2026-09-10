@@ -21,6 +21,7 @@ export const environment = {
     consoleMetrics: true
   },
   ui: {
+    sentinelV1: true,
     publicationsEnabled: true,
     mlLegacyPublishBlock: false,
     redesignShellV1: true,

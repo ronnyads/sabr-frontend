@@ -5,7 +5,7 @@ import { NbLayoutModule, NbOverlayContainerAdapter } from '@nebular/theme';
 import { Subject, filter, takeUntil } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
-import { roleLabelSystem } from '../core/utils/role-labels';
+import { normalizeRole, roleLabelSystem } from '../core/utils/role-labels';
 import { PhubMenuItem } from '../shared/phub-sidebar/phub-sidebar.component';
 import { PhubShellLayoutComponent } from '../shared/phub-shell-layout/phub-shell-layout.component';
 import { environment } from '../../environments/environment';
@@ -27,7 +27,7 @@ export class AdminShell implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   readonly shellRedesignV1 = !!environment.ui?.redesignShellV1;
   readonly darkModeEnabled = !!environment.ui?.darkModeV1;
-  readonly menuItems: PhubMenuItem[] = [
+  private readonly allMenuItems: PhubMenuItem[] = [
     { label: 'Dashboard', icon: 'home-outline', link: '/dashboard', exact: true },
     { label: 'Clientes', icon: 'people-outline', link: '/clients' },
     // Platform users (Admin/SuperAdmin/Finance).
@@ -41,9 +41,19 @@ export class AdminShell implements OnInit, AfterViewInit, OnDestroy {
     { label: 'Pedidos', icon: 'shopping-bag-outline', link: '/orders' },
     { label: 'Compras', icon: 'clipboard-outline', link: '/procurement' },
     { label: 'Expedicao', icon: 'car-outline', link: '/fulfillment' },
+    { label: 'SENTINEL', icon: 'activity-outline', link: '/sentinel' },
     { label: 'Depósitos', icon: 'credit-card-outline', link: '/wallet-deposits' },
     { label: 'Prompts de IA', icon: 'bulb-outline', link: '/ai-prompts' }
   ];
+
+  get menuItems(): PhubMenuItem[] {
+    const available = environment.ui?.sentinelV1
+      ? this.allMenuItems
+      : this.allMenuItems.filter(item => item.link !== '/sentinel');
+    return normalizeRole(this.auth.currentUser?.role) === 8
+      ? available.filter(item => item.link === '/sentinel')
+      : available;
+  }
 
   constructor(
     private auth: AuthService,

@@ -284,12 +284,12 @@ export class AdminFulfillment implements OnInit, OnDestroy {
     switch (milestone) {
       case 'label_printed':
         return !!milestones.labelPrintedAt || !milestones.labelGeneratedAt;
+      case 'picking_started':
+        return !!milestones.processingStartedAt || !milestones.labelPrintedAt;
       case 'separated':
-        return !!milestones.separatedAt || !milestones.labelPrintedAt;
-      case 'processed':
+        return !!milestones.separatedAt || !milestones.processingStartedAt;
+      case 'packed':
         return !!(milestones.processedAt ?? milestones.processingStartedAt) || !milestones.separatedAt;
-      case 'dispatched':
-        return !!milestones.dispatchedAt || !(milestones.processedAt ?? milestones.processingStartedAt);
       default:
         return true;
     }
@@ -301,9 +301,9 @@ export class AdminFulfillment implements OnInit, OnDestroy {
       { label: 'Pedido pago', value: milestones.paidAt },
       { label: 'Etiqueta gerada', value: milestones.labelGeneratedAt },
       { label: 'Etiqueta impressa', value: milestones.labelPrintedAt },
+      { label: 'Separação iniciada', value: milestones.processingStartedAt },
       { label: 'Pedido separado', value: milestones.separatedAt },
-      { label: 'Pedido processado', value: milestones.processedAt ?? milestones.processingStartedAt },
-      { label: 'Pedido despachado', value: milestones.dispatchedAt }
+      { label: 'Embalado e pronto', value: milestones.processedAt }
     ];
     const currentIndex = entries.findIndex(entry => !entry.value);
     return entries.map((entry, index) => ({ ...entry, current: index === currentIndex }));

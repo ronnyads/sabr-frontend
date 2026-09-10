@@ -1,0 +1,90 @@
+<main class="sentinel-shell" aria-labelledby="sentinel-title">
+  <header class="sentinel-hero">
+    <div>
+      <span class="eyebrow"><i></i> TORRE OPERACIONAL · AO VIVO</span>
+      <h1 id="sentinel-title">SENTINEL</h1>
+      <p>Antecipe atrasos, enxergue gargalos e mantenha cada pacote sob vigilância até a confirmação do marketplace.</p>
+    </div>
+    <div class="sync-state" [class.has-risk]="(summary()?.integrationRisk ?? 0) > 0">
+      <span>{{ (summary()?.integrationRisk ?? 0) > 0 ? 'Risco de integração' : 'Dados monitorados' }}</span>
+      <strong>Atualização automática · 30s</strong>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-state" role="alert">{{ error() }} <button type="button" (click)="load()">Tentar novamente</button></div>
+  }
+
+  @if (loading() && !summary()) {
+    <section class="metrics" aria-label="Carregando indicadores">
+      @for (item of [1, 2, 3, 4, 5]; track item) { <div class="skeleton"></div> }
+    </section>
+  } @else if (summary(); as s) {
+    <section class="metrics" aria-label="Indicadores operacionais">
+      <article><span>Pedidos abertos</span><strong>{{ s.totalOpen }}</strong><small>{{ s.dueToday }} com prazo hoje</small></article>
+      <article><span>Em separação</span><strong>{{ s.picking }}</strong><small>ação interna</small></article>
+      <article class="packed"><span>Embalados aguardando ML</span><strong>{{ s.packedAwaitingConfirmation }}</strong><small>prioridade de confirmação</small></article>
+      <article class="critical"><span>Críticos</span><strong>{{ s.critical }}</strong><small>menos de 30 minutos</small></article>
+      <article class="overdue"><span>Atrasados</span><strong>{{ s.overdue }}</strong><small>{{ s.integrationRisk }} riscos de integração</small></article>
+    </section>
+
+    <section class="panel horizon" aria-labelledby="horizon-title">
+      <div class="section-heading">
+        <div><span>HORIZONTE DE SLA</span><h2 id="horizon-title">Tempo restante por faixa de risco</h2></div>
+        <small>nível oficial calculado pelo backend</small>
+      </div>
+      <div class="horizon-track">
+        @for (bucket of s.horizon; track bucket.level) {
+          <div class="horizon-segment risk-{{ bucket.level.toLowerCase() }}" [style.flex-grow]="bucket.count || 1">
+            <strong>{{ bucket.count }}</strong><span>{{ label(bucket.level) }}</span>
+          </div>
+        } @empty { <div class="empty-inline">Nenhum shipment com deadline oficial.</div> }
+      </div>
+    </section>
+  }
+
+  <section class="panel queue" aria-labelledby="queue-title">
+    <div class="section-heading">
+      <div><span>FILA PRIORIZADA</span><h2 id="queue-title">Menor prazo e maior risco primeiro</h2></div>
+      <strong>{{ page()?.total ?? 0 }} shipments</strong>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>SLA</th><th>Pedido / canal</th><th>Cliente</th><th>Etapa interna</th><th>Marketplace</th><th>Etiqueta</th><th>Operador</th><th>Causa</th></tr></thead>
+        <tbody>
+          @for (item of page()?.items ?? []; track item.shipmentId) {
+            <tr tabindex="0" (click)="select(item)" (keydown.enter)="select(item)">
+              <td><span class="risk-chip risk-{{ item.riskLevel.toLowerCase() }}">{{ label(item.riskLevel) }}</span><strong class="countdown">{{ remaining(item) }}</strong></td>
+              <td><strong>{{ item.internalOrderNumber || item.orderId || item.shipmentId }}</strong><small>ML · seller {{ item.sellerId }}</small></td>
+              <td>{{ item.clientName }}</td><td>{{ label(item.internalState) }}</td><td>{{ label(item.externalState) }}</td>
+              <td>{{ item.labelAvailable ? 'Disponível' : 'Pendente' }}</td><td>{{ item.operator || '—' }}</td><td>{{ label(item.cause) }}</td>
+            </tr>
+          } @empty { <tr><td colspan="8" class="empty">Nenhum shipment aberto encontrado.</td></tr> }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  @if (selected(); as item) {
+    <button class="drawer-backdrop" type="button" (click)="closeDetail()" aria-label="Fechar detalhes"></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-label="Detalhes do shipment">
+      <button class="drawer-close" type="button" (click)="closeDetail()" aria-label="Fechar">×</button>
+      <span class="eyebrow">SHIPMENT {{ item.shipmentId }}</span>
+      <h2>{{ item.internalOrderNumber || item.orderId || item.shipmentId }}</h2>
+      <div class="drawer-risk"><span class="risk-chip risk-{{ item.riskLevel.toLowerCase() }}">{{ label(item.riskLevel) }}</span><strong>{{ remaining(item) }}</strong></div>
+      <dl>
+        <div><dt>Deadline oficial</dt><dd>{{ item.dispatchDeadline ? (item.dispatchDeadline | date:'dd/MM/yyyy HH:mm') : 'Não informado' }}</dd></div>
+        <div><dt>Fonte</dt><dd>{{ item.deadlineSource || 'Aguardando /shipments/{id}/sla' }}</dd></div>
+        <div><dt>Versão</dt><dd>{{ item.deadlineVersion || '—' }}</dd></div>
+        <div><dt>Frescor</dt><dd>{{ label(item.freshness) }}</dd></div>
+      </dl>
+      <h3>Linha do tempo</h3>
+      <ol class="timeline">
+        @for (event of detail()?.timeline ?? []; track event.at) {
+          <li><i></i><div><strong>{{ event.label }}</strong><small>{{ event.at | date:'dd/MM HH:mm' }} · {{ event.source }}</small></div></li>
+        }
+      </ol>
+      <a class="open-fulfillment" routerLink="/fulfillment">Abrir na Expedição</a>
+    </aside>
+  }
+</main>

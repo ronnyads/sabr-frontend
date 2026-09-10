@@ -48,7 +48,8 @@ export class PlatformUsers implements OnInit {
   roleOptions = [
     { label: 'Admin (Sistema)', value: 1 },
     { label: 'Finance (Sistema)', value: 2 },
-    { label: 'SuperAdmin (Sistema)', value: 4 }
+    { label: 'SuperAdmin (Sistema)', value: 4 },
+    { label: 'Analista — SENTINEL', value: 8 }
   ];
 
   constructor(private usersService: PlatformUsersService, private fb: FormBuilder) {
@@ -223,8 +224,12 @@ export class PlatformUsers implements OnInit {
     return roleLabelSystem(role);
   }
 
-  private parseRole(role: string | number): 1 | 2 | 4 {
-    const normalized = normalizeRole(role);
+  private parseRole(role: string | number): 1 | 2 | 4 | 8 {
+    const normalized = normalizeRole(role) as 1 | 2 | 4 | 8;
+
+    if ((normalized & 8) === 8) {
+      return 8;
+    }
 
     if ((normalized & 4) === 4) {
       return 4;
