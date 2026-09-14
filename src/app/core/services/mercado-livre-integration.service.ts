@@ -43,9 +43,16 @@ export interface MercadoLivreCreateMappingRequest {
 }
 
 export interface MercadoLivreSyncNowResult {
-  ordersUpserted: number;
-  itemsUpserted: number;
-  reservationsCreated: number;
+  jobs?: Array<{
+    jobId: string;
+    sellerId: number;
+    status: string;
+    total: number;
+    processed: number;
+  }>;
+  ordersUpserted?: number;
+  itemsUpserted?: number;
+  reservationsCreated?: number;
 }
 
 export interface MarketplaceOrderListItemResult {

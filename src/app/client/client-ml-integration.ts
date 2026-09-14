@@ -231,8 +231,11 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (result) => {
+          const job = result.jobs?.[0];
           this.toastr.success(
-            `Sync concluido. Pedidos: ${result.ordersUpserted}, Itens: ${result.itemsUpserted}, Reservas: ${result.reservationsCreated}.`,
+            job
+              ? `Atualização iniciada em ${job.total} etapa(s). Ela continuará em segundo plano sem travar esta tela.`
+              : 'A atualização já está em andamento para este seller.',
             'Mercado Livre'
           );
           this.loadStatusAndData();
