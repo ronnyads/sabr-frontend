@@ -103,7 +103,7 @@
             </option>
           </select>
           <div class="target-preview" *ngIf="selectedVariant(item.mappingKey) as variant">
-            <img *ngIf="variant.thumbnailUrl" [src]="variant.thumbnailUrl" [alt]="variant.productName" />
+            <img *ngIf="resolveImageUrl(variant.thumbnailUrl) as targetImage" [src]="targetImage" [alt]="variant.productName" />
             <div>
               <strong>{{ variant.productName }}</strong>
               <span>SKU {{ variant.variantSku }} · estoque disponível {{ variant.availableStock }}</span>
@@ -354,7 +354,7 @@
       <div class="link-results" *ngIf="!linkCandidatesLoading && !linkError && linkCandidates.length > 0">
         <article class="link-candidate" *ngFor="let candidate of linkCandidates">
           <div class="candidate-thumb">
-            <img *ngIf="candidate.thumbnailUrl" [src]="candidate.thumbnailUrl" [alt]="candidate.title" />
+            <img *ngIf="resolveImageUrl(candidate.thumbnailUrl) as candidateImage" [src]="candidateImage" [alt]="candidate.title" />
           </div>
           <div class="candidate-info">
             <h3>{{ candidate.title }}</h3>
