@@ -20,10 +20,22 @@
           Cada anúncio do marketplace deve apontar para um SKU mestre do PrometheusHUB.
           Sem esse vínculo, o pedido não reserva estoque e não pode ser pago.
         </p>
+        <p class="auto-mapping-note">
+          <span aria-hidden="true">⚡</span>
+          SKU do anúncio igual a um único SKU autorizado é vinculado automaticamente. Aqui aparecem somente exceções para revisão.
+        </p>
       </div>
       <div class="mapping-counter" [class.clear]="!unmappedLoading && unmappedItems.length === 0">
         <strong>{{ unmappedLoading ? '…' : unmappedItems.length }}</strong>
         <span>{{ unmappedItems.length === 1 ? 'pendência' : 'pendências' }}</span>
+        <button
+          *ngIf="!unmappedLoading && unmappedItems.length > 0"
+          type="button"
+          class="reanalyze-button"
+          [disabled]="unmappedReanalyzing"
+          (click)="reanalyzePendingProducts()">
+          {{ unmappedReanalyzing ? 'Analisando…' : 'Reanalisar SKUs' }}
+        </button>
       </div>
     </header>
 
@@ -48,13 +60,27 @@
     <div class="unmapped-product-list" *ngIf="!unmappedLoading && !unmappedError && unmappedItems.length > 0">
       <article class="unmapped-product" *ngFor="let item of unmappedItems; trackBy: unmappedByKey">
         <div class="unmapped-source">
-          <span class="source-badge">ANÚNCIO DO CLIENTE</span>
-          <h3>{{ item.productName || 'Produto sem nome no marketplace' }}</h3>
-          <div class="source-meta">
-            <span>Item {{ item.externalItemId }}</span>
-            <span *ngIf="item.externalVariationId">Variação {{ item.externalVariationId }}</span>
-            <span>SKU do canal: <strong>{{ item.channelSku || 'não informado' }}</strong></span>
+          <div class="source-identity">
+            <div class="source-thumbnail">
+              <img *ngIf="item.thumbnailUrl; else marketplaceFallback" [src]="item.thumbnailUrl" [alt]="unmappedTitle(item)" />
+              <ng-template #marketplaceFallback>
+                <span>{{ unmappedInitial(item) }}</span>
+              </ng-template>
+            </div>
+            <div class="source-copy">
+              <span class="source-badge">ANÚNCIO DO CLIENTE</span>
+              <h3>{{ unmappedTitle(item) }}</h3>
+            </div>
           </div>
+          <div class="source-meta" aria-label="Identificação do anúncio">
+            <span class="identity-chip">Item {{ item.externalItemId }}</span>
+            <span class="identity-chip" *ngIf="item.externalVariationId">Variação {{ item.externalVariationId }}</span>
+            <span class="identity-chip" *ngIf="item.sellerId">Seller {{ item.sellerId }}</span>
+            <span class="identity-chip sku" [class.missing]="!item.channelSku">
+              SKU do canal: <strong>{{ item.channelSku || 'não informado' }}</strong>
+            </span>
+          </div>
+          <div class="mapping-reason">{{ mappingReasonLabel(item) }}</div>
           <div class="order-impact">
             <strong>{{ item.ordersAffected }}</strong> pedido(s) ·
             <strong>{{ item.totalUnits }}</strong> unidade(s) aguardando vínculo

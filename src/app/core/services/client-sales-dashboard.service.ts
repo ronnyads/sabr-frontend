@@ -57,6 +57,27 @@ export interface ClientSalesDashboardResult {
   shippingToday: ClientShippingTodayResult;
 }
 
+export interface FinancialCoverageResult {
+  skuPercent: number; costPercent: number; freightPercent: number; operationalPercent: number;
+  confirmedPercent: number; itemAllocationPercent: number; overallPercent: number;
+}
+export interface FinancialDivergenceResult {
+  estimatedCents: number; confirmedCents: number; absoluteCents: number; percentage?: number | null;
+  componentsCents: Record<string, number>;
+}
+export interface ClientProfitabilityResult {
+  from: string; to: string; generatedAt: string; lastOperationalSyncAt?: string | null; lastBillingSyncAt?: string | null;
+  currencyId: string; maturity: string; grossRevenueCents: number; estimatedEconomicNetCents: number;
+  reconciledConfirmedValueCents: number; operationalProfitCents: number; sellerReportedEstimatedTaxCents: number;
+  profitAfterSellerTaxEstimateCents: number; unallocatedCents: number; coverage: FinancialCoverageResult;
+  divergence: FinancialDivergenceResult; incompleteReasons: string[];
+}
+export interface FinancialSyncJobResult {
+  jobId: string; sellerId: number; jobType: string; status: string; rangeFrom: string; rangeTo: string;
+  total: number; processed: number; lastError?: string | null; createdAt: string; completedAt?: string | null;
+}
+export interface FinancialSyncEnqueueResult { jobs: FinancialSyncJobResult[]; }
+
 @Injectable({ providedIn: 'root' })
 export class ClientSalesDashboardService {
   constructor(private readonly http: HttpClient) {}
@@ -65,5 +86,19 @@ export class ClientSalesDashboardService {
     let params = new HttpParams().set('from', options.from.toISOString()).set('to', options.to.toISOString());
     if (options.provider) params = params.set('provider', options.provider);
     return this.http.get<ClientSalesDashboardResult>(`${environment.apiBaseUrl}/client/dashboard/sales`, { params });
+  }
+
+  getProfitability(options: { from: Date; to: Date; provider?: string | null }): Observable<ClientProfitabilityResult> {
+    let params = new HttpParams().set('from', options.from.toISOString()).set('to', options.to.toISOString());
+    if (options.provider) params = params.set('provider', options.provider);
+    return this.http.get<ClientProfitabilityResult>(`${environment.apiBaseUrl}/client/dashboard/profitability`, { params });
+  }
+
+  startSync(): Observable<FinancialSyncEnqueueResult> {
+    return this.http.post<FinancialSyncEnqueueResult>(`${environment.apiBaseUrl}/client/dashboard/sync`, {});
+  }
+
+  getSync(jobId: string): Observable<FinancialSyncJobResult> {
+    return this.http.get<FinancialSyncJobResult>(`${environment.apiBaseUrl}/client/dashboard/sync/${jobId}`);
   }
 }

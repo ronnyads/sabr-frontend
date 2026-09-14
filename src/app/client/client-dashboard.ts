@@ -3,14 +3,15 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NbButtonModule } from '@nebular/theme';
-import { finalize } from 'rxjs';
+import { catchError, finalize, forkJoin, interval, of, switchMap, takeWhile } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
 import {
   ClientSalesDashboardResult,
   ClientSalesDailyResult,
   ClientSalesDashboardService,
   ClientSalesSkuResult,
-  ClientSalesStatusResult
+  ClientSalesStatusResult,
+  ClientProfitabilityResult
 } from '../core/services/client-sales-dashboard.service';
 import { ClientProfileService } from '../core/services/client-profile.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
@@ -29,6 +30,9 @@ export class ClientDashboard implements OnInit {
   loading = true;
   errorMessage = '';
   dashboard?: ClientSalesDashboardResult;
+  profitability?: ClientProfitabilityResult;
+  syncing = false;
+  syncMessage = '';
   productSearch = '';
   productPage = 1;
   readonly productPageSize = 10;
@@ -140,15 +144,48 @@ export class ClientDashboard implements OnInit {
     from.setHours(0, 0, 0, 0);
     this.loading = true;
     this.errorMessage = '';
-    this.salesDashboard.getSales({ from, to, provider: this.selectedProvider })
+    forkJoin({
+      sales: this.salesDashboard.getSales({ from, to, provider: this.selectedProvider }),
+      // The financial module is feature-gated during rollout. A temporarily
+      // unavailable projection must never take the operational sales dashboard down.
+      profitability: this.salesDashboard.getProfitability({ from, to, provider: this.selectedProvider })
+        .pipe(catchError(() => of(undefined)))
+    })
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: result => {
-          this.dashboard = result;
+          this.dashboard = result.sales;
+          this.profitability = result.profitability;
           this.productPage = 1;
         },
         error: () => (this.errorMessage = 'Não foi possível atualizar suas vendas. Verifique a integração e tente novamente.')
       });
+  }
+
+  updateNow(): void {
+    if (this.syncing) return;
+    this.syncing = true;
+    this.syncMessage = 'Criando atualização segura em partes…';
+    this.salesDashboard.startSync().subscribe({
+      next: result => {
+        const job = result.jobs[0];
+        if (!job) { this.syncing = false; this.syncMessage = 'Nenhum seller disponível para atualizar.'; return; }
+        interval(2500).pipe(
+          switchMap(() => this.salesDashboard.getSync(job.jobId)),
+          takeWhile(status => !['COMPLETED', 'FAILED'].includes(status.status), true),
+          finalize(() => (this.syncing = false))
+        ).subscribe({
+          next: status => {
+            this.syncMessage = status.status === 'COMPLETED' ? 'Atualização concluída.'
+              : status.status === 'FAILED' ? `Atualização interrompida: ${status.lastError || 'verifique a integração.'}`
+              : `Atualizando pedidos: ${status.processed}/${status.total} etapas.`;
+            if (status.status === 'COMPLETED') this.loadDashboard();
+          },
+          error: () => (this.syncMessage = 'Não foi possível acompanhar a atualização.')
+        });
+      },
+      error: () => { this.syncing = false; this.syncMessage = 'Não foi possível iniciar a atualização.'; }
+    });
   }
 
   selectPeriod(days: number): void {
@@ -172,6 +209,8 @@ export class ClientDashboard implements OnInit {
       style: 'currency', currency: this.dashboard?.currencyId || 'BRL', maximumFractionDigits: 2
     }).format(value || 0);
   }
+
+  formatCents(value: number): string { return this.formatMoney((value || 0) / 100); }
 
   formatCompactMoney(value: number): string {
     return new Intl.NumberFormat('pt-BR', {

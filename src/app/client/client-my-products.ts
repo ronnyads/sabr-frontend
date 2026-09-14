@@ -113,6 +113,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   linkError: string | null = null;
   unmappedItems: MarketplaceUnmappedItem[] = [];
   unmappedLoading = false;
+  unmappedReanalyzing = false;
   unmappedError: string | null = null;
   unmappedSelection: Record<string, string> = {};
   unmappedSaving: Record<string, boolean> = {};
@@ -172,6 +173,30 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     return item.mappingKey;
   }
 
+  unmappedTitle(item: MarketplaceUnmappedItem): string {
+    return item.productName?.trim() || `Anúncio ${item.externalItemId}`;
+  }
+
+  unmappedInitial(item: MarketplaceUnmappedItem): string {
+    return this.unmappedTitle(item).charAt(0).toLocaleUpperCase('pt-BR') || 'ML';
+  }
+
+  mappingReasonLabel(item: MarketplaceUnmappedItem): string {
+    switch ((item.mappingReason ?? '').toLowerCase()) {
+      case 'unmapped_missing_channel_sku':
+        return 'SKU ausente no anúncio — selecione o produto correto';
+      case 'unmapped_ambiguous_channel_sku':
+        return 'SKU encontrado em mais de um produto — confirme manualmente';
+      case 'unmapped_sku_not_authorized':
+      case 'unmapped_mapping_not_authorized':
+        return 'SKU fora do catálogo autorizado para esta conta';
+      default:
+        return item.channelSku
+          ? `SKU ${item.channelSku} não encontrado no catálogo`
+          : 'Vínculo automático indisponível';
+    }
+  }
+
   loadUnmappedProducts(): void {
     this.unmappedLoading = true;
     this.unmappedError = null;
@@ -187,6 +212,29 @@ export class ClientMyProducts implements OnInit, OnDestroy {
         },
         error: (error: HttpErrorResponse) => {
           this.unmappedError = this.buildErrorMessage('Não foi possível carregar os produtos pendentes de vínculo.', error);
+        }
+      });
+  }
+
+  reanalyzePendingProducts(): void {
+    if (this.unmappedReanalyzing) return;
+    this.unmappedReanalyzing = true;
+    this.marketplaceMappingsService.reanalyzePendingItems('MercadoLivre')
+      .pipe(finalize(() => (this.unmappedReanalyzing = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.toastr.success(
+            result.itemsMapped > 0
+              ? `${result.itemsMapped} item(ns) vinculado(s) e ${result.ordersReleased} pedido(s) liberado(s).`
+              : 'Nenhuma correspondência única nova foi encontrada.',
+            'Reanálise concluída'
+          );
+          this.myProductsService.invalidate();
+          this.loadUnmappedProducts();
+          this.loadDrafts();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.toastr.danger(this.buildErrorMessage('Não foi possível reanalisar os vínculos.', error), 'Reanálise');
         }
       });
   }

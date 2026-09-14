@@ -31,6 +31,7 @@ export interface MarketplaceUnmappedItem {
   channelSku?: string | null;
   productName?: string | null;
   variantName?: string | null;
+  thumbnailUrl?: string | null;
   mappingReason: string;
   ordersAffected: number;
   totalUnits: number;
@@ -44,6 +45,13 @@ export interface MarketplaceUpsertMappingRequest {
   externalItemId: string;
   externalVariationId?: string | null;
   selectedCatalogSku: string;
+}
+
+export interface MarketplaceMappingReanalysisResult {
+  itemsExamined: number;
+  itemsMapped: number;
+  itemsRemaining: number;
+  ordersReleased: number;
 }
 
 export interface MarketplaceListingFieldCapability {
@@ -136,6 +144,11 @@ export class MarketplaceMappingsService {
 
   createMapping(request: MarketplaceUpsertMappingRequest): Observable<MarketplaceMappingResult> {
     return this.http.post<MarketplaceMappingResult>(this.base, request);
+  }
+
+  reanalyzePendingItems(provider: string): Observable<MarketplaceMappingReanalysisResult> {
+    const params = new HttpParams().set('provider', provider);
+    return this.http.post<MarketplaceMappingReanalysisResult>(`${this.base}/unmapped-items/reanalyze`, {}, { params });
   }
 
   deleteMapping(id: string): Observable<void> {

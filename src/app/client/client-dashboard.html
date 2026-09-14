@@ -105,6 +105,52 @@
       </article>
     </div>
 
+    <article class="results-panel enter-item" *ngIf="profitability as finance" style="--delay: 235ms">
+      <header class="results-heading">
+        <div>
+          <span class="panel-kicker">Resultados auditáveis</span>
+          <h2>Rentabilidade do período</h2>
+          <p>Estimativa operacional separada da confirmação financeira do Mercado Livre.</p>
+        </div>
+        <div class="results-actions">
+          <span class="maturity-badge" [attr.data-state]="finance.maturity">{{ finance.maturity.replaceAll('_', ' ') }}</span>
+          <button type="button" class="sync-button" [disabled]="syncing" (click)="updateNow()">
+            <span aria-hidden="true" [class.spinning]="syncing">↻</span>{{ syncing ? 'Atualizando' : 'Atualizar agora' }}
+          </button>
+        </div>
+      </header>
+      <div class="sync-feedback" *ngIf="syncMessage" aria-live="polite">{{ syncMessage }}</div>
+      <div class="financial-cards">
+        <div><span>Faturamento bruto</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>vendas pagas, antes das deduções</small></div>
+        <div><span>Líquido econômico estimado</span><strong>{{ formatCents(finance.estimatedEconomicNetCents) }}</strong><small>taxas, fretes e ajustes operacionais</small></div>
+        <div class="profit-card"><span>Lucro operacional estimado</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>após o Preço Catálogo dos produtos</small></div>
+        <div><span>Conciliado / confirmado</span><strong>{{ formatCents(finance.reconciledConfirmedValueCents) }}</strong><small>Billing confirmado, sem presumir valores ausentes</small></div>
+      </div>
+      <div class="financial-detail">
+        <div class="coverage-block">
+          <div class="detail-title"><div><span>Cobertura financeira</span><strong>{{ finance.coverage.overallPercent | number:'1.0-1' }}%</strong></div><small>pedidos integralmente resolvidos</small></div>
+          <div class="coverage-track"><i [style.width.%]="finance.coverage.overallPercent"></i></div>
+          <div class="coverage-list">
+            <span>SKU <b>{{ finance.coverage.skuPercent | number:'1.0-0' }}%</b></span>
+            <span>Custo <b>{{ finance.coverage.costPercent | number:'1.0-0' }}%</b></span>
+            <span>Frete <b>{{ finance.coverage.freightPercent | number:'1.0-0' }}%</b></span>
+            <span>Confirmação <b>{{ finance.coverage.confirmedPercent | number:'1.0-0' }}%</b></span>
+          </div>
+        </div>
+        <div class="divergence-block">
+          <div class="detail-title"><div><span>Divergência estimado × confirmado</span><strong>{{ formatCents(finance.divergence.absoluteCents) }}</strong></div><small>{{ finance.divergence.percentage == null ? 'base ainda não comparável' : (finance.divergence.percentage | number:'1.0-2') + '%' }}</small></div>
+          <p *ngIf="finance.unallocatedCents !== 0"><b>{{ formatCents(finance.unallocatedCents) }}</b> sem alocação oficial. O valor não foi rateado entre SKUs.</p>
+          <p *ngIf="finance.incompleteReasons.length">Pendências: {{ finance.incompleteReasons.join(' · ') }}</p>
+          <p *ngIf="!finance.incompleteReasons.length && finance.unallocatedCents === 0">Nenhuma pendência estrutural identificada neste período.</p>
+        </div>
+      </div>
+      <footer class="financial-footnote">
+        <span>Operacional: {{ finance.lastOperationalSyncAt ? (finance.lastOperationalSyncAt | date:'dd/MM, HH:mm') : 'ainda não sincronizado' }}</span>
+        <span>Billing: {{ finance.lastBillingSyncAt ? (finance.lastBillingSyncAt | date:'dd/MM, HH:mm') : 'aguardando credencial e conciliação' }}</span>
+        <span *ngIf="finance.sellerReportedEstimatedTaxCents">Imposto estimado informado pelo seller: {{ formatCents(finance.sellerReportedEstimatedTaxCents) }} — não é apuração fiscal.</span>
+      </footer>
+    </article>
+
     <article class="panel shipping-today enter-item" style="--delay: 250ms">
       <div class="shipping-heading">
         <div class="shipping-title">
