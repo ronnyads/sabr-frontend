@@ -62,7 +62,7 @@
         <div class="unmapped-source">
           <div class="source-identity">
             <div class="source-thumbnail">
-              <img *ngIf="item.thumbnailUrl; else marketplaceFallback" [src]="item.thumbnailUrl" [alt]="unmappedTitle(item)" />
+              <img *ngIf="resolveImageUrl(item.thumbnailUrl) as sourceImage; else marketplaceFallback" [src]="sourceImage" [alt]="unmappedTitle(item)" />
               <ng-template #marketplaceFallback>
                 <span>{{ unmappedInitial(item) }}</span>
               </ng-template>
