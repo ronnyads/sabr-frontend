@@ -28,6 +28,8 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
   loadingCatalogPreview = false;
   catalogPreview: MercadoLivreCatalogImportItem[] = [];
   catalogSearch = '';
+  importPhysicalStock = 1000;
+  importCatalogPrice = 8;
   selectedProductKeys = new Set<string>();
   sellerResearchId = '';
   sellerResearchQuery = '';
@@ -172,7 +174,9 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
       return;
     }
     this.importingCatalog = true;
-    this.integrationService.importProducts(this.tenantId, this.clientId, false, itemIds)
+    const physicalStock = Math.max(0, Math.trunc(Number(this.importPhysicalStock) || 0));
+    const catalogPriceCents = Math.round(Math.max(0, Number(this.importCatalogPrice) || 0) * 100);
+    this.integrationService.importProducts(this.tenantId, this.clientId, false, itemIds, physicalStock, catalogPriceCents)
       .pipe(finalize(() => (this.importingCatalog = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {

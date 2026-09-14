@@ -3,9 +3,6 @@
     <button nbButton status="primary" size="small" (click)="syncNow()" [disabled]="syncing || !connected">
       {{ syncing ? 'Sincronizando...' : 'Sincronizar pedidos agora' }}
     </button>
-    <button nbButton status="basic" size="small" (click)="reconcileNow()" [disabled]="reconciling || !connected">
-      {{ reconciling ? 'Reconciliando...' : 'Reconciliar agora' }}
-    </button>
   </ng-template>
 
   <app-page-header

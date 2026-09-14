@@ -54,12 +54,19 @@ export class AdminMercadoLivreIntegrationService {
     return this.http.delete<void>(`${url}${queryParams}`);
   }
 
-  importProducts(tenantSlug: string, clientId: string, previewOnly: boolean, itemIds: string[] = []): Observable<MercadoLivreCatalogImportResult> {
+  importProducts(
+    tenantSlug: string,
+    clientId: string,
+    previewOnly: boolean,
+    itemIds: string[] = [],
+    physicalStock = 1000,
+    catalogPriceCents?: number | null
+  ): Observable<MercadoLivreCatalogImportResult> {
     const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
     const client = encodeURIComponent((clientId ?? '').trim());
     return this.http.post<MercadoLivreCatalogImportResult>(
       `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/catalog/import`,
-      { query: '', brands: [], physicalStock: 1000, previewOnly, itemIds }
+      { query: '', brands: [], physicalStock, catalogPriceCents: catalogPriceCents ?? null, previewOnly, itemIds }
     );
   }
 

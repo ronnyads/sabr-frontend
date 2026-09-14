@@ -94,9 +94,20 @@
 .catalog-import-heading h3 { margin: 0 0 4px; }
 .catalog-import-heading p { margin: 0; color: var(--phub-text-muted); }
 .catalog-import-tools { margin-top: 18px; }
-.catalog-import-tools input {
+.catalog-import-tools > input[type='search'] {
   flex: 1;
   min-width: 220px;
+}
+.catalog-import-tools label {
+  display: grid;
+  gap: 5px;
+  min-width: 132px;
+  color: var(--phub-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.catalog-import-tools label input { width: 100%; }
+.catalog-import-tools input {
   padding: 11px 13px;
   border: 1px solid var(--phub-border);
   border-radius: 10px;

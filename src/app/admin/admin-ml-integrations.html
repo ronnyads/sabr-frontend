@@ -103,6 +103,14 @@
     </div>
     <div class="catalog-import-tools">
       <input type="search" [(ngModel)]="catalogSearch" placeholder="Filtrar por nome, SKU ou marca" aria-label="Filtrar produtos do Mercado Livre" />
+      <label>
+        <span>Estoque inicial</span>
+        <input type="number" min="0" step="1" [(ngModel)]="importPhysicalStock" aria-label="Estoque inicial dos produtos importados" />
+      </label>
+      <label>
+        <span>Preço Catálogo</span>
+        <input type="number" min="0" step="0.01" [(ngModel)]="importCatalogPrice" aria-label="Preço de catálogo dos produtos importados" />
+      </label>
       <button nbButton status="basic" size="small" (click)="selectAllVisible()">Selecionar visíveis</button>
     </div>
     <div class="table-wrapper">
