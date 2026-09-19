@@ -205,6 +205,9 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   }
 
   billingProbeMessage(code?: string | null): string {
+    if (code?.includes('PA_UNAUTHORIZED_RESULT_FROM_POLICIES')) {
+      return 'O provedor bloqueou o Billing por política de acesso. Revise a permissão funcional Faturamento da aplicação e renove a autorização; se ela já estiver habilitada, acione o suporte do Mercado Livre com este código.';
+    }
     if (code?.includes('ABUSE_PREVENTION_ERROR')) {
       return 'O provedor bloqueou preventivamente a consulta. Vamos reduzir a frequência e tentar depois; a autorização não foi invalidada.';
     }
