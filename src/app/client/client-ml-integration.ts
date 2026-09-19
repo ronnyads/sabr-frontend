@@ -205,9 +205,14 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   }
 
   billingProbeMessage(code?: string | null): string {
+    if (code?.includes('ABUSE_PREVENTION_ERROR')) {
+      return 'O provedor bloqueou preventivamente a consulta. Vamos reduzir a frequência e tentar depois; a autorização não foi invalidada.';
+    }
+    if (code?.startsWith('MP_BILLING_HTTP_403')) {
+      return `O provedor negou a consulta ao Billing (403${code.includes(':') ? `: ${code.split(':')[1]}` : ''}). A conta está autorizada, mas o motivo exato precisa ser verificado.`;
+    }
     switch (code) {
       case 'MP_BILLING_HTTP_401': return 'A autorização não foi aceita pelo Billing. Renove a conexão.';
-      case 'MP_BILLING_HTTP_403': return 'A aplicação não tem permissão para consultar o Billing deste seller.';
       case 'MP_BILLING_RATE_LIMITED': return 'O provedor limitou as consultas. Aguarde alguns minutos e tente novamente.';
       case 'MP_REAUTHORIZATION_REQUIRED': return 'A autorização expirou. Conecte o Mercado Pago novamente.';
       case 'MP_BILLING_UNAVAILABLE': return 'O Billing do provedor está indisponível temporariamente.';
