@@ -8,6 +8,21 @@ export interface MercadoLivreConnectUrlResult {
   url: string;
 }
 
+export interface MercadoPagoFinancialGrantResult {
+  sellerId: number;
+  connected: boolean;
+  tokenExpiresAt: string;
+  lastCapabilityVerifiedAt?: string | null;
+  requiresReauthorization: boolean;
+}
+
+export interface MercadoPagoFinancialStatusResult {
+  configured: boolean;
+  connected: boolean;
+  billingVerified: boolean;
+  grants: MercadoPagoFinancialGrantResult[];
+}
+
 export interface MercadoLivreConnectionStatusResult {
   integrationId: string;
   sellerId: string;
@@ -183,6 +198,19 @@ export class MercadoLivreIntegrationService {
   connectUrl(returnUrl?: string | null): Observable<MercadoLivreConnectUrlResult> {
     return this.http.post<MercadoLivreConnectUrlResult>(
       `${this.apiBaseUrl}/client/integrations/mercadolivre/connect-url`,
+      { returnUrl: returnUrl ?? null }
+    );
+  }
+
+  mercadoPagoStatus(): Observable<MercadoPagoFinancialStatusResult> {
+    return this.http.get<MercadoPagoFinancialStatusResult>(
+      `${this.apiBaseUrl}/client/integrations/mercadopago/status`
+    );
+  }
+
+  mercadoPagoConnectUrl(returnUrl?: string | null): Observable<MercadoLivreConnectUrlResult> {
+    return this.http.post<MercadoLivreConnectUrlResult>(
+      `${this.apiBaseUrl}/client/integrations/mercadopago/connect-url`,
       { returnUrl: returnUrl ?? null }
     );
   }

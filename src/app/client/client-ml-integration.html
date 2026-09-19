@@ -68,6 +68,28 @@
     </div>
   </div>
 
+  <div class="phub-card panel financial-connection">
+    <div class="financial-copy">
+      <span class="eyebrow">CONCILIAÇÃO FINANCEIRA</span>
+      <h3>Mercado Pago Billing</h3>
+      <p>
+        Confirma com dados oficiais as tarifas, fretes, reembolsos e ajustes. A operação continua funcionando
+        mesmo sem esta autorização; os valores permanecem estimados até a conciliação.
+      </p>
+    </div>
+    <div class="financial-state">
+      <span class="financial-badge" [class.connected]="financialStatus?.connected">
+        {{ financialStatusLoading ? 'Verificando...' : (financialStatus?.connected ? 'Conta autorizada' : 'Aguardando autorização') }}
+      </span>
+      <small *ngIf="financialStatus?.connected && !financialStatus?.billingVerified">Billing ainda não verificado; valores seguem estimados.</small>
+      <button nbButton status="primary" size="small" (click)="connectFinancial()" [disabled]="financialConnecting || !connected || !financialStatus?.configured">
+        {{ financialConnecting ? 'Abrindo autorização...' : (financialStatus?.connected ? 'Renovar autorização' : 'Conectar Mercado Pago') }}
+      </button>
+      <small *ngIf="!connected">Conecte primeiro o seller no Mercado Livre.</small>
+      <small *ngIf="connected && financialStatus && !financialStatus.configured">Aplicação financeira ainda não configurada. A operação segue normalmente.</small>
+    </div>
+  </div>
+
   <div class="phub-card panel">
     <h3>Listings Mercado Livre (publicados)</h3>
 

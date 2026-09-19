@@ -15,7 +15,8 @@ import {
   MercadoLivreCreateMappingRequest,
   MercadoLivreIntegrationService,
   MercadoLivreIntegrationStatusResult,
-  MercadoLivreListingMapResult
+  MercadoLivreListingMapResult,
+  MercadoPagoFinancialStatusResult
 } from '../core/services/mercado-livre-integration.service';
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
 import { UiStateComponent } from '../shared/ui-state/ui-state.component';
@@ -45,6 +46,8 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   resetting = false;
   showResetConfirm = false;
   creatingMapping = false;
+  financialConnecting = false;
+  financialStatusLoading = false;
 
   statusError: string | null = null;
   mappingsError: string | null = null;
@@ -52,6 +55,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   listingsError: string | null = null;
 
   status: MercadoLivreIntegrationStatusResult | null = null;
+  financialStatus: MercadoPagoFinancialStatusResult | null = null;
   mappings: MercadoLivreListingMapResult[] = [];
   orders: MarketplaceOrderListItemResult[] = [];
   listings: MercadoLivreListingItemDetails[] = [];
@@ -153,6 +157,29 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
         error: (error: HttpErrorResponse) => {
           this.logTraceableHttpError('connect_url', error);
           this.toastr.danger(this.buildErrorMessage('Falha ao iniciar OAuth do Mercado Livre.', error), 'Erro');
+        }
+      });
+  }
+
+  connectFinancial(): void {
+    if (this.financialConnecting) return;
+    this.financialConnecting = true;
+    this.integrationService
+      .mercadoPagoConnectUrl('/client/integrations/mercadolivre')
+      .pipe(
+        finalize(() => (this.financialConnecting = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (result) => {
+          if (!result?.url) {
+            this.toastr.warning('URL de autorização não retornada pela API.', 'Financeiro');
+            return;
+          }
+          window.location.assign(result.url);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.toastr.danger(this.buildErrorMessage('Falha ao iniciar autorização financeira.', error), 'Financeiro');
         }
       });
   }
@@ -452,7 +479,22 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
 
   loadStatusAndData(): void {
     this.loadStatus(true);
+    this.loadFinancialStatus();
     this.loadOrders();
+  }
+
+  private loadFinancialStatus(): void {
+    this.financialStatusLoading = true;
+    this.integrationService
+      .mercadoPagoStatus()
+      .pipe(
+        finalize(() => (this.financialStatusLoading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (result) => (this.financialStatus = result),
+        error: () => (this.financialStatus = null)
+      });
   }
 
   private loadStatus(refreshDependentData: boolean): void {
@@ -580,11 +622,11 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
 
   private consumeOAuthSignalFromQuery(): void {
     const signal = (this.route.snapshot.queryParamMap.get('ml') ?? '').trim().toLowerCase();
-    if (!signal) {
-      return;
-    }
+    const mpSignal = (this.route.snapshot.queryParamMap.get('mp') ?? '').trim().toLowerCase();
 
-    switch (signal) {
+    if (signal) {
+
+      switch (signal) {
       case 'connected':
         this.toastr.success('Conta Mercado Livre conectada com sucesso.', 'Mercado Livre');
         break;
@@ -600,11 +642,22 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
       default:
         this.toastr.warning('Retorno de conexao Mercado Livre recebido.', 'Mercado Livre');
         break;
+      }
     }
+
+    if (mpSignal === 'connected') {
+      this.toastr.success('Conta Mercado Pago autorizada. Acesso ao Billing ainda precisa ser verificado.', 'Financeiro');
+    } else if (mpSignal === 'seller_mismatch') {
+      this.toastr.warning('A conta Mercado Pago autorizada não pertence ao seller Mercado Livre conectado.', 'Financeiro');
+    } else if (mpSignal) {
+      this.toastr.warning('Não foi possível concluir a autorização financeira. Tente novamente.', 'Financeiro');
+    }
+
+    if (!signal && !mpSignal) return;
 
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { ml: null },
+      queryParams: { ml: null, mp: null },
       queryParamsHandling: 'merge',
       replaceUrl: true
     });
