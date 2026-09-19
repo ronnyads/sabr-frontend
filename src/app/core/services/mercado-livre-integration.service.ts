@@ -14,6 +14,14 @@ export interface MercadoPagoFinancialGrantResult {
   tokenExpiresAt: string;
   lastCapabilityVerifiedAt?: string | null;
   requiresReauthorization: boolean;
+  capabilityError?: string | null;
+}
+
+export interface MercadoPagoBillingProbeResult {
+  sellerId: number;
+  verified: boolean;
+  errorCode?: string | null;
+  checkedAt?: string | null;
 }
 
 export interface MercadoPagoFinancialStatusResult {
@@ -205,6 +213,12 @@ export class MercadoLivreIntegrationService {
   mercadoPagoStatus(): Observable<MercadoPagoFinancialStatusResult> {
     return this.http.get<MercadoPagoFinancialStatusResult>(
       `${this.apiBaseUrl}/client/integrations/mercadopago/status`
+    );
+  }
+
+  mercadoPagoProbeBilling(): Observable<MercadoPagoBillingProbeResult[]> {
+    return this.http.post<MercadoPagoBillingProbeResult[]>(
+      `${this.apiBaseUrl}/client/integrations/mercadopago/billing-probe`, {}
     );
   }
 

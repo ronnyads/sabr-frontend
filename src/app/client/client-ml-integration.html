@@ -81,7 +81,14 @@
       <span class="financial-badge" [class.connected]="financialStatus?.connected">
         {{ financialStatusLoading ? 'Verificando...' : (financialStatus?.connected ? 'Conta autorizada' : 'Aguardando autorização') }}
       </span>
-      <small *ngIf="financialStatus?.connected && !financialStatus?.billingVerified">Billing ainda não verificado; valores seguem estimados.</small>
+      <small *ngIf="financialStatus?.connected && !financialStatus?.billingVerified" role="status">
+        {{ billingProbeMessage(financialStatus?.grants?.[0]?.capabilityError) }}
+      </small>
+      <small *ngIf="financialStatus?.billingVerified" role="status">Acesso ao Billing validado. Valores só serão confirmados após conciliação.</small>
+      <button nbButton status="basic" size="small" (click)="verifyFinancialBilling()"
+        [disabled]="financialProbing || !financialStatus?.connected">
+        {{ financialProbing ? 'Verificando Billing...' : 'Verificar acesso ao Billing' }}
+      </button>
       <button nbButton status="primary" size="small" (click)="connectFinancial()" [disabled]="financialConnecting || !connected || !financialStatus?.configured">
         {{ financialConnecting ? 'Abrindo autorização...' : (financialStatus?.connected ? 'Renovar autorização' : 'Conectar Mercado Pago') }}
       </button>

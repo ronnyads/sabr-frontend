@@ -47,6 +47,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   showResetConfirm = false;
   creatingMapping = false;
   financialConnecting = false;
+  financialProbing = false;
   financialStatusLoading = false;
 
   statusError: string | null = null;
@@ -182,6 +183,37 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
           this.toastr.danger(this.buildErrorMessage('Falha ao iniciar autorização financeira.', error), 'Financeiro');
         }
       });
+  }
+
+  verifyFinancialBilling(): void {
+    if (this.financialProbing || !this.financialStatus?.connected) return;
+    this.financialProbing = true;
+    this.integrationService.mercadoPagoProbeBilling()
+      .pipe(finalize(() => (this.financialProbing = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (results) => {
+          this.loadFinancialStatus();
+          if (results.length > 0 && results.every((result) => result.verified)) {
+            this.toastr.success('Acesso ao Billing confirmado. A conciliação dos valores é uma etapa separada.', 'Financeiro');
+          } else {
+            this.toastr.warning(this.billingProbeMessage(results[0]?.errorCode), 'Financeiro');
+          }
+        },
+        error: (error: HttpErrorResponse) =>
+          this.toastr.danger(this.buildErrorMessage('Não foi possível verificar o Billing.', error), 'Financeiro')
+      });
+  }
+
+  billingProbeMessage(code?: string | null): string {
+    switch (code) {
+      case 'MP_BILLING_HTTP_401': return 'A autorização não foi aceita pelo Billing. Renove a conexão.';
+      case 'MP_BILLING_HTTP_403': return 'A aplicação não tem permissão para consultar o Billing deste seller.';
+      case 'MP_BILLING_RATE_LIMITED': return 'O provedor limitou as consultas. Aguarde alguns minutos e tente novamente.';
+      case 'MP_REAUTHORIZATION_REQUIRED': return 'A autorização expirou. Conecte o Mercado Pago novamente.';
+      case 'MP_BILLING_UNAVAILABLE': return 'O Billing do provedor está indisponível temporariamente.';
+      case 'MP_BILLING_PROBE_FAILED': return 'Falha de comunicação com o Billing. Tente novamente.';
+      default: return 'O acesso ao Billing ainda não foi confirmado; os valores continuam estimados.';
+    }
   }
 
   openResetConfirm(): void {
