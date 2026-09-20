@@ -58,7 +58,7 @@
     </div>
 
     <div class="unmapped-product-list" *ngIf="!unmappedLoading && !unmappedError && unmappedItems.length > 0">
-      <article class="unmapped-product" *ngFor="let item of unmappedItems; trackBy: unmappedByKey">
+      <article class="unmapped-product" *ngFor="let item of unmappedItems; trackBy: unmappedByKey" [class.mapping-focused]="isFocusedMapping(item)" [id]="isFocusedMapping(item) ? 'focused-mapping' : null">
         <div class="unmapped-source">
           <div class="source-identity">
             <div class="source-thumbnail">

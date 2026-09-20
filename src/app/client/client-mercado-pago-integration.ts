@@ -24,6 +24,7 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
   error: string | null = null;
   authorizationIssue: string | null = null;
   lastProbeErrorCode: string | null = null;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly destroy$ = new Subject<void>();
 
   constructor(
@@ -35,7 +36,7 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.load();
     const signal = this.route.snapshot.queryParamMap.get('mp');
-    if (signal === 'connected') this.toastr.success('Mercado Pago autorizado. Agora verifique o Billing.', 'Autorização concluída');
+    if (signal === 'connected') this.toastr.success('Mercado Pago conectado. A conferência financeira é uma etapa separada.', 'Autorização concluída');
     if (signal && signal !== 'connected') {
       this.authorizationIssue = this.signalMessage(signal);
       this.toastr.warning(this.authorizationIssue, 'Mercado Pago');
@@ -43,6 +44,7 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.retryTimer) clearTimeout(this.retryTimer);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -51,7 +53,15 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
     this.service.mercadoPagoStatus().pipe(finalize(() => (this.loading = false)), takeUntil(this.destroy$)).subscribe({
-      next: status => (this.status = status),
+      next: status => {
+        this.status = status;
+        if (this.retryTimer) clearTimeout(this.retryTimer);
+        const retryAt = status.grants?.[0]?.retryAfter;
+        if (retryAt && this.isRateLimited) {
+          const delay = new Date(retryAt).getTime() - Date.now();
+          if (delay > 0) this.retryTimer = setTimeout(() => this.load(), Math.min(delay + 1000, 2_147_483_647));
+        }
+      },
       error: () => (this.error = 'Não foi possível carregar a autorização do Mercado Pago.')
     });
   }
@@ -68,7 +78,7 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
   }
 
   probe(): void {
-    if (this.probing || !this.status?.connected) return;
+    if (this.probing || !this.status?.connected || this.isRateLimited) return;
     this.probing = true;
     this.service.mercadoPagoProbeBilling()
       .pipe(finalize(() => (this.probing = false)), takeUntil(this.destroy$))
@@ -77,10 +87,10 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
           this.load();
           const result = results[0];
           this.lastProbeErrorCode = result?.verified ? null : result?.errorCode ?? null;
-          if (result?.verified) this.toastr.success('Billing do Mercado Pago verificado. A conciliação poderá confirmar os valores.', 'Acesso confirmado');
-          else this.toastr.warning(this.probeMessage(result), 'Billing pendente');
+          if (result?.verified) this.toastr.success('Dados financeiros acessíveis. A conferência poderá confirmar os valores.', 'Acesso confirmado');
+          else this.toastr.warning(this.probeMessage(result), 'Conferência pendente');
         },
-        error: () => this.toastr.danger('Não foi possível verificar o Billing agora. Aguarde e tente novamente.', 'Falha na verificação')
+        error: () => this.toastr.danger('Não foi possível verificar os dados financeiros agora. Aguarde e tente novamente.', 'Falha na verificação')
       });
   }
 
@@ -95,6 +105,16 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
 
   get billingErrorCode(): string | null {
     return this.lastProbeErrorCode ?? this.connectedGrant?.capabilityError ?? null;
+  }
+
+  get isRateLimited(): boolean {
+    const retryAt = this.connectedGrant?.retryAfter;
+    return (this.billingErrorCode === 'MP_BILLING_RATE_LIMITED' || !!this.billingErrorCode?.startsWith('MP_BILLING_HTTP_429'))
+      && !!retryAt && new Date(retryAt).getTime() > Date.now();
+  }
+
+  get requiresReauthorization(): boolean {
+    return this.billingErrorCode === 'MP_REAUTHORIZATION_REQUIRED' || !!this.billingErrorCode?.startsWith('MP_BILLING_HTTP_401');
   }
 
   private probeMessage(result?: MercadoPagoBillingProbeResult): string {

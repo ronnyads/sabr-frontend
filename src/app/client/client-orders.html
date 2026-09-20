@@ -52,7 +52,7 @@
           <div class="payment-item" *ngFor="let item of quote.items">
             <div>
               <strong>{{ item.productName }}</strong>
-              <span>SKU {{ item.sku }} · {{ item.quantity }} × {{ formatCents(item.unitPriceCents) }}</span>
+              <span>SKU {{ item.sku }} · {{ item.quantity }} × {{ formatCents(item.unitPriceCents) }} · reservado {{ item.reservedQuantity }}/{{ item.quantity }}</span>
             </div>
             <strong>{{ formatCents(item.lineTotalCents) }}</strong>
           </div>
@@ -91,6 +91,11 @@
             <strong>Saldo insuficiente</strong>
             <span>Adicione saldo na Carteira para liberar o pagamento deste pedido.</span>
           </div>
+        </div>
+
+        <div class="payment-warning" *ngIf="!quote.hasCompleteReservation">
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          <div><strong>Reserva de estoque incompleta</strong><span>O pagamento só pode ser feito depois que todas as unidades estiverem reservadas para este pedido.</span></div>
         </div>
 
         <div class="payment-warning" *ngIf="quote.paymentBlockers.includes('pricing_missing')">

@@ -73,7 +73,7 @@
       </div>
 
       <div class="revenue-breakdown">
-        <div><span>Após taxas ML</span><strong>{{ formatMoney(data.netRevenue) }}</strong></div>
+        <div><span>Após taxas identificadas</span><strong>{{ formatMoney(data.netRevenue) }}</strong><small>estimativa; fretes e reembolsos ficam no resultado auditável</small></div>
         <div><span>Taxas identificadas</span><strong>{{ formatMoney(data.marketplaceFees) }}</strong></div>
       </div>
     </article>
@@ -123,8 +123,8 @@
       <div class="financial-cards">
         <div><span>Faturamento bruto</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>vendas pagas, antes das deduções</small></div>
         <div><span>Líquido econômico estimado</span><strong>{{ formatCents(finance.estimatedEconomicNetCents) }}</strong><small>taxas, fretes e ajustes operacionais</small></div>
-        <div class="profit-card"><span>{{ finance.coverage.operationalPercent < 100 ? 'Lucro operacional estimado · parcial' : 'Lucro operacional estimado' }}</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>após o Preço Catálogo; {{ finance.coverage.operationalPercent | number:'1.0-0' }}% dos pedidos com componentes operacionais resolvidos</small></div>
-        <div><span>Conciliado / confirmado</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.reconciledConfirmedValueCents) : 'Aguardando Billing' }}</strong><small>{{ finance.lastBillingSyncAt ? 'Somente componentes confirmados pelo provedor' : 'Sem confirmação externa; valor desconhecido, não zero' }}</small></div>
+        <div class="profit-card" [class.negative-profit]="finance.operationalProfitCents < 0"><span>{{ finance.operationalProfitCents < 0 ? 'Prejuízo operacional estimado' : (finance.coverage.operationalPercent < 100 ? 'Resultado estimado parcial' : 'Lucro operacional estimado') }}</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>após o Preço Catálogo; {{ finance.coverage.operationalPercent | number:'1.0-0' }}% dos pedidos com componentes operacionais resolvidos</small></div>
+        <div><span>{{ finance.maturity === 'CONFIRMADO' ? 'Valor líquido conferido pelo Mercado Pago' : 'Valores parcialmente conferidos pelo Mercado Pago' }}</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.reconciledConfirmedValueCents) : 'Aguardando conferência do Mercado Pago' }}</strong><small>{{ finance.lastBillingSyncAt ? (finance.maturity === 'CONFIRMADO' ? 'Valor final externo confirmado pelo provedor' : 'Somente os componentes já confirmados; ainda não é o valor final') : 'Sem confirmação externa; valor desconhecido, não zero' }}</small></div>
       </div>
       <div class="financial-detail">
         <div class="profit-waterfall" aria-label="Composição do lucro operacional estimado">
@@ -134,8 +134,38 @@
           <i aria-hidden="true">−</i>
           <span><small>Custo dos produtos</small><b>{{ formatCents(-finance.productCostCents) }}</b></span>
           <i aria-hidden="true">=</i>
-          <span class="waterfall-result"><small>Lucro estimado</small><b>{{ formatCents(finance.operationalProfitCents) }}</b></span>
+          <span class="waterfall-result" [class.negative-result]="finance.operationalProfitCents < 0"><small>{{ finance.operationalProfitCents < 0 ? 'Prejuízo estimado' : 'Lucro estimado' }}</small><b>{{ formatCents(finance.operationalProfitCents) }}</b></span>
         </div>
+        <details class="financial-explanation">
+          <summary>Entenda este resultado</summary>
+          <div class="explanation-grid">
+            <span>Faturamento bruto <b>{{ formatCents(finance.grossRevenueCents) }}</b></span>
+            <span>Tarifas e comissões <b>− {{ formatCents(finance.marketplaceFeesCents) }}</b></span>
+            <span>Frete do seller <b>− {{ formatCents(finance.sellerShippingCents) }}</b></span>
+            <span>Reembolsos <b>− {{ formatCents(finance.refundsCents) }}</b></span>
+            <span>Ajustes, descontos e compensações <b>{{ formatCents(finance.adjustmentsCents) }}</b></span>
+            <span>Líquido do marketplace <b>{{ formatCents(finance.marketplaceNetAmountCents) }}</b></span>
+            <span>Custo dos produtos <b>− {{ formatCents(-finance.productCostCents) }} · {{ finance.productCostMaturity === 'CONFIRMADO' ? 'realizado' : finance.productCostMaturity === 'INCOMPLETO' ? 'incompleto' : 'estimado' }}</b></span>
+            <span>Margem operacional <b>{{ finance.operationalMarginPct == null ? 'Não calculável' : (finance.operationalMarginPct | number:'1.0-2') + '%' }}</b></span>
+          </div>
+          <p *ngIf="finance.coverage.operationalPercent < 100">Resultado parcial: SKU, custo, frete ou alocação ainda podem faltar. Valores pendentes não são tratados como zero.</p>
+          <button type="button" class="finance-order-action" (click)="loadFinanceOrders()" [disabled]="financeOrdersLoading">{{ financeOrdersLoading ? 'Consultando pedidos…' : 'Ver pedidos que compõem o resultado' }}</button>
+          <p *ngIf="financeOrdersError" role="alert">{{ financeOrdersError }}</p>
+          <div class="finance-order-list" *ngIf="financeOrders.length">
+            <button type="button" *ngFor="let order of financeOrders" (click)="inspectFinanceOrder(order.orderId)">
+              <span>Pedido {{ order.externalOrderId }} · seller {{ order.sellerId }} <small>{{ order.maturity }}</small></span>
+              <b>{{ formatCents(order.operationalProfitCents) }}</b>
+            </button>
+          </div>
+          <div class="finance-order-entries" *ngIf="financeOrderDetail as detail">
+            <strong>Composição do pedido {{ detail.externalOrderId }}</strong>
+            <p *ngIf="detail.incompleteReasons.length">Pendências: {{ financialPendingLabels(detail.incompleteReasons) }}</p>
+            <div *ngFor="let entry of detail.entries" [class.historical-entry]="!entry.isActiveHead">
+              <span>{{ entry.entryType }} · {{ entry.status }}{{ entry.isActiveHead ? '' : ' · histórico' }}<small>{{ entry.sourceEndpoint }}</small></span>
+              <b>{{ formatCents(entry.amountCents) }}</b>
+            </div>
+          </div>
+        </details>
         <div class="coverage-block">
           <div class="detail-title"><div><span>Cobertura da estimativa</span><strong>{{ finance.coverage.operationalPercent | number:'1.0-1' }}%</strong></div><small>pedidos com SKU, custo, frete e alocação operacional resolvidos</small></div>
           <div class="coverage-track"><i [style.width.%]="finance.coverage.operationalPercent"></i></div>
@@ -150,14 +180,14 @@
         <div class="divergence-block">
           <div class="detail-title"><div><span>Divergência estimado × confirmado</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.divergence.absoluteCents) : 'Ainda não calculável' }}</strong></div><small>{{ !finance.lastBillingSyncAt || finance.divergence.percentage == null ? 'base ainda não comparável' : (finance.divergence.percentage | number:'1.0-2') + '%' }}</small></div>
           <p *ngIf="finance.unallocatedCents !== 0"><b>{{ formatCents(finance.unallocatedCents) }}</b> sem alocação oficial. O valor não foi rateado entre SKUs.</p>
-          <p *ngIf="finance.incompleteReasons.length">Pendências: {{ finance.incompleteReasons.join(' · ') }}</p>
+          <p *ngIf="finance.incompleteReasons.length">Pendências: {{ financialPendingLabels(finance.incompleteReasons) }}</p>
           <p *ngIf="!finance.incompleteReasons.length && finance.unallocatedCents === 0">Nenhuma pendência estrutural identificada neste período.</p>
         </div>
       </div>
       <footer class="financial-footnote">
         <span>Operacional: {{ finance.lastOperationalSyncAt ? (finance.lastOperationalSyncAt | date:'dd/MM, HH:mm') : 'ainda não sincronizado' }}</span>
-        <span>Billing: {{ finance.lastBillingSyncAt ? (finance.lastBillingSyncAt | date:'dd/MM, HH:mm') : 'aguardando autorização e conciliação' }}</span>
-        <button type="button" class="billing-link" *ngIf="!finance.lastBillingSyncAt" (click)="goToBilling()">Resolver acesso Billing →</button>
+        <span>Conferência financeira: {{ finance.lastBillingSyncAt ? (finance.lastBillingSyncAt | date:'dd/MM, HH:mm') : 'ainda não concluída' }}</span>
+        <button type="button" class="billing-link" *ngIf="!finance.lastBillingSyncAt" (click)="goToBilling()">Ver situação da conferência financeira →</button>
         <span *ngIf="finance.sellerReportedEstimatedTaxCents">Imposto estimado informado pelo seller: {{ formatCents(finance.sellerReportedEstimatedTaxCents) }} — não é apuração fiscal.</span>
       </footer>
     </article>
@@ -279,7 +309,8 @@
           <div class="sku-identity">
             <b>{{ ((productPage - 1) * productPageSize) + position + 1 | number:'2.0-0' }}</b>
             <div><strong>{{ sku.productName || 'Produto do canal' }}</strong><span>{{ sku.sku }}</span></div>
-            <em [class.unmapped]="!sku.isMapped">{{ sku.isMapped ? 'Mapeado' : 'Revisar SKU' }}</em>
+            <em *ngIf="sku.isMapped">Mapeado</em>
+            <button *ngIf="!sku.isMapped" type="button" class="sku-review-link" (click)="reviewSku(sku)" [attr.aria-label]="'Revisar SKU de ' + (sku.productName || sku.channelItemId)">{{ sku.mappingPriority === 'OVERDUE' ? 'Vencido · vincular' : sku.mappingPriority === 'DUE_TODAY' ? 'Enviar hoje · vincular' : 'Revisar SKU' }} →</button>
           </div>
           <span data-label="Pedidos">{{ sku.orders }}</span>
           <strong data-label="Unidades">{{ sku.units }}</strong>

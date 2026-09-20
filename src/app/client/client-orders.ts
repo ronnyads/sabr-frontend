@@ -336,13 +336,13 @@ export class ClientOrders implements OnInit, OnDestroy {
     this.paymentQuoteLoading = false;
   }
 
-  confirmPayment(order: MarketplaceOrderListItem, force = false): void {
+  confirmPayment(order: MarketplaceOrderListItem): void {
     if (!this.paymentQuote || this.paymentQuote.orderId !== order.id || !this.paymentQuote.hasSufficientBalance) {
       return;
     }
     const key = `${order.id}_pay`;
     this.actionLoading[key] = true;
-    this.ordersService.markPaid(order.id, force, this.paymentQuote.quoteHash)
+    this.ordersService.confirmCheckout(order.id, this.paymentQuote.quoteHash)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
@@ -357,11 +357,8 @@ export class ClientOrders implements OnInit, OnDestroy {
         },
         error: (err: any) => {
           if (err?.status === 409 && err?.error?.code === 'PAYMENT_CONFIRMATION_REQUIRED') {
-            const message = err?.error?.errors?.message ?? 'Este pedido esta fora do prazo operacional. Deseja confirmar mesmo assim?';
             this.actionLoading[key] = false;
-            if (window.confirm(message)) {
-              this.confirmPayment(order, true);
-            }
+            this.toastr.warning('Pagamento fora do prazo operacional. Solicite análise da equipe.', 'Revisão necessária');
             return;
           }
           if (err?.status === 409 && err?.error?.code === 'PAYMENT_QUOTE_CHANGED') {
@@ -741,6 +738,8 @@ export class ClientOrders implements OnInit, OnDestroy {
         return 'Estoque parcial';
       case 'out_of_stock':
         return 'Sem estoque';
+      case 'reservation_missing':
+        return 'Reserva integral de estoque ainda não disponível';
       case 'no_imported_items':
         return 'Sem itens importados';
       default:

@@ -22,16 +22,16 @@
     <div class="status-row">
       <div>
         <span class="eyebrow">STATUS DA AUTORIZAÇÃO</span>
-        <h2>{{ status?.connected ? (status?.billingVerified ? 'Billing verificado' : 'Conta autorizada, Billing pendente') : 'Mercado Pago ainda não conectado' }}</h2>
+        <h2>{{ status?.connected ? (isRateLimited ? 'Conta conectada — verificação temporariamente indisponível' : status?.reconciliationStatus === 'HAS_CONFIRMED_VALUES' ? 'Valores conferidos pelo Mercado Pago' : status?.billingVerified ? 'Conta conectada — aguardando primeira conferência financeira' : 'Conta conectada — acesso financeiro em verificação') : 'Conta financeira não conectada' }}</h2>
       </div>
       <span class="status-pill" [class.ok]="status?.billingVerified" [class.warn]="status?.connected && !status?.billingVerified">
         <nb-icon [icon]="status?.billingVerified ? 'checkmark-circle-2-outline' : 'clock-outline'"></nb-icon>
-        {{ status?.billingVerified ? 'CONFIRMADO' : status?.connected ? 'PENDENTE' : 'NÃO CONECTADO' }}
+        {{ status?.billingVerified ? 'ACESSO VERIFICADO' : status?.connected ? 'CONECTADA' : 'NÃO CONECTADA' }}
       </span>
     </div>
-    <p class="explanation">Sem Billing confirmado, o sistema continua operando normalmente, mas a rentabilidade permanece como estimada. Nenhuma ausência de autorização é tratada como valor zero.</p>
+    <p class="explanation">Enquanto a conferência financeira não terminar, a operação continua normalmente e os resultados permanecem estimados. Valor ainda não confirmado não é zero.</p>
     <div class="state-warning" role="status" *ngIf="status?.connected && !status?.billingVerified && billingIssue">
-      <nb-icon icon="info-outline"></nb-icon><span>{{ billingIssue }} <small class="issue-code">Código: {{ billingErrorCode }}</small></span>
+      <nb-icon icon="info-outline"></nb-icon><span>{{ billingIssue }} <small *ngIf="isRateLimited && connectedGrant?.retryAfter">Nova tentativa após {{ connectedGrant?.retryAfter | date:'HH:mm' }}.</small> <details><summary>Detalhes técnicos</summary><small class="issue-code">Código: {{ billingErrorCode }}</small></details></span>
     </div>
     <div class="grant-meta" *ngIf="connectedGrant as grant">
       <span><strong>Seller:</strong> {{ grant.sellerId }}</span>
@@ -39,11 +39,11 @@
       <span *ngIf="grant.lastCapabilityVerifiedAt"><strong>Última verificação:</strong> {{ grant.lastCapabilityVerifiedAt | date:'dd/MM/yyyy HH:mm' }}</span>
     </div>
     <div class="actions">
-      <button nbButton status="primary" (click)="connect()" [disabled]="connecting">
+      <button nbButton status="primary" (click)="connect()" [disabled]="connecting" *ngIf="!status?.connected || requiresReauthorization">
         <nb-icon icon="link-2-outline"></nb-icon>{{ connecting ? 'Abrindo autorização...' : status?.connected ? 'Renovar autorização' : 'Conectar Mercado Pago' }}
       </button>
-      <button nbButton outline status="info" (click)="probe()" [disabled]="probing || !status?.connected">
-        <nb-icon icon="refresh-outline"></nb-icon>{{ probing ? 'Verificando...' : 'Verificar acesso ao Billing' }}
+      <button nbButton outline status="info" (click)="probe()" [disabled]="probing || !status?.connected || isRateLimited">
+        <nb-icon icon="refresh-outline"></nb-icon>{{ probing ? 'Verificando...' : 'Verificar dados financeiros' }}
       </button>
     </div>
   </section>

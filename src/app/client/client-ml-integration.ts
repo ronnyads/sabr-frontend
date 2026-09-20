@@ -7,7 +7,6 @@ import { NbButtonModule, NbInputModule, NbSelectModule, NbToastrService } from '
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
-  MarketplaceMarkPaidResult,
   MarketplaceOrderListItemResult,
   MarketplacePaymentConfirmationRequiredResult,
   MercadoLivreListListingsResult,
@@ -21,12 +20,6 @@ import {
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
 import { UiStateComponent } from '../shared/ui-state/ui-state.component';
 import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
-
-interface RiskConfirmationState {
-  orderId: string;
-  payload: MarketplacePaymentConfirmationRequiredResult;
-  processing: boolean;
-}
 
 @Component({
   selector: 'app-client-ml-integration',
@@ -74,8 +67,6 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   orderSkip = 0;
   readonly orderLimit = 20;
   orderTotal = 0;
-
-  riskConfirmation: RiskConfirmationState | null = null;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -433,66 +424,9 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
     this.loadOrders();
   }
 
-  markPaid(order: MarketplaceOrderListItemResult, force: boolean): void {
-    if (!order?.id) {
-      return;
-    }
-
-    this.integrationService
-      .markPaid(order.id, force)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (result: MarketplaceMarkPaidResult) => {
-          this.riskConfirmation = null;
-          const suffix = result.alreadyPaid ? ' (pedido ja estava confirmado).' : '.';
-          this.toastr.success(`Pedido marcado como pago no PrometheusHUB${suffix}`, 'Mercado Livre');
-          this.loadStatusAndData();
-        },
-        error: (error: HttpErrorResponse) => {
-          if (error.status === 409 && this.isConfirmationRequired(error)) {
-            this.riskConfirmation = {
-              orderId: order.id,
-              payload: this.readConfirmationPayload(error),
-              processing: false
-            };
-            return;
-          }
-
-          this.toastr.danger(this.buildErrorMessage('Falha ao marcar pedido como pago.', error), 'Erro');
-        }
-      });
-  }
-
-  closeRiskModal(): void {
-    if (this.riskConfirmation?.processing) {
-      return;
-    }
-
-    this.riskConfirmation = null;
-  }
-
-  confirmRiskPayment(): void {
-    if (!this.riskConfirmation || this.riskConfirmation.processing) {
-      return;
-    }
-
-    this.riskConfirmation.processing = true;
-    this.integrationService
-      .markPaid(this.riskConfirmation.orderId, true)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.toastr.warning('Pagamento confirmado fora de prazo/corte.', 'Atencao');
-          this.riskConfirmation = null;
-          this.loadStatusAndData();
-        },
-        error: (error: HttpErrorResponse) => {
-          if (this.riskConfirmation) {
-            this.riskConfirmation.processing = false;
-          }
-          this.toastr.danger(this.buildErrorMessage('Falha ao confirmar pagamento com risco.', error), 'Erro');
-        }
-      });
+  openOrderForCheckout(order: MarketplaceOrderListItemResult): void {
+    if (!order?.id) return;
+    void this.router.navigate(['/client/orders']);
   }
 
   riskBadge(order: MarketplaceOrderListItemResult): string {

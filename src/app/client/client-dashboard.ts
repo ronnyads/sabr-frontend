@@ -11,7 +11,9 @@ import {
   ClientSalesDashboardService,
   ClientSalesSkuResult,
   ClientSalesStatusResult,
-  ClientProfitabilityResult
+  ClientProfitabilityResult,
+  ClientProfitabilityOrder,
+  ClientProfitabilityOrderDetail
 } from '../core/services/client-sales-dashboard.service';
 import { ClientProfileService } from '../core/services/client-profile.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
@@ -36,6 +38,10 @@ export class ClientDashboard implements OnInit {
   productSearch = '';
   productPage = 1;
   readonly productPageSize = 10;
+  financeOrders: ClientProfitabilityOrder[] = [];
+  financeOrdersLoading = false;
+  financeOrdersError = '';
+  financeOrderDetail?: ClientProfitabilityOrderDetail;
 
   constructor(
     private readonly auth: AuthService,
@@ -119,6 +125,18 @@ export class ClientDashboard implements OnInit {
 
   get productPageCount(): number { return Math.max(1, Math.ceil(this.filteredProducts.length / this.productPageSize)); }
 
+  financialPendingLabels(reasons: string[]): string {
+    const labels: Record<string, string> = {
+      SKU_PENDING: 'produto sem vínculo com SKU interno',
+      CATALOG_COST_PENDING: 'custo do produto não definido',
+      GROSS_REVENUE_PENDING: 'valor da venda não informado pelo canal',
+      MARKETPLACE_FEE_PENDING: 'tarifa do marketplace ainda não informada',
+      SHIPPING_COST_PENDING: 'frete do seller ainda não conferido',
+      UNALLOCATED_EXTERNAL_VALUE: 'valor externo sem identificação por produto'
+    };
+    return reasons.map(reason => labels[reason] ?? reason).join(' · ');
+  }
+
   get pagedProducts(): ClientSalesSkuResult[] {
     const start = (this.productPage - 1) * this.productPageSize;
     return this.filteredProducts.slice(start, start + this.productPageSize);
@@ -156,6 +174,8 @@ export class ClientDashboard implements OnInit {
         next: result => {
           this.dashboard = result.sales;
           this.profitability = result.profitability;
+          this.financeOrders = [];
+          this.financeOrderDetail = undefined;
           this.productPage = 1;
         },
         error: () => (this.errorMessage = 'Não foi possível atualizar suas vendas. Verifique a integração e tente novamente.')
@@ -168,18 +188,22 @@ export class ClientDashboard implements OnInit {
     this.syncMessage = 'Criando atualização segura em partes…';
     this.salesDashboard.startSync().subscribe({
       next: result => {
-        const job = result.jobs[0];
-        if (!job) { this.syncing = false; this.syncMessage = 'Nenhum seller disponível para atualizar.'; return; }
+        const jobs = result.jobs;
+        if (!jobs.length) { this.syncing = false; this.syncMessage = 'Nenhum seller disponível para atualizar.'; return; }
         interval(2500).pipe(
-          switchMap(() => this.salesDashboard.getSync(job.jobId)),
-          takeWhile(status => !['COMPLETED', 'FAILED'].includes(status.status), true),
+          switchMap(() => forkJoin(jobs.map(job => this.salesDashboard.getSync(job.jobId)))),
+          takeWhile(statuses => statuses.some(status => !['COMPLETED', 'FAILED'].includes(status.status)), true),
           finalize(() => (this.syncing = false))
         ).subscribe({
-          next: status => {
-            this.syncMessage = status.status === 'COMPLETED' ? 'Atualização concluída.'
-              : status.status === 'FAILED' ? `Atualização interrompida: ${status.lastError || 'verifique a integração.'}`
-              : `Atualizando pedidos: ${status.processed}/${status.total} etapas.`;
-            if (status.status === 'COMPLETED') this.loadDashboard();
+          next: statuses => {
+            const failed = statuses.find(status => status.status === 'FAILED');
+            const finished = statuses.every(status => ['COMPLETED', 'FAILED'].includes(status.status));
+            const processed = statuses.reduce((sum, status) => sum + status.processed, 0);
+            const total = statuses.reduce((sum, status) => sum + status.total, 0);
+            this.syncMessage = failed ? `Atualização interrompida: ${failed.lastError || 'verifique a integração.'}`
+              : finished ? 'Pedidos atualizados e conferência financeira concluída.'
+              : `Atualizando pedidos e conferindo valores: ${processed}/${total} etapas.`;
+            if (finished) this.loadDashboard();
           },
           error: () => (this.syncMessage = 'Não foi possível acompanhar a atualização.')
         });
@@ -190,6 +214,34 @@ export class ClientDashboard implements OnInit {
 
   goToBilling(): void {
     void this.router.navigate(['/client/integrations/mercadopago']);
+  }
+
+  loadFinanceOrders(): void {
+    const to = new Date();
+    const from = new Date(to);
+    from.setDate(from.getDate() - (this.selectedDays - 1));
+    from.setHours(0, 0, 0, 0);
+    this.financeOrdersLoading = true;
+    this.financeOrdersError = '';
+    this.salesDashboard.getProfitabilityOrders(from, to)
+      .pipe(finalize(() => (this.financeOrdersLoading = false)))
+      .subscribe({
+        next: orders => this.financeOrders = [...orders].sort((a, b) => a.operationalProfitCents - b.operationalProfitCents).slice(0, 20),
+        error: () => this.financeOrdersError = 'Não foi possível consultar os pedidos agora.'
+      });
+  }
+
+  inspectFinanceOrder(orderId: string): void {
+    this.salesDashboard.getProfitabilityOrder(orderId).subscribe({
+      next: detail => this.financeOrderDetail = detail,
+      error: () => this.financeOrdersError = 'Não foi possível abrir os lançamentos deste pedido.'
+    });
+  }
+
+  reviewSku(sku: ClientSalesSkuResult): void {
+    void this.router.navigate(['/client/my-products'], {
+      queryParams: { focusSeller: sku.sellerId, focusItem: sku.channelItemId, focusVariation: sku.channelVariationId || null }
+    });
   }
 
   selectPeriod(days: number): void {

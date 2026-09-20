@@ -291,6 +291,7 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 .financial-cards strong { overflow: hidden; font-size: 1.35rem; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .financial-cards small { color: #8a96a8; font-size: .58rem; }
 .financial-cards .profit-card strong { color: var(--green); }
+.financial-cards .profit-card.negative-profit strong { color: #b42332; }
 .financial-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; padding: 1.1rem 1.3rem; }
 .profit-waterfall { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr) auto); align-items: center; gap: .55rem; padding: .8rem; border: 1px solid var(--line); border-radius: .85rem; background: rgba(47,117,255,.025); }
 .profit-waterfall span { display: flex; min-width: 0; flex-direction: column; gap: .18rem; }
@@ -299,6 +300,25 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 .profit-waterfall i { color: #93a0b3; font-style: normal; font-weight: 800; }
 .profit-waterfall .waterfall-result { padding: .48rem .58rem; border-radius: .65rem; background: rgba(22,165,122,.1); }
 .profit-waterfall .waterfall-result b { color: var(--green); }
+.profit-waterfall .waterfall-result.negative-result { background: rgba(180,35,50,.1); }
+.profit-waterfall .waterfall-result.negative-result b { color: #b42332; }
+.financial-explanation { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: .85rem; padding: .8rem 1rem; }
+.financial-explanation summary { cursor: pointer; color: var(--ink); font-size: .75rem; font-weight: 800; }
+.financial-explanation summary:focus-visible { outline: 2px solid var(--phub-primary); outline-offset: 3px; }
+.explanation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1.5rem; margin-top: .8rem; }
+.explanation-grid span { display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); font-size: .66rem; }
+.explanation-grid b { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.financial-explanation p { color: var(--muted); font-size: .65rem; }
+.finance-order-action { margin-top: .6rem; border: 1px solid var(--phub-primary); border-radius: .55rem; padding: .5rem .7rem; background: transparent; color: var(--phub-primary); font: inherit; font-size: .67rem; font-weight: 800; cursor: pointer; }
+.finance-order-action:disabled { cursor: wait; opacity: .6; }
+.finance-order-action:focus-visible, .finance-order-list button:focus-visible { outline: 3px solid var(--phub-primary); outline-offset: 2px; }
+.finance-order-list { max-height: 20rem; margin-top: .7rem; overflow: auto; border: 1px solid var(--line); border-radius: .6rem; }
+.finance-order-list button { display: flex; width: 100%; justify-content: space-between; gap: .7rem; border: 0; border-bottom: 1px solid var(--line); padding: .55rem .7rem; background: transparent; color: var(--ink); font: inherit; font-size: .65rem; text-align: left; cursor: pointer; }
+.finance-order-list button:hover { background: rgba(47,117,255,.07); }
+.finance-order-list small, .finance-order-entries small { display: block; color: var(--muted); }
+.finance-order-entries { margin-top: .8rem; border-top: 1px solid var(--line); padding-top: .7rem; }
+.finance-order-entries > div { display: flex; justify-content: space-between; gap: .7rem; padding: .4rem 0; border-bottom: 1px solid var(--line); font-size: .63rem; }
+.finance-order-entries .historical-entry { opacity: .55; }
 .coverage-block, .divergence-block { min-width: 0; }
 .detail-title { display: flex; align-items: flex-end; justify-content: space-between; gap: .8rem; }
 .detail-title > div { display: flex; align-items: baseline; gap: .55rem; }
@@ -449,6 +469,9 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 .sku-identity span { display: block; margin-top: .2rem; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .62rem; }
 .sku-identity em { border-radius: 2rem; padding: .3rem .52rem; color: #0d7f5c; background: rgba(22,165,122,.1); font-size: .57rem; font-style: normal; font-weight: 800; white-space: nowrap; }
 .sku-identity em.unmapped { color: #a36508; background: rgba(255,181,71,.15); }
+.sku-review-link { border: 1px solid #e8c78f; border-radius: 999px; padding: .35rem .6rem; background: #fff5e7; color: #8d4c00; font: inherit; font-size: .65rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.sku-review-link:hover { background: #ffe9c8; }
+.sku-review-link:focus-visible { outline: 3px solid #3368f0; outline-offset: 2px; }
 .product-pagination { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem .75rem 0; border-top: 1px solid #edf0f5; color: var(--muted); font-size: .66rem; }
 .product-pagination > div { display: flex; align-items: center; gap: .6rem; }
 .product-pagination button { display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid var(--line); border-radius: .62rem; color: var(--ink); background: #fff; cursor: pointer; transition: 160ms ease; }

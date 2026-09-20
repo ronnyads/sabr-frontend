@@ -176,6 +176,7 @@ export interface MarketplaceOrderPaymentQuoteItem {
   sku: string;
   productName: string;
   quantity: number;
+  reservedQuantity: number;
   unitPriceCents: number;
   lineTotalCents: number;
 }
@@ -191,6 +192,7 @@ export interface MarketplaceOrderPaymentQuote {
   walletBalanceCents: number;
   walletBalanceAfterCents: number;
   hasSufficientBalance: boolean;
+  hasCompleteReservation: boolean;
   quoteHash: string;
   generatedAt: string;
   paymentBlockers: string[];
@@ -322,10 +324,10 @@ export class MarketplaceOrdersService {
     );
   }
 
-  markPaid(orderId: string, force = false, quoteHash?: string | null): Observable<OrderActionResult> {
+  confirmCheckout(orderId: string, quoteHash: string): Observable<OrderActionResult> {
     return this.http.post<OrderActionResult>(
-      `${this.apiBaseUrl}/client/orders/${orderId}/mark-paid`,
-      { force, quoteHash: quoteHash ?? null }
+      `${this.apiBaseUrl}/client/orders/${orderId}/checkout/confirm`,
+      { quoteHash }
     );
   }
 }

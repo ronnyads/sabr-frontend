@@ -155,6 +155,7 @@
 }
 
 .unmapped-product {
+  scroll-margin-top: 6rem;
   display: grid;
   grid-template-columns: minmax(0, .9fr) 40px minmax(0, 1.1fr);
   align-items: center;
@@ -164,6 +165,7 @@
   border-radius: 17px;
   background: color-mix(in srgb, var(--phub-surface-soft) 64%, var(--phub-surface));
 }
+.unmapped-product.mapping-focused { border-color: #7950db; box-shadow: 0 0 0 3px rgba(121, 80, 219, .18); }
 
 .unmapped-source,
 .catalog-target {

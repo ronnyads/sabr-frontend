@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   NbButtonModule,
   NbInputModule,
@@ -119,6 +119,9 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   unmappedSaving: Record<string, boolean> = {};
   allowedVariants: CatalogVariant[] = [];
   variantsLoading = false;
+  focusedItemId = '';
+  focusedVariationId = '';
+  focusedSellerId = '';
 
   skip = 0;
   limit = 20;
@@ -132,10 +135,14 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     private readonly mercadoLivreService: MercadoLivreIntegrationService,
     private readonly catalogService: CatalogService,
     private readonly toastr: NbToastrService,
+    private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {}
 
   ngOnInit(): void {
+    this.focusedItemId = this.route.snapshot.queryParamMap.get('focusItem') ?? '';
+    this.focusedVariationId = this.route.snapshot.queryParamMap.get('focusVariation') ?? '';
+    this.focusedSellerId = this.route.snapshot.queryParamMap.get('focusSeller') ?? '';
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
@@ -205,6 +212,14 @@ export class ClientMyProducts implements OnInit, OnDestroy {
       .subscribe({
         next: (items) => {
           this.unmappedItems = items ?? [];
+          const focusIndex = this.unmappedItems.findIndex(item => this.isFocusedMapping(item));
+          if (focusIndex > 0) {
+            const [focused] = this.unmappedItems.splice(focusIndex, 1);
+            this.unmappedItems.unshift(focused);
+          }
+          if (focusIndex >= 0) {
+            setTimeout(() => document.getElementById('focused-mapping')?.scrollIntoView({ block: 'center', behavior: 'smooth' }));
+          }
           const activeKeys = new Set(this.unmappedItems.map(item => item.mappingKey));
           for (const key of Object.keys(this.unmappedSelection)) {
             if (!activeKeys.has(key)) delete this.unmappedSelection[key];
@@ -214,6 +229,13 @@ export class ClientMyProducts implements OnInit, OnDestroy {
           this.unmappedError = this.buildErrorMessage('Não foi possível carregar os produtos pendentes de vínculo.', error);
         }
       });
+  }
+
+  isFocusedMapping(item: MarketplaceUnmappedItem): boolean {
+    return !!this.focusedItemId
+      && item.externalItemId === this.focusedItemId
+      && (!this.focusedSellerId || String(item.sellerId ?? '') === this.focusedSellerId)
+      && (!this.focusedVariationId || (item.externalVariationId ?? '') === this.focusedVariationId);
   }
 
   reanalyzePendingProducts(): void {

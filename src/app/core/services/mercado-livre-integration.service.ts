@@ -15,6 +15,7 @@ export interface MercadoPagoFinancialGrantResult {
   lastCapabilityVerifiedAt?: string | null;
   requiresReauthorization: boolean;
   capabilityError?: string | null;
+  retryAfter?: string | null;
 }
 
 export interface MercadoPagoBillingProbeResult {
@@ -28,6 +29,10 @@ export interface MercadoPagoFinancialStatusResult {
   configured: boolean;
   connected: boolean;
   billingVerified: boolean;
+  authorizationStatus: string;
+  verificationStatus: string;
+  reconciliationStatus: string;
+  retryAfter?: string | null;
   grants: MercadoPagoFinancialGrantResult[];
 }
 
