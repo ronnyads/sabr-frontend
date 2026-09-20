@@ -32,6 +32,29 @@
   color: var(--phub-text-muted);
 }
 
+.mp-authorization-guide {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--phub-border);
+  border-left: 4px solid var(--phub-primary);
+  border-radius: 12px;
+  background: var(--phub-surface);
+  color: var(--phub-text);
+
+  > nb-icon { flex: none; color: var(--phub-primary); font-size: 1.5rem; }
+  > div { flex: 1; min-width: 220px; }
+  h2 { margin: 0 0 5px; font-size: 1rem; }
+  p { margin: 0; color: var(--phub-text-muted); line-height: 1.5; }
+  a { flex: none; text-decoration: none; }
+}
+
+@media (max-width: 760px) {
+  .mp-authorization-guide { flex-wrap: wrap; }
+  .mp-authorization-guide a { width: 100%; }
+}
+
 // ── Search bar ─────────────────────────────────────────────────────────────────
 
 .search-bar {

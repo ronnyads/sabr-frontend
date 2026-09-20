@@ -105,6 +105,8 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
       return 'O acesso foi recusado pelo Billing. Renove a autorização com a conta do seller conectado.';
     if (code.includes('ABUSE_PREVENTION_ERROR'))
       return 'O provedor bloqueou temporariamente a consulta por prevenção de abuso. Aguarde antes de tentar novamente; renovar a autorização não resolve esse bloqueio.';
+    if (code.includes('PA_UNAUTHORIZED_RESULT_FROM_POLICIES'))
+      return 'A aplicação não tem a permissão funcional Faturamento para consultar o Billing. Habilite essa permissão no painel de desenvolvedores e depois renove a autorização com a conta do seller conectado.';
     if (code.startsWith('MP_BILLING_HTTP_403'))
       return 'O Billing recusou a consulta (HTTP 403). Confira a permissão funcional de faturamento da aplicação e da conta; um bloqueio temporário do provedor também é possível.';
     return 'A autorização existe, mas o acesso ao Billing ainda não foi confirmado.';

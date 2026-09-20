@@ -123,18 +123,19 @@
       <div class="financial-cards">
         <div><span>Faturamento bruto</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>vendas pagas, antes das deduções</small></div>
         <div><span>Líquido econômico estimado</span><strong>{{ formatCents(finance.estimatedEconomicNetCents) }}</strong><small>taxas, fretes e ajustes operacionais</small></div>
-        <div class="profit-card"><span>Lucro operacional estimado</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>após o Preço Catálogo dos produtos</small></div>
+        <div class="profit-card"><span>{{ finance.coverage.operationalPercent < 100 ? 'Lucro operacional estimado · parcial' : 'Lucro operacional estimado' }}</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>após o Preço Catálogo; {{ finance.coverage.operationalPercent | number:'1.0-0' }}% dos pedidos com componentes operacionais resolvidos</small></div>
         <div><span>Conciliado / confirmado</span><strong>{{ formatCents(finance.reconciledConfirmedValueCents) }}</strong><small>Billing confirmado, sem presumir valores ausentes</small></div>
       </div>
       <div class="financial-detail">
         <div class="coverage-block">
-          <div class="detail-title"><div><span>Cobertura financeira</span><strong>{{ finance.coverage.overallPercent | number:'1.0-1' }}%</strong></div><small>pedidos integralmente resolvidos</small></div>
-          <div class="coverage-track"><i [style.width.%]="finance.coverage.overallPercent"></i></div>
+          <div class="detail-title"><div><span>Cobertura da estimativa</span><strong>{{ finance.coverage.operationalPercent | number:'1.0-1' }}%</strong></div><small>pedidos com SKU, custo, frete e alocação operacional resolvidos</small></div>
+          <div class="coverage-track"><i [style.width.%]="finance.coverage.operationalPercent"></i></div>
           <div class="coverage-list">
             <span>SKU <b>{{ finance.coverage.skuPercent | number:'1.0-0' }}%</b></span>
             <span>Custo <b>{{ finance.coverage.costPercent | number:'1.0-0' }}%</b></span>
             <span>Frete <b>{{ finance.coverage.freightPercent | number:'1.0-0' }}%</b></span>
             <span>Confirmação <b>{{ finance.coverage.confirmedPercent | number:'1.0-0' }}%</b></span>
+            <span>Completa <b>{{ finance.coverage.overallPercent | number:'1.0-0' }}%</b></span>
           </div>
         </div>
         <div class="divergence-block">
