@@ -56,6 +56,18 @@ export class ClientIntegrationsHub implements OnInit, OnDestroy {
   }
 
   navigate(card: ClientIntegrationCard): void {
+    // Provider 100 is the presentation discriminator for the independent
+    // Mercado Pago grant. Prefer it over a stale/legacy slug from the API so
+    // the financial card can never fall back to Mercado Livre's screen.
+    if (
+      card.provider === 100 ||
+      String(card.provider) === '100' ||
+      card.name.trim().toLowerCase() === 'mercado pago' ||
+      card.category === 'Financeiro'
+    ) {
+      void this.router.navigate(['/client/integrations/mercadopago']);
+      return;
+    }
     if (card.slug) {
       void this.router.navigate(['/client/integrations', card.slug]);
       return;
