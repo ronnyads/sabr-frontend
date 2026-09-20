@@ -267,7 +267,9 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
 
   financialCapabilityLabel(item: FinancialCapabilityResult): string {
     if (item.billingMercadoLivre) return 'Billing ML verificado';
-    if (item.pending.some(code => code.includes('RATE_LIMITED') || code.includes('UNAVAILABLE') || code.includes('PROBE_FAILED')))
+    if (item.pending.some(code => code.includes('RATE_LIMITED')))
+      return 'Limite temporário do Mercado Livre; tente novamente em alguns minutos';
+    if (item.pending.some(code => code.includes('UNAVAILABLE') || code.includes('PROBE_FAILED')))
       return 'Verificação temporariamente indisponível';
     return 'Billing ML não autorizado';
   }
