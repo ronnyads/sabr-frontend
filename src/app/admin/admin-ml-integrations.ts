@@ -66,6 +66,11 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
       this.clientId = clientId;
       this.tenantContext.set(tenantId, undefined, clientId);
       this.loadStatus();
+      const itemId = this.route.snapshot.queryParamMap.get('itemId');
+      if (itemId && /^MLB\d+$/i.test(itemId)) {
+        this.catalogSearch = itemId.toUpperCase();
+        this.loadCatalogPreview();
+      }
     });
   }
 
@@ -153,7 +158,7 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
   private buildProductGroups(term: string): Array<{ key: string; sku: string | null; title: string; brand: string; thumbnailUrl: string | null; priceCents: number; entries: MercadoLivreCatalogImportItem[] }> {
     const groups = new Map<string, { key: string; sku: string | null; title: string; brand: string; thumbnailUrl: string | null; priceCents: number; entries: MercadoLivreCatalogImportItem[] }>();
     for (const item of this.catalogPreview) {
-      if (term && !`${item.title} ${item.sku ?? ''} ${item.brand}`.toLowerCase().includes(term)) continue;
+      if (term && !`${item.title} ${item.sku ?? ''} ${item.brand} ${item.itemId}`.toLowerCase().includes(term)) continue;
       const key = item.sku || `${item.itemId}|${item.variationId ?? ''}`;
       const existing = groups.get(key);
       if (existing) existing.entries.push(item);

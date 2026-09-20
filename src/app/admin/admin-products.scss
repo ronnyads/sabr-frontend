@@ -30,6 +30,23 @@
   margin-bottom: 16px;
 }
 
+.sku-guidance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--phub-border, #d9dff0);
+  border-radius: 12px;
+  background: var(--phub-surface-soft);
+  color: var(--phub-text);
+
+  strong { font-size: 14px; }
+  p { margin: 4px 0 0; color: var(--phub-text-muted); font-size: 13px; line-height: 1.45; }
+  button { flex-shrink: 0; }
+}
+
 .editor {
   margin-bottom: 16px;
   padding: 16px;
@@ -274,6 +291,7 @@
 }
 
 @media (max-width: 960px) {
+  .sku-guidance { align-items: stretch; flex-direction: column; }
   .toolbar {
     grid-template-columns: 1fr;
   }

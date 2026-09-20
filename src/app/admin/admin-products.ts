@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   NbButtonModule,
@@ -132,6 +133,7 @@ export class AdminProducts implements OnInit, OnDestroy {
   private readonly anatelPatternValidator = Validators.pattern(/^[0-9/-]{6,32}$/);
 
   constructor(
+    private readonly router: Router,
     private readonly productsService: AdminProductsService,
     private readonly productImagesService: AdminProductImagesService,
     private readonly productVariantsService: AdminProductVariantsService,
@@ -195,6 +197,19 @@ export class AdminProducts implements OnInit, OnDestroy {
 
   isLegacyMlSku(sku: string): boolean {
     return /^MLB\d+$/i.test(sku);
+  }
+
+  defineInternalSku(product?: AdminProductResult): void {
+    const context = this.tenantContext.get();
+    if (!context?.tenantId || !context.clientId) {
+      this.toastr.info('Selecione primeiro o cliente em Clientes e abra a integração Mercado Livre dele.', 'Definir SKU interno');
+      void this.router.navigate(['/clients']);
+      return;
+    }
+
+    void this.router.navigate(['/admin/clients', context.clientId, 'integrations', 'mercadolivre'], {
+      queryParams: product && this.isLegacyMlSku(product.sku) ? { itemId: product.sku } : undefined
+    });
   }
 
   imageTrackBy(_: number, item: AdminProductImageResult): string {
