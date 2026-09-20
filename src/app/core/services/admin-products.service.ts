@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable, expand, reduce } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PagedResult } from './catalog.service';
 
@@ -41,6 +41,7 @@ export interface AdminProductResult {
 }
 
 export interface AdminProductListingLinkResult {
+  integrationId?: string | null;
   clientId: string;
   sellerId: number;
   itemId: string;
@@ -114,6 +115,19 @@ export class AdminProductsService {
     }
 
     return this.http.get<PagedResult<AdminProductResult>>(`${this.apiBaseUrl}/admin/products`, { params });
+  }
+
+  listAll(search?: string, isActive?: boolean | null): Observable<AdminProductResult[]> {
+    const pageSize = 200;
+    return this.list(0, pageSize, search, isActive).pipe(
+      expand((page) => {
+        const nextSkip = page.skip + page.items.length;
+        return nextSkip < page.total
+          ? this.list(nextSkip, pageSize, search, isActive)
+          : EMPTY;
+      }),
+      reduce((items, page) => [...items, ...(page.items ?? [])], [] as AdminProductResult[])
+    );
   }
 
   getBySku(sku: string): Observable<AdminProductResult> {

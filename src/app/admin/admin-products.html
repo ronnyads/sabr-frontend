@@ -10,6 +10,10 @@
   <nb-card-body>
     <div class="toolbar">
       <input nbInput fullWidth placeholder="Buscar por SKU, nome, marca ou categoria" [formControl]="searchControl" />
+      <select nbInput [formControl]="productScopeControl" aria-label="Tipo de registro">
+        <option value="catalog">Produtos do catálogo</option>
+        <option value="legacy">Anúncios ML legados</option>
+      </select>
       <select nbInput [formControl]="activeFilterControl" aria-label="Filtro de status">
         <option value="all">Todos</option>
         <option value="active">Ativos</option>
@@ -19,20 +23,58 @@
 
     <div class="sku-guidance" role="note">
       <div>
-        <strong>SKU interno é global. Anúncio do marketplace pertence a um cliente.</strong>
-        <p>Crie seu SKU aqui no admin, sem selecionar cliente. Depois, vincule cada anúncio da conta do cliente ao SKU criado. O código MLB antigo permanece no histórico.</p>
-      </div>
-      <div class="sku-guidance-actions">
-        <button nbButton size="small" status="primary" (click)="openCreate()">Criar SKU interno</button>
-        <button nbButton size="small" status="basic" (click)="openMarketplaceLink()">Vincular anúncio de cliente</button>
+        <strong>Produto interno e anúncio são registros diferentes.</strong>
+        <p>Cadastre o produto uma vez com seu SKU próprio. Na aba de anúncios legados, vincule cada anúncio à variação correspondente. O histórico do código MLB permanece preservado.</p>
       </div>
     </div>
 
-    <div class="editor" *ngIf="formOpen">
-      <div *ngIf="referenceSku" class="sku-reference" role="note">
-        <strong>Novo SKU com referência em {{ referenceSku }}</strong>
-        <p>Os dados descritivos foram sugeridos para revisão. Digite o seu SKU e o Preço Catálogo, escolha um catálogo e ative o produto para poder vinculá-lo depois. O produto antigo, seus pedidos, anúncios e estoque não serão alterados ao salvar.</p>
+    <section class="link-flow" *ngIf="linkFlowOpen" aria-label="Vincular anúncio ao SKU interno">
+      <div class="link-flow-heading">
+        <div><strong>Vincular anúncio ao produto interno</strong><p>{{ linkSourceProduct?.name }} · {{ linkSourceProduct?.sku }}</p></div>
+        <button nbButton size="small" status="basic" (click)="closeLinkFlow()">Fechar</button>
       </div>
+      <p class="link-error" *ngIf="linkError" role="alert">{{ linkError }}</p>
+      <ng-container *ngIf="linkFlowStep === 'select'">
+        <div class="link-flow-grid">
+          <label>Anúncio e variação
+            <select nbInput [value]="selectedLinkIdentity ? listingIdentityKey(selectedLinkIdentity) : ''" (change)="selectListingIdentity($any($event.target).value)">
+              <option *ngFor="let identity of linkIdentities" [value]="listingIdentityKey(identity)">
+                {{ identity.itemId }}{{ identity.variationId ? ' · variação ' + identity.variationId : '' }} · seller {{ identity.sellerId }}{{ identity.internalSku !== linkSourceProduct?.sku ? ' · vinculado a ' + identity.internalSku : '' }}
+              </option>
+            </select>
+          </label>
+          <label>Buscar produto interno
+            <input nbInput fullWidth placeholder="Nome ou SKU próprio" [formControl]="linkTargetSearchControl" />
+          </label>
+          <label>Produto do catálogo
+            <select nbInput [value]="selectedLinkTarget?.sku ?? ''" (change)="selectLinkTargetBySku($any($event.target).value)">
+              <option value="">Selecione um produto</option>
+              <option *ngFor="let target of linkTargetProducts" [value]="target.sku">{{ target.sku }} · {{ target.name }}</option>
+            </select>
+            <small *ngIf="linkTargetsLoading">Buscando produtos...</small>
+          </label>
+          <label>Variação / SKU interno
+            <select nbInput [value]="selectedLinkTargetVariant?.variantSku ?? ''" (change)="selectLinkTargetVariant($any($event.target).value)" [disabled]="!selectedLinkTarget || linkTargetVariantsLoading">
+              <option value="">Selecione uma variação</option>
+              <option *ngFor="let variant of linkTargetVariants" [value]="variant.variantSku">{{ variant.variantSku }} · {{ variant.name }}</option>
+            </select>
+            <small *ngIf="linkTargetVariantsLoading">Carregando variações...</small>
+          </label>
+        </div>
+        <p>O vínculo altera apenas pedidos futuros ou ainda sem resolução. Pedidos históricos não serão remapeados.</p>
+        <button nbButton status="primary" size="small" [disabled]="!selectedLinkTargetVariant" (click)="reviewLink()">Revisar vínculo</button>
+      </ng-container>
+      <ng-container *ngIf="linkFlowStep === 'confirm'">
+        <p><strong>Anúncio:</strong> {{ selectedLinkIdentity?.itemId }} · seller {{ selectedLinkIdentity?.sellerId }}</p>
+        <p><strong>SKU interno:</strong> {{ selectedLinkTargetVariant?.variantSku }} · {{ selectedLinkTarget?.name }}</p>
+        <p *ngIf="selectedLinkIdentity?.internalSku && selectedLinkIdentity?.internalSku !== selectedLinkTargetVariant?.variantSku"><strong>Vínculo anterior:</strong> {{ selectedLinkIdentity?.internalSku }}</p>
+        <button nbButton status="basic" size="small" (click)="backToLinkSelection()">Voltar</button>
+        <button nbButton status="primary" size="small" [disabled]="linking" (click)="confirmLink()">{{ linking ? 'Salvando...' : 'Confirmar vínculo' }}</button>
+      </ng-container>
+      <ng-container *ngIf="linkFlowStep === 'success'"><p role="status">{{ linkResult?.message }}</p><button nbButton status="primary" size="small" (click)="closeLinkFlow()">Concluir</button></ng-container>
+    </section>
+
+    <div class="editor" *ngIf="formOpen">
       <nb-tabset fullWidth>
         <nb-tab tabTitle="Basico">
           <form [formGroup]="form" class="editor-grid">
@@ -40,7 +82,7 @@
               <label>SKU</label>
               <input nbInput formControlName="sku" [readonly]="!!editingSku" (input)="form.controls.sku.setValue(form.controls.sku.value.toUpperCase(), { emitEvent: false })" />
               <small *ngIf="editingSku">Este identificador histórico não pode ser renomeado. Crie um novo SKU interno no admin e depois vincule os anúncios a ele.</small>
-              <small *ngIf="referenceSku">Informe seu código próprio; MLB numérico é ID do anúncio.</small>
+              <small *ngIf="!editingSku">Informe seu código próprio; MLB numérico é ID do anúncio.</small>
             </div>
 
             <div class="field">
@@ -408,9 +450,7 @@
             <td>{{ product.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td class="actions">
               <button nbButton size="tiny" status="basic" (click)="openEdit(product)">Editar</button>
-              <button *ngIf="isLegacyMlSku(product.sku)" nbButton size="tiny" status="info" (click)="createInternalSkuFrom(product)">
-                Criar meu SKU
-              </button>
+              <button *ngIf="isLegacyMlSku(product.sku)" nbButton size="tiny" status="info" (click)="openLinkFlow(product)">Vincular ao SKU interno</button>
               <button nbButton size="tiny" status="danger" [disabled]="!product.isActive" (click)="deactivate(product)">
                 Inativar
               </button>

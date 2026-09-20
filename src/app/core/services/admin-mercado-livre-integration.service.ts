@@ -44,6 +44,29 @@ export interface MercadoLivreSellerCatalogItem {
   priceCents: number;
 }
 
+export interface AdminMercadoLivreMappingUpsertRequest {
+  integrationId: string;
+  sellerId: string;
+  itemId: string;
+  variationId: string | null;
+  sabrVariantSku: string;
+  expectedMappingVersion: number;
+}
+
+export interface AdminMercadoLivreMappingUpsertResult {
+  mappingId: string;
+  integrationId: string;
+  sellerId: string;
+  itemId: string;
+  variationId: string | null;
+  previousSabrVariantSku: string | null;
+  sabrVariantSku: string;
+  mappingVersion: number;
+  action: string;
+  message: string;
+  updatedAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminMercadoLivreIntegrationService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
@@ -89,6 +112,19 @@ export class AdminMercadoLivreIntegrationService {
     const params = `sellerId=${encodeURIComponent(sellerId.trim())}&q=${encodeURIComponent(query.trim())}`;
     return this.http.get<MercadoLivreSellerCatalogItem[]>(
       `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/catalog/seller-preview?${params}`
+    );
+  }
+
+  upsertMapping(
+    tenantSlug: string,
+    clientId: string,
+    request: AdminMercadoLivreMappingUpsertRequest
+  ): Observable<AdminMercadoLivreMappingUpsertResult> {
+    const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
+    const client = encodeURIComponent((clientId ?? '').trim());
+    return this.http.put<AdminMercadoLivreMappingUpsertResult>(
+      `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/mappings`,
+      request
     );
   }
 }

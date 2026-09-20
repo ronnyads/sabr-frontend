@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   NbButtonModule,
@@ -13,18 +12,24 @@ import {
   NbTabsetModule,
   NbToastrService
 } from '@nebular/theme';
-import { Subject, combineLatest, debounceTime, distinctUntilChanged, forkJoin, startWith, takeUntil } from 'rxjs';
+import { Subject, combineLatest, debounceTime, distinctUntilChanged, finalize, forkJoin, startWith, takeUntil } from 'rxjs';
 import { AdminCategoriesService, AdminCategoryTreeNode } from '../core/services/admin-categories.service';
 import { AdminCatalogResult, AdminCatalogsService } from '../core/services/admin-catalogs.service';
 import { AdminProductImageResult, AdminProductListingLinkResult, AdminProductResult, AdminProductsService } from '../core/services/admin-products.service';
 import { AdminProductImagesService } from '../core/services/admin-product-images.service';
 import { AdminProductVariantResult, AdminProductVariantsService } from '../core/services/admin-product-variants.service';
+import {
+  AdminMercadoLivreIntegrationService,
+  AdminMercadoLivreMappingUpsertResult
+} from '../core/services/admin-mercado-livre-integration.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
 import { formatBrlFromCents, parseBrlToCents } from '../core/utils/money.utils';
 import { normalizeSkuUppercase } from '../core/utils/sku.utils';
 import { UiStateComponent } from '../shared/ui-state/ui-state.component';
 
 type ActiveFilter = 'all' | 'active' | 'inactive';
+type ProductScope = 'catalog' | 'legacy';
+type LinkFlowStep = 'select' | 'confirm' | 'success';
 
 interface CategoryOption {
   id: string;
@@ -67,6 +72,8 @@ interface VariantRow extends AdminProductVariantResult {
 export class AdminProducts implements OnInit, OnDestroy {
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly activeFilterControl = new FormControl<ActiveFilter>('all', { nonNullable: true });
+  readonly productScopeControl = new FormControl<ProductScope>('catalog', { nonNullable: true });
+  readonly linkTargetSearchControl = new FormControl('', { nonNullable: true });
 
   private readonly fb = inject(FormBuilder);
   readonly form = this.fb.nonNullable.group({
@@ -98,7 +105,21 @@ export class AdminProducts implements OnInit, OnDestroy {
   formError: string | null = null;
   saving = false;
   editingSku: string | null = null;
-  referenceSku: string | null = null;
+
+  linkFlowOpen = false;
+  linkFlowStep: LinkFlowStep = 'select';
+  linkSourceProduct: AdminProductResult | null = null;
+  linkIdentities: AdminProductListingLinkResult[] = [];
+  selectedLinkIdentity: AdminProductListingLinkResult | null = null;
+  linkTargetProducts: AdminProductResult[] = [];
+  linkTargetsLoading = false;
+  selectedLinkTarget: AdminProductResult | null = null;
+  selectedLinkTargetVariant: AdminProductVariantResult | null = null;
+  linkTargetVariants: AdminProductVariantResult[] = [];
+  linkTargetVariantsLoading = false;
+  linkError: string | null = null;
+  linking = false;
+  linkResult: AdminMercadoLivreMappingUpsertResult | null = null;
 
   currentImages: AdminProductImageResult[] = [];
   uploadInProgress = false;
@@ -134,12 +155,12 @@ export class AdminProducts implements OnInit, OnDestroy {
   private readonly anatelPatternValidator = Validators.pattern(/^[0-9/-]{6,32}$/);
 
   constructor(
-    private readonly router: Router,
     private readonly productsService: AdminProductsService,
     private readonly productImagesService: AdminProductImagesService,
     private readonly productVariantsService: AdminProductVariantsService,
     private readonly categoriesService: AdminCategoriesService,
     private readonly catalogsService: AdminCatalogsService,
+    private readonly mercadoLivreIntegrationService: AdminMercadoLivreIntegrationService,
     private readonly tenantContext: AdminTenantContextService,
     private readonly toastr: NbToastrService
   ) {}
@@ -156,7 +177,8 @@ export class AdminProducts implements OnInit, OnDestroy {
 
     combineLatest([
       this.searchControl.valueChanges.pipe(startWith(this.searchControl.value), debounceTime(300), distinctUntilChanged()),
-      this.activeFilterControl.valueChanges.pipe(startWith(this.activeFilterControl.value), distinctUntilChanged())
+      this.activeFilterControl.valueChanges.pipe(startWith(this.activeFilterControl.value), distinctUntilChanged()),
+      this.productScopeControl.valueChanges.pipe(startWith(this.productScopeControl.value), distinctUntilChanged())
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -164,7 +186,13 @@ export class AdminProducts implements OnInit, OnDestroy {
         this.loadProducts();
       });
 
-    this.loadProducts();
+    this.linkTargetSearchControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.linkFlowOpen && this.linkFlowStep === 'select') {
+          this.loadLinkTargets();
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -212,15 +240,170 @@ export class AdminProducts implements OnInit, OnDestroy {
     return (product.listingLinks ?? []).filter(link => link.internalSku === product.sku && link.itemId !== product.sku);
   }
 
-  openMarketplaceLink(): void {
-    const context = this.tenantContext.get();
-    if (!context?.tenantId || !context.clientId) {
-      this.toastr.info('Para vincular um anúncio, escolha o cliente dono da conta Mercado Livre. O SKU interno é criado aqui, sem cliente.', 'Vincular anúncio');
-      void this.router.navigate(['/clients']);
+  listingIdentityKey(link: AdminProductListingLinkResult): string {
+    return `${link.integrationId ?? ''}|${link.sellerId}|${link.itemId}|${link.variationId ?? ''}`;
+  }
+
+  openLinkFlow(product: AdminProductResult): void {
+    const identities = this.legacyListingLinks(product);
+    if (identities.length === 0) {
+      this.toastr.warning(
+        'Este registro histórico não possui uma identidade de anúncio persistida. Sincronize a conta do seller antes de vinculá-lo.',
+        'Vínculo indisponível'
+      );
       return;
     }
 
-    void this.router.navigate(['/admin/clients', context.clientId, 'integrations', 'mercadolivre']);
+    this.cancelForm();
+    this.linkFlowOpen = true;
+    this.linkFlowStep = 'select';
+    this.linkSourceProduct = product;
+    this.linkIdentities = identities;
+    this.selectedLinkIdentity = identities[0];
+    this.selectedLinkTarget = null;
+    this.selectedLinkTargetVariant = null;
+    this.linkTargetVariants = [];
+    this.linkError = null;
+    this.linkResult = null;
+    this.linkTargetSearchControl.setValue('', { emitEvent: false });
+    this.loadLinkTargets();
+  }
+
+  closeLinkFlow(): void {
+    this.linkFlowOpen = false;
+    this.linkFlowStep = 'select';
+    this.linkSourceProduct = null;
+    this.linkIdentities = [];
+    this.selectedLinkIdentity = null;
+    this.linkTargetProducts = [];
+    this.selectedLinkTarget = null;
+    this.selectedLinkTargetVariant = null;
+    this.linkTargetVariants = [];
+    this.linkError = null;
+    this.linkResult = null;
+  }
+
+  selectListingIdentity(identityKey: string): void {
+    this.selectedLinkIdentity = this.linkIdentities.find(
+      (identity) => this.listingIdentityKey(identity) === identityKey
+    ) ?? null;
+    this.linkError = null;
+  }
+
+  selectLinkTarget(product: AdminProductResult): void {
+    this.selectedLinkTarget = product;
+    this.selectedLinkTargetVariant = null;
+    this.linkTargetVariants = [];
+    this.linkError = null;
+    this.linkTargetVariantsLoading = true;
+
+    this.productVariantsService
+      .list(product.sku)
+      .pipe(
+        finalize(() => (this.linkTargetVariantsLoading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (variants) => {
+          this.linkTargetVariants = (variants ?? []).filter((variant) => variant.isActive);
+          if (this.linkTargetVariants.length === 1) {
+            this.selectedLinkTargetVariant = this.linkTargetVariants[0];
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          this.linkError = this.buildErrorMessage('Falha ao carregar as variações do produto.', error);
+        }
+      });
+  }
+
+  selectLinkTargetBySku(sku: string): void {
+    const product = this.linkTargetProducts.find((item) => item.sku === sku);
+    if (product) this.selectLinkTarget(product);
+  }
+
+  selectLinkTargetVariant(variantSku: string): void {
+    this.selectedLinkTargetVariant = this.linkTargetVariants.find(
+      (variant) => variant.variantSku === variantSku
+    ) ?? null;
+    this.linkError = null;
+  }
+
+  reviewLink(): void {
+    if (!this.selectedLinkIdentity?.integrationId) {
+      this.linkError = 'A identidade persistida deste anúncio não informa a integração. Sincronize a conta do seller e tente novamente.';
+      return;
+    }
+    if (!this.selectedLinkTargetVariant) {
+      this.linkError = 'Selecione uma variação/SKU interno ativo para continuar.';
+      return;
+    }
+
+    this.linkError = null;
+    this.linkFlowStep = 'confirm';
+  }
+
+  backToLinkSelection(): void {
+    this.linkFlowStep = 'select';
+    this.linkError = null;
+  }
+
+  confirmLink(): void {
+    const tenantSlug = this.tenantSlug?.trim();
+    const identity = this.selectedLinkIdentity;
+    const target = this.selectedLinkTargetVariant;
+    if (!tenantSlug || !identity?.integrationId || !target || this.linking) {
+      this.linkError = 'Não foi possível confirmar o contexto completo do vínculo.';
+      return;
+    }
+
+    this.linking = true;
+    this.linkError = null;
+    this.mercadoLivreIntegrationService
+      .upsertMapping(tenantSlug, identity.clientId, {
+        integrationId: identity.integrationId,
+        sellerId: identity.sellerId.toString(),
+        itemId: identity.itemId,
+        variationId: identity.variationId ?? null,
+        sabrVariantSku: target.variantSku,
+        expectedMappingVersion: identity.mappingVersion
+      })
+      .pipe(
+        finalize(() => (this.linking = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (result) => {
+          this.linkResult = result;
+          this.linkFlowStep = 'success';
+          this.toastr.success('O anúncio foi vinculado ao SKU interno e a lista foi atualizada.', 'Vínculo salvo');
+          this.loadProducts();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.linkError = error.status === 409
+            ? 'O vínculo mudou enquanto você revisava. Atualize a lista e confira a versão persistida antes de tentar novamente.'
+            : this.buildErrorMessage('Falha ao vincular o anúncio ao SKU interno.', error);
+        }
+      });
+  }
+
+  private loadLinkTargets(): void {
+    this.linkTargetsLoading = true;
+    this.linkError = null;
+    this.productsService
+      .listAll(this.linkTargetSearchControl.value, true)
+      .pipe(
+        finalize(() => (this.linkTargetsLoading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (products) => {
+          this.linkTargetProducts = (products ?? []).filter((product) => !this.isLegacyMlSku(product.sku));
+        },
+        error: (error: HttpErrorResponse) => {
+          this.linkTargetProducts = [];
+          this.linkError = this.buildErrorMessage('Falha ao buscar SKUs internos.', error);
+        }
+      });
   }
 
   imageTrackBy(_: number, item: AdminProductImageResult): string {
@@ -249,7 +432,6 @@ export class AdminProducts implements OnInit, OnDestroy {
     this.formError = null;
     this.imageError = null;
     this.editingSku = null;
-    this.referenceSku = null;
     this.currentImages = [];
     this.selectedCatalogIds = [];
     this.selectedUploadName = null;
@@ -287,26 +469,11 @@ export class AdminProducts implements OnInit, OnDestroy {
     this.form.controls.sku.enable({ emitEvent: false });
   }
 
-  createInternalSkuFrom(product: AdminProductResult): void {
-    this.openCreate();
-    this.referenceSku = product.sku;
-    this.form.patchValue({
-      name: product.name,
-      brand: product.brand ?? '',
-      categoryId: product.categoryId ?? this.getDefaultCategorySlug(),
-      description: product.description ?? '',
-      thumbnailUrl: product.thumbnailUrl ?? '',
-      isActive: false
-    });
-    this.toastr.info('Informe seu SKU e o Preço Catálogo. Revise os dados antes de salvar; nenhum anúncio ou estoque será migrado automaticamente.', 'Novo SKU interno');
-  }
-
   openEdit(product: AdminProductResult): void {
     this.formOpen = true;
     this.formError = null;
     this.imageError = null;
     this.editingSku = product.sku;
-    this.referenceSku = null;
     this.selectedUploadName = null;
 
     this.form.reset({
@@ -366,7 +533,6 @@ export class AdminProducts implements OnInit, OnDestroy {
     this.formError = null;
     this.imageError = null;
     this.editingSku = null;
-    this.referenceSku = null;
     this.currentImages = [];
     this.selectedCatalogIds = [];
     this.selectedUploadName = null;
@@ -400,10 +566,6 @@ export class AdminProducts implements OnInit, OnDestroy {
     const sku = normalizeSkuUppercase(raw.sku);
     if (!this.editingSku && (!/^[A-Z0-9][A-Z0-9\-_/]{0,63}$/.test(sku) || this.isLegacyMlSku(sku))) {
       this.formError = 'Informe um SKU interno próprio (letras, números, hífen, _ ou /). Código MLB numérico é ID do anúncio.';
-      return;
-    }
-    if (this.referenceSku && parseBrlToCents(raw.catalogPriceBrl) <= 0) {
-      this.formError = 'Informe o Preço Catálogo cobrado ao seller antes de criar o SKU interno.';
       return;
     }
     const intendedActive = !!raw.isActive;
@@ -673,12 +835,15 @@ export class AdminProducts implements OnInit, OnDestroy {
     const isActive = activeFilter === 'all' ? null : activeFilter === 'active';
 
     this.productsService
-      .list(this.skip, this.limit, search, isActive)
+      .listAll(search, isActive)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          this.products = response.items ?? [];
-          this.total = response.total ?? 0;
+        next: (allProducts) => {
+          const scoped = allProducts.filter((item) => this.productScopeControl.value === 'legacy'
+            ? this.isLegacyMlSku(item.sku)
+            : !this.isLegacyMlSku(item.sku));
+          this.total = scoped.length;
+          this.products = scoped.slice(this.skip, this.skip + this.limit);
           this.loading = false;
         },
         error: (error: HttpErrorResponse) => {
