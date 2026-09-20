@@ -247,7 +247,7 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
   probeFinancialCapabilities(): void {
     this.probingFinancialCapabilities = true;
     this.financialProbeError = null;
-    this.integrationService.probeFinancialCapabilities(this.clientId)
+    this.integrationService.probeFinancialCapabilities(this.tenantId, this.clientId)
       .pipe(finalize(() => (this.probingFinancialCapabilities = false)), takeUntil(this.destroy$))
       .subscribe({
         next: capabilities => {

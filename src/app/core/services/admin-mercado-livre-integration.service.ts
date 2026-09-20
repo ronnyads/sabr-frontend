@@ -140,10 +140,11 @@ export class AdminMercadoLivreIntegrationService {
     );
   }
 
-  probeFinancialCapabilities(clientId: string): Observable<FinancialCapabilityResult[]> {
+  probeFinancialCapabilities(tenantSlug: string, clientId: string): Observable<FinancialCapabilityResult[]> {
+    const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
     const client = encodeURIComponent((clientId ?? '').trim());
     return this.http.post<FinancialCapabilityResult[]>(
-      `${this.apiBaseUrl}/admin/integrations/${client}/financial-capabilities/probe`,
+      `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/financial-capabilities/probe`,
       {}
     );
   }
