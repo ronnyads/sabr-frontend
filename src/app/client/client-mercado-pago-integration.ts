@@ -89,8 +89,12 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
   }
 
   get billingIssue(): string | null {
-    const errorCode = this.lastProbeErrorCode ?? this.connectedGrant?.capabilityError;
+    const errorCode = this.billingErrorCode;
     return errorCode ? this.probeMessage({ errorCode, sellerId: this.connectedGrant?.sellerId ?? 0, verified: false }) : null;
+  }
+
+  get billingErrorCode(): string | null {
+    return this.lastProbeErrorCode ?? this.connectedGrant?.capabilityError ?? null;
   }
 
   private probeMessage(result?: MercadoPagoBillingProbeResult): string {
@@ -99,8 +103,10 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
       return 'O provedor limitou a consulta. Aguarde alguns minutos antes de verificar novamente.';
     if (code === 'MP_REAUTHORIZATION_REQUIRED' || code.startsWith('MP_BILLING_HTTP_401'))
       return 'O acesso foi recusado pelo Billing. Renove a autorização com a conta do seller conectado.';
+    if (code.includes('ABUSE_PREVENTION_ERROR'))
+      return 'O provedor bloqueou temporariamente a consulta por prevenção de abuso. Aguarde antes de tentar novamente; renovar a autorização não resolve esse bloqueio.';
     if (code.startsWith('MP_BILLING_HTTP_403'))
-      return 'A conta foi autorizada, mas não tem permissão para consultar o Billing. Verifique a aplicação Mercado Pago e os acessos dessa conta.';
+      return 'O Billing recusou a consulta (HTTP 403). Confira a permissão funcional de faturamento da aplicação e da conta; um bloqueio temporário do provedor também é possível.';
     return 'A autorização existe, mas o acesso ao Billing ainda não foi confirmado.';
   }
 

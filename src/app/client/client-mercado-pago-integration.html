@@ -31,7 +31,7 @@
     </div>
     <p class="explanation">Sem Billing confirmado, o sistema continua operando normalmente, mas a rentabilidade permanece como estimada. Nenhuma ausência de autorização é tratada como valor zero.</p>
     <div class="state-warning" role="status" *ngIf="status?.connected && !status?.billingVerified && billingIssue">
-      <nb-icon icon="info-outline"></nb-icon><span>{{ billingIssue }}</span>
+      <nb-icon icon="info-outline"></nb-icon><span>{{ billingIssue }} <small class="issue-code">Código: {{ billingErrorCode }}</small></span>
     </div>
     <div class="grant-meta" *ngIf="connectedGrant as grant">
       <span><strong>Seller:</strong> {{ grant.sellerId }}</span>
