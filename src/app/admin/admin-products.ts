@@ -98,6 +98,7 @@ export class AdminProducts implements OnInit, OnDestroy {
   formError: string | null = null;
   saving = false;
   editingSku: string | null = null;
+  referenceSku: string | null = null;
 
   currentImages: AdminProductImageResult[] = [];
   uploadInProgress = false;
@@ -199,17 +200,15 @@ export class AdminProducts implements OnInit, OnDestroy {
     return /^MLB\d+$/i.test(sku);
   }
 
-  defineInternalSku(product?: AdminProductResult): void {
+  openMarketplaceLink(): void {
     const context = this.tenantContext.get();
     if (!context?.tenantId || !context.clientId) {
-      this.toastr.info('Selecione primeiro o cliente em Clientes e abra a integração Mercado Livre dele.', 'Definir SKU interno');
+      this.toastr.info('Para vincular um anúncio, escolha o cliente dono da conta Mercado Livre. O SKU interno é criado aqui, sem cliente.', 'Vincular anúncio');
       void this.router.navigate(['/clients']);
       return;
     }
 
-    void this.router.navigate(['/admin/clients', context.clientId, 'integrations', 'mercadolivre'], {
-      queryParams: product && this.isLegacyMlSku(product.sku) ? { itemId: product.sku } : undefined
-    });
+    void this.router.navigate(['/admin/clients', context.clientId, 'integrations', 'mercadolivre']);
   }
 
   imageTrackBy(_: number, item: AdminProductImageResult): string {
@@ -238,6 +237,7 @@ export class AdminProducts implements OnInit, OnDestroy {
     this.formError = null;
     this.imageError = null;
     this.editingSku = null;
+    this.referenceSku = null;
     this.currentImages = [];
     this.selectedCatalogIds = [];
     this.selectedUploadName = null;
@@ -275,11 +275,26 @@ export class AdminProducts implements OnInit, OnDestroy {
     this.form.controls.sku.enable({ emitEvent: false });
   }
 
+  createInternalSkuFrom(product: AdminProductResult): void {
+    this.openCreate();
+    this.referenceSku = product.sku;
+    this.form.patchValue({
+      name: product.name,
+      brand: product.brand ?? '',
+      categoryId: product.categoryId ?? this.getDefaultCategorySlug(),
+      description: product.description ?? '',
+      thumbnailUrl: product.thumbnailUrl ?? '',
+      isActive: false
+    });
+    this.toastr.info('Informe seu SKU e o Preço Catálogo. Revise os dados antes de salvar; nenhum anúncio ou estoque será migrado automaticamente.', 'Novo SKU interno');
+  }
+
   openEdit(product: AdminProductResult): void {
     this.formOpen = true;
     this.formError = null;
     this.imageError = null;
     this.editingSku = product.sku;
+    this.referenceSku = null;
     this.selectedUploadName = null;
 
     this.form.reset({
@@ -339,6 +354,7 @@ export class AdminProducts implements OnInit, OnDestroy {
     this.formError = null;
     this.imageError = null;
     this.editingSku = null;
+    this.referenceSku = null;
     this.currentImages = [];
     this.selectedCatalogIds = [];
     this.selectedUploadName = null;
@@ -370,6 +386,14 @@ export class AdminProducts implements OnInit, OnDestroy {
 
     const raw = this.form.getRawValue();
     const sku = normalizeSkuUppercase(raw.sku);
+    if (!this.editingSku && (!/^[A-Z0-9][A-Z0-9\-_/]{0,63}$/.test(sku) || this.isLegacyMlSku(sku))) {
+      this.formError = 'Informe um SKU interno próprio (letras, números, hífen, _ ou /). Código MLB numérico é ID do anúncio.';
+      return;
+    }
+    if (this.referenceSku && parseBrlToCents(raw.catalogPriceBrl) <= 0) {
+      this.formError = 'Informe o Preço Catálogo cobrado ao seller antes de criar o SKU interno.';
+      return;
+    }
     const intendedActive = !!raw.isActive;
     const baseRequest = {
       name: raw.name.trim(),

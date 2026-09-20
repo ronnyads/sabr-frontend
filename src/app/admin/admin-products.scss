@@ -47,6 +47,26 @@
   button { flex-shrink: 0; }
 }
 
+.sku-reference {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--phub-info);
+  border-radius: 8px;
+  background: var(--phub-surface);
+  color: var(--phub-text);
+
+  strong { font-size: 14px; }
+  p { margin: 4px 0 0; color: var(--phub-text-muted); font-size: 13px; line-height: 1.45; }
+}
+
+.sku-guidance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button { white-space: nowrap; }
+}
+
 .editor {
   margin-bottom: 16px;
   padding: 16px;

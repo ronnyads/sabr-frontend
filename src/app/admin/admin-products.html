@@ -19,20 +19,28 @@
 
     <div class="sku-guidance" role="note">
       <div>
-        <strong>Seu SKU é diferente do código MLB.</strong>
-        <p>Para um anúncio já importado, use <b>Definir SKU interno</b>: escolha um SKU existente ou crie o seu, informe o custo cobrado ao seller e confirme o vínculo. O SKU legado permanece apenas no histórico.</p>
+        <strong>SKU interno é global. Anúncio do marketplace pertence a um cliente.</strong>
+        <p>Crie seu SKU aqui no admin, sem selecionar cliente. Depois, vincule cada anúncio da conta do cliente ao SKU criado. O código MLB antigo permanece no histórico.</p>
       </div>
-      <button nbButton size="small" status="info" (click)="defineInternalSku()">Abrir vínculo de produtos</button>
+      <div class="sku-guidance-actions">
+        <button nbButton size="small" status="primary" (click)="openCreate()">Criar SKU interno</button>
+        <button nbButton size="small" status="basic" (click)="openMarketplaceLink()">Vincular anúncio de cliente</button>
+      </div>
     </div>
 
     <div class="editor" *ngIf="formOpen">
+      <div *ngIf="referenceSku" class="sku-reference" role="note">
+        <strong>Novo SKU com referência em {{ referenceSku }}</strong>
+        <p>Os dados descritivos foram sugeridos para revisão. Digite o seu SKU e o Preço Catálogo, escolha um catálogo e ative o produto para poder vinculá-lo depois. O produto antigo, seus pedidos, anúncios e estoque não serão alterados ao salvar.</p>
+      </div>
       <nb-tabset fullWidth>
         <nb-tab tabTitle="Basico">
           <form [formGroup]="form" class="editor-grid">
             <div class="field">
               <label>SKU</label>
               <input nbInput formControlName="sku" [readonly]="!!editingSku" (input)="form.controls.sku.setValue(form.controls.sku.value.toUpperCase(), { emitEvent: false })" />
-              <small *ngIf="editingSku">Este identificador histórico não pode ser renomeado. Use “Definir SKU interno” na linha do produto para vincular o anúncio ao seu SKU.</small>
+              <small *ngIf="editingSku">Este identificador histórico não pode ser renomeado. Crie um novo SKU interno no admin e depois vincule os anúncios a ele.</small>
+              <small *ngIf="referenceSku">Informe seu código próprio; MLB numérico é ID do anúncio.</small>
             </div>
 
             <div class="field">
@@ -381,8 +389,8 @@
             <td>{{ product.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td class="actions">
               <button nbButton size="tiny" status="basic" (click)="openEdit(product)">Editar</button>
-              <button *ngIf="isLegacyMlSku(product.sku)" nbButton size="tiny" status="info" (click)="defineInternalSku(product)">
-                Definir SKU interno
+              <button *ngIf="isLegacyMlSku(product.sku)" nbButton size="tiny" status="info" (click)="createInternalSkuFrom(product)">
+                Criar meu SKU
               </button>
               <button nbButton size="tiny" status="danger" [disabled]="!product.isActive" (click)="deactivate(product)">
                 Inativar
