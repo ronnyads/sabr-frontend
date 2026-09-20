@@ -188,6 +188,10 @@ export class ClientDashboard implements OnInit {
     });
   }
 
+  goToBilling(): void {
+    void this.router.navigate(['/client/integrations/mercadopago']);
+  }
+
   selectPeriod(days: number): void {
     if (this.selectedDays === days) return;
     this.selectedDays = days;

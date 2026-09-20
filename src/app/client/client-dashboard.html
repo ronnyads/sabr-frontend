@@ -147,7 +147,8 @@
       </div>
       <footer class="financial-footnote">
         <span>Operacional: {{ finance.lastOperationalSyncAt ? (finance.lastOperationalSyncAt | date:'dd/MM, HH:mm') : 'ainda não sincronizado' }}</span>
-        <span>Billing: {{ finance.lastBillingSyncAt ? (finance.lastBillingSyncAt | date:'dd/MM, HH:mm') : 'aguardando credencial e conciliação' }}</span>
+        <span>Billing: {{ finance.lastBillingSyncAt ? (finance.lastBillingSyncAt | date:'dd/MM, HH:mm') : 'aguardando autorização e conciliação' }}</span>
+        <button type="button" class="billing-link" *ngIf="!finance.lastBillingSyncAt" (click)="goToBilling()">Resolver acesso Billing →</button>
         <span *ngIf="finance.sellerReportedEstimatedTaxCents">Imposto estimado informado pelo seller: {{ formatCents(finance.sellerReportedEstimatedTaxCents) }} — não é apuração fiscal.</span>
       </footer>
     </article>

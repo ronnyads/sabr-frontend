@@ -305,6 +305,8 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 .coverage-list b { color: var(--ink); }
 .divergence-block p { margin: .62rem 0 0; color: var(--muted); font-size: .62rem; line-height: 1.45; }
 .financial-footnote { display: flex; flex-wrap: wrap; gap: .55rem 1.2rem; padding: .7rem 1.3rem; border-top: 1px solid var(--line); color: #8491a5; background: rgba(111,125,148,.035); font-size: .58rem; }
+.billing-link { border: 0; background: transparent; color: var(--phub-primary); font: inherit; font-weight: 700; cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px; }
+.billing-link:focus-visible { outline: 2px solid var(--phub-primary); outline-offset: 3px; border-radius: 2px; }
 
 .shipping-today {
   margin-top: .9rem;
