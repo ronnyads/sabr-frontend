@@ -14,6 +14,10 @@
     <button nbButton size="small" status="primary" (click)="load()">Tentar novamente</button>
   </div>
 
+  <div class="state-warning" role="alert" *ngIf="authorizationIssue">
+    <nb-icon icon="alert-triangle-outline"></nb-icon><span>{{ authorizationIssue }}</span>
+  </div>
+
   <section class="mp-card" *ngIf="!loading && !error">
     <div class="status-row">
       <div>
@@ -26,6 +30,9 @@
       </span>
     </div>
     <p class="explanation">Sem Billing confirmado, o sistema continua operando normalmente, mas a rentabilidade permanece como estimada. Nenhuma ausência de autorização é tratada como valor zero.</p>
+    <div class="state-warning" role="status" *ngIf="status?.connected && !status?.billingVerified && billingIssue">
+      <nb-icon icon="info-outline"></nb-icon><span>{{ billingIssue }}</span>
+    </div>
     <div class="grant-meta" *ngIf="connectedGrant as grant">
       <span><strong>Seller:</strong> {{ grant.sellerId }}</span>
       <span><strong>Expira:</strong> {{ grant.tokenExpiresAt | date:'dd/MM/yyyy HH:mm' }}</span>

@@ -14,4 +14,6 @@
 .grant-meta { display: flex; flex-wrap: wrap; gap: 12px 22px; color: var(--phub-text-muted); font-size: .84rem; padding: 14px 0; border-top: 1px solid var(--phub-border); border-bottom: 1px solid var(--phub-border); }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }.guardrail-card { display: flex; gap: 16px; align-items: flex-start; color: var(--phub-text-muted); }.guardrail-card > nb-icon { color: var(--phub-primary); font-size: 1.45rem; }.guardrail-card h3 { margin: 0 0 5px; color: var(--phub-text); font-size: .96rem; }.guardrail-card p { margin: 0; line-height: 1.55; }
 .state-error { display: flex; align-items: center; gap: 10px; padding: 18px; border-radius: 12px; color: var(--phub-danger); background: rgba(220, 53, 69, .08); }
+.state-warning { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; margin: 12px 0; border: 1px solid #e6bc69; border-radius: 12px; color: #6d4200; background: #fff5df; line-height: 1.45; }
+.state-warning nb-icon { flex: none; margin-top: 2px; }
 @media (max-width: 650px) { .mp-page { padding: 18px; }.mp-hero { padding: 20px; }.status-row { flex-direction: column; }.actions button { width: 100%; } }

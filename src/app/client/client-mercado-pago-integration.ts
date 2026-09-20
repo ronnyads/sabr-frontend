@@ -22,6 +22,8 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
   connecting = false;
   probing = false;
   error: string | null = null;
+  authorizationIssue: string | null = null;
+  lastProbeErrorCode: string | null = null;
   private readonly destroy$ = new Subject<void>();
 
   constructor(
@@ -34,7 +36,10 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
     this.load();
     const signal = this.route.snapshot.queryParamMap.get('mp');
     if (signal === 'connected') this.toastr.success('Mercado Pago autorizado. Agora verifique o Billing.', 'Autorização concluída');
-    if (signal && signal !== 'connected') this.toastr.warning(this.signalMessage(signal), 'Mercado Pago');
+    if (signal && signal !== 'connected') {
+      this.authorizationIssue = this.signalMessage(signal);
+      this.toastr.warning(this.authorizationIssue, 'Mercado Pago');
+    }
   }
 
   ngOnDestroy(): void {
@@ -71,6 +76,7 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
         next: results => {
           this.load();
           const result = results[0];
+          this.lastProbeErrorCode = result?.verified ? null : result?.errorCode ?? null;
           if (result?.verified) this.toastr.success('Billing do Mercado Pago verificado. A conciliação poderá confirmar os valores.', 'Acesso confirmado');
           else this.toastr.warning(this.probeMessage(result), 'Billing pendente');
         },
@@ -82,17 +88,24 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
     return this.status?.grants?.[0] ?? null;
   }
 
+  get billingIssue(): string | null {
+    const errorCode = this.lastProbeErrorCode ?? this.connectedGrant?.capabilityError;
+    return errorCode ? this.probeMessage({ errorCode, sellerId: this.connectedGrant?.sellerId ?? 0, verified: false }) : null;
+  }
+
   private probeMessage(result?: MercadoPagoBillingProbeResult): string {
-    switch (result?.errorCode) {
-      case 'MP_BILLING_RATE_LIMITED': return 'O Mercado Pago limitou a consulta. Aguarde alguns minutos antes de tentar novamente.';
-      case 'MP_REAUTHORIZATION_REQUIRED': return 'A autorização expirou. Conecte o Mercado Pago novamente.';
-      case 'MP_BILLING_HTTP_401': return 'O acesso foi recusado pelo Billing. Renove a autorização.';
-      default: return 'A autorização existe, mas o acesso ao Billing ainda não foi confirmado.';
-    }
+    const code = result?.errorCode ?? '';
+    if (code === 'MP_BILLING_RATE_LIMITED' || code.startsWith('MP_BILLING_HTTP_429'))
+      return 'O provedor limitou a consulta. Aguarde alguns minutos antes de verificar novamente.';
+    if (code === 'MP_REAUTHORIZATION_REQUIRED' || code.startsWith('MP_BILLING_HTTP_401'))
+      return 'O acesso foi recusado pelo Billing. Renove a autorização com a conta do seller conectado.';
+    if (code.startsWith('MP_BILLING_HTTP_403'))
+      return 'A conta foi autorizada, mas não tem permissão para consultar o Billing. Verifique a aplicação Mercado Pago e os acessos dessa conta.';
+    return 'A autorização existe, mas o acesso ao Billing ainda não foi confirmado.';
   }
 
   private signalMessage(signal: string): string {
-    if (signal === 'seller_mismatch') return 'A conta autorizada não pertence ao seller Mercado Livre conectado.';
+    if (signal === 'seller_mismatch') return 'A conta Mercado Pago aberta neste perfil do navegador é diferente do seller Mercado Livre vinculado. Abra o portal no perfil da conta financeira correspondente ao seller exibido abaixo e tente novamente. Nenhuma conta foi trocada.';
     if (signal === 'oauth_error') return 'O Mercado Pago não concluiu a autorização.';
     return 'Não foi possível concluir a autorização financeira.';
   }
