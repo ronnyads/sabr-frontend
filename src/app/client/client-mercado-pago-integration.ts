@@ -106,14 +106,14 @@ export class ClientMercadoPagoIntegration implements OnInit, OnDestroy {
     if (code.includes('ABUSE_PREVENTION_ERROR'))
       return 'O provedor bloqueou temporariamente a consulta por prevenção de abuso. Aguarde antes de tentar novamente; renovar a autorização não resolve esse bloqueio.';
     if (code.includes('PA_UNAUTHORIZED_RESULT_FROM_POLICIES'))
-      return 'A aplicação não tem a permissão funcional Faturamento para consultar o Billing. Habilite essa permissão no painel de desenvolvedores e depois renove a autorização com a conta do seller conectado.';
+      return 'O provedor recusou o token atual para consultar o Billing (política de acesso). A autorização financeira existe, mas não podemos confirmar valores até verificar a aplicação e a permissão efetiva deste seller.';
     if (code.startsWith('MP_BILLING_HTTP_403'))
       return 'O Billing recusou a consulta (HTTP 403). Confira a permissão funcional de faturamento da aplicação e da conta; um bloqueio temporário do provedor também é possível.';
     return 'A autorização existe, mas o acesso ao Billing ainda não foi confirmado.';
   }
 
   private signalMessage(signal: string): string {
-    if (signal === 'seller_mismatch') return 'A conta Mercado Pago aberta neste perfil do navegador é diferente do seller Mercado Livre vinculado. Abra o portal no perfil da conta financeira correspondente ao seller exibido abaixo e tente novamente. Nenhuma conta foi trocada.';
+    if (signal === 'seller_mismatch') return 'A autorização retornou um ID de conta diferente do seller vinculado abaixo. A sessão usada na tela de consentimento pode ser diferente da conta exibida no painel de desenvolvedores. Confira qual conta Mercado Livre/Mercado Pago está ativa no navegador e tente com o seller correto. O vínculo existente foi preservado.';
     if (signal === 'oauth_error') return 'O Mercado Pago não concluiu a autorização.';
     return 'Não foi possível concluir a autorização financeira.';
   }
