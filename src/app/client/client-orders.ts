@@ -763,6 +763,8 @@ export class ClientOrders implements OnInit, OnDestroy {
 
   paymentBlockerLabel(value: string): string {
     switch (value) {
+      case 'channel_payment_pending':
+        return 'Pagamento ainda não confirmado pelo marketplace';
       case 'no_imported_items':
         return 'Nenhum item importado do canal';
       case 'unmapped_item':

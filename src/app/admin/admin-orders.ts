@@ -208,6 +208,7 @@ export class AdminOrders implements OnInit, OnDestroy {
 
   paymentBlockerLabel(value: string): string {
     switch (value) {
+      case 'channel_payment_pending': return 'Pagamento pendente no marketplace';
       case 'unmapped_item': return 'Sem mapeamento';
       case 'out_of_stock': return 'Sem estoque';
       case 'label_missing': return 'Etiqueta pendente';
@@ -218,6 +219,8 @@ export class AdminOrders implements OnInit, OnDestroy {
 
   blockerBadgeClass(value: string): string {
     switch (value) {
+      case 'channel_payment_pending':
+        return 'badge-warning';
       case 'out_of_stock':
       case 'unmapped_item':
         return 'badge-danger';
