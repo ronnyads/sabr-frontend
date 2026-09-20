@@ -91,6 +91,39 @@
     </div>
   </div>
 
+  <section class="phub-card financial-health" *ngIf="status?.connected" aria-labelledby="financial-health-title">
+    <div class="financial-health__heading">
+      <div>
+        <span class="financial-health__eyebrow">Conciliação financeira</span>
+        <h3 id="financial-health-title">Saúde do acesso Billing</h3>
+        <p>Confirma se cada seller permite consultar os relatórios oficiais. Sem essa autorização, resultados financeiros continuam estimados — nunca confirmados como zero.</p>
+      </div>
+      <button nbButton status="info" [disabled]="probingFinancialCapabilities" (click)="probeFinancialCapabilities()">
+        {{ probingFinancialCapabilities ? 'Verificando...' : 'Verificar acesso Billing' }}
+      </button>
+    </div>
+
+    <p class="financial-health__error" *ngIf="financialProbeError" role="alert">{{ financialProbeError }}</p>
+    <div class="financial-health__empty" *ngIf="!financialCapabilities.length && !financialProbeError">
+      Execute a verificação para separar OAuth conectado de acesso Billing realmente autorizado.
+    </div>
+    <div class="financial-health__sellers" *ngIf="financialCapabilities.length">
+      <article class="financial-seller" *ngFor="let capability of financialCapabilities"
+               [class.is-confirmed]="capability.billingMercadoLivre"
+               [class.is-risk]="!capability.billingMercadoLivre">
+        <div>
+          <small>Seller {{ capability.sellerId }}</small>
+          <strong>{{ financialCapabilityLabel(capability) }}</strong>
+        </div>
+        <span class="financial-seller__status">
+          {{ capability.billingMercadoLivre ? 'CONFIRMADO' : 'PENDENTE' }}
+        </span>
+        <p>Orders {{ capability.orders ? 'ok' : 'indisponível' }} · Envios {{ capability.shipments ? 'ok' : 'indisponível' }} · Mercado Pago {{ capability.billingMercadoPago ? 'verificado' : 'pendente' }}</p>
+        <time *ngIf="capability.verifiedAt" [attr.datetime]="capability.verifiedAt">Verificado em {{ capability.verifiedAt | date:'dd/MM/yyyy HH:mm' }}</time>
+      </article>
+    </div>
+  </section>
+
   <div class="phub-card catalog-import-panel" *ngIf="catalogPreview.length">
     <div class="catalog-import-heading">
       <div>

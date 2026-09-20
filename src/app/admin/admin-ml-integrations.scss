@@ -38,6 +38,39 @@
   overflow: auto;
 }
 
+.financial-health {
+  padding: 20px;
+  border-top: 3px solid var(--phub-primary);
+}
+
+.financial-health__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.financial-health__eyebrow {
+  color: var(--phub-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.financial-health h3 { margin: 5px 0 6px; }
+.financial-health__heading p { max-width: 760px; margin: 0; color: var(--phub-text-muted); line-height: 1.55; }
+.financial-health__empty { margin-top: 18px; padding: 14px 16px; border: 1px dashed var(--phub-border); border-radius: 10px; color: var(--phub-text-muted); }
+.financial-health__error { margin: 16px 0 0; padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb, var(--phub-danger) 10%, var(--phub-surface)); color: var(--phub-danger); }
+.financial-health__sellers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 18px; }
+.financial-seller { position: relative; padding: 16px; border: 1px solid var(--phub-border); border-left: 4px solid var(--phub-warning); border-radius: 12px; background: var(--phub-surface-soft); }
+.financial-seller.is-confirmed { border-left-color: var(--phub-success); }
+.financial-seller small, .financial-seller time { display: block; color: var(--phub-text-muted); }
+.financial-seller strong { display: block; margin-top: 4px; color: var(--phub-text); }
+.financial-seller p { margin: 14px 0 8px; color: var(--phub-text-muted); font-size: 0.82rem; }
+.financial-seller__status { position: absolute; top: 14px; right: 14px; padding: 4px 7px; border-radius: 999px; background: color-mix(in srgb, var(--phub-warning) 14%, var(--phub-surface)); color: var(--phub-warning); font-size: 0.65rem; font-weight: 800; letter-spacing: 0.06em; }
+.financial-seller.is-confirmed .financial-seller__status { background: color-mix(in srgb, var(--phub-success) 14%, var(--phub-surface)); color: var(--phub-success); }
+
 .phub-table {
   width: 100%;
   border-collapse: collapse;
@@ -129,7 +162,8 @@
 
 @media (max-width: 760px) {
   .catalog-import-heading,
-  .catalog-import-tools { align-items: stretch; flex-direction: column; }
+  .catalog-import-tools,
+  .financial-health__heading { align-items: stretch; flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {

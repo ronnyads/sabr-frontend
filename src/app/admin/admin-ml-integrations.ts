@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbButtonModule, NbCheckboxModule, NbToastrService } from '@nebular/theme';
 import { Subject, finalize, takeUntil } from 'rxjs';
-import { AdminMercadoLivreIntegrationService, CatalogSkuAssignment, MercadoLivreCatalogImportItem, MercadoLivreSellerCatalogItem } from '../core/services/admin-mercado-livre-integration.service';
+import { AdminMercadoLivreIntegrationService, CatalogSkuAssignment, FinancialCapabilityResult, MercadoLivreCatalogImportItem, MercadoLivreSellerCatalogItem } from '../core/services/admin-mercado-livre-integration.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
 import { MercadoLivreIntegrationStatusResult } from '../core/services/mercado-livre-integration.service';
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
@@ -38,6 +38,9 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
   sellerResearchQuery = '';
   sellerResearchLoading = false;
   sellerResearchItems: MercadoLivreSellerCatalogItem[] = [];
+  financialCapabilities: FinancialCapabilityResult[] = [];
+  probingFinancialCapabilities = false;
+  financialProbeError: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -239,6 +242,34 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
         next: items => (this.sellerResearchItems = items),
         error: (error: HttpErrorResponse) => this.toastr.danger(this.buildErrorMessage('Falha ao consultar o seller.', error), 'Pesquisa de seller')
       });
+  }
+
+  probeFinancialCapabilities(): void {
+    this.probingFinancialCapabilities = true;
+    this.financialProbeError = null;
+    this.integrationService.probeFinancialCapabilities(this.clientId)
+      .pipe(finalize(() => (this.probingFinancialCapabilities = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: capabilities => {
+          this.financialCapabilities = capabilities;
+          if (capabilities.some(item => item.billingMercadoLivre)) {
+            this.toastr.success('Acesso Billing ML verificado para pelo menos um seller.', 'Saúde financeira');
+          } else {
+            this.toastr.warning('Billing ML ainda não está autorizado. Valores permanecem estimados.', 'Saúde financeira');
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          this.financialProbeError = this.buildErrorMessage('Não foi possível verificar o acesso Billing.', error);
+          this.toastr.danger(this.financialProbeError, 'Saúde financeira');
+        }
+      });
+  }
+
+  financialCapabilityLabel(item: FinancialCapabilityResult): string {
+    if (item.billingMercadoLivre) return 'Billing ML verificado';
+    if (item.pending.some(code => code.includes('RATE_LIMITED') || code.includes('UNAVAILABLE') || code.includes('PROBE_FAILED')))
+      return 'Verificação temporariamente indisponível';
+    return 'Billing ML não autorizado';
   }
 
   private buildErrorMessage(baseMessage: string, error: HttpErrorResponse): string {

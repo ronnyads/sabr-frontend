@@ -67,6 +67,18 @@ export interface AdminMercadoLivreMappingUpsertResult {
   updatedAt: string;
 }
 
+export interface FinancialCapabilityResult {
+  sellerId: number;
+  orders: boolean;
+  shipments: boolean;
+  discounts: boolean;
+  billingMercadoLivre: boolean;
+  billingMercadoPago: boolean;
+  requiresReauthorization: boolean;
+  verifiedAt: string | null;
+  pending: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminMercadoLivreIntegrationService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
@@ -125,6 +137,14 @@ export class AdminMercadoLivreIntegrationService {
     return this.http.put<AdminMercadoLivreMappingUpsertResult>(
       `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/mappings`,
       request
+    );
+  }
+
+  probeFinancialCapabilities(clientId: string): Observable<FinancialCapabilityResult[]> {
+    const client = encodeURIComponent((clientId ?? '').trim());
+    return this.http.post<FinancialCapabilityResult[]>(
+      `${this.apiBaseUrl}/admin/integrations/${client}/financial-capabilities/probe`,
+      {}
     );
   }
 }
