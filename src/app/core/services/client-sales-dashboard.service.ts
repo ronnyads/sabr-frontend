@@ -68,7 +68,7 @@ export interface FinancialDivergenceResult {
 export interface ClientProfitabilityResult {
   from: string; to: string; generatedAt: string; lastOperationalSyncAt?: string | null; lastBillingSyncAt?: string | null;
   currencyId: string; maturity: string; grossRevenueCents: number; estimatedEconomicNetCents: number;
-  reconciledConfirmedValueCents: number; operationalProfitCents: number; sellerReportedEstimatedTaxCents: number;
+  productCostCents: number; reconciledConfirmedValueCents: number; operationalProfitCents: number; sellerReportedEstimatedTaxCents: number;
   profitAfterSellerTaxEstimateCents: number; unallocatedCents: number; coverage: FinancialCoverageResult;
   divergence: FinancialDivergenceResult; incompleteReasons: string[];
 }

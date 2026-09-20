@@ -292,6 +292,13 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 .financial-cards small { color: #8a96a8; font-size: .58rem; }
 .financial-cards .profit-card strong { color: var(--green); }
 .financial-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; padding: 1.1rem 1.3rem; }
+.profit-waterfall { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr) auto); align-items: center; gap: .55rem; padding: .8rem; border: 1px solid var(--line); border-radius: .85rem; background: rgba(47,117,255,.025); }
+.profit-waterfall span { display: flex; min-width: 0; flex-direction: column; gap: .18rem; }
+.profit-waterfall small { color: var(--muted); font-size: .58rem; }
+.profit-waterfall b { overflow: hidden; color: var(--ink); font-size: .84rem; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.profit-waterfall i { color: #93a0b3; font-style: normal; font-weight: 800; }
+.profit-waterfall .waterfall-result { padding: .48rem .58rem; border-radius: .65rem; background: rgba(22,165,122,.1); }
+.profit-waterfall .waterfall-result b { color: var(--green); }
 .coverage-block, .divergence-block { min-width: 0; }
 .detail-title { display: flex; align-items: flex-end; justify-content: space-between; gap: .8rem; }
 .detail-title > div { display: flex; align-items: baseline; gap: .55rem; }
@@ -594,6 +601,8 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
   .results-heading { flex-direction: column; }
   .results-actions { justify-content: space-between; }
   .financial-detail { display: grid; }
+  .profit-waterfall { grid-template-columns: 1fr 1fr; }
+  .profit-waterfall i { display: none; }
   .skeleton-panels { grid-template-columns: 1fr; }
 }
 
