@@ -23,7 +23,8 @@
           <form [formGroup]="form" class="editor-grid">
             <div class="field">
               <label>SKU</label>
-              <input nbInput formControlName="sku" (input)="form.controls.sku.setValue(form.controls.sku.value.toUpperCase(), { emitEvent: false })" />
+              <input nbInput formControlName="sku" [readonly]="!!editingSku" (input)="form.controls.sku.setValue(form.controls.sku.value.toUpperCase(), { emitEvent: false })" />
+              <small *ngIf="editingSku">SKU mestre não é renomeado. Anúncios existentes devem ser remapeados para um SKU interno novo.</small>
             </div>
 
             <div class="field">
@@ -360,7 +361,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let product of products; trackBy: productTrackBy">
-            <td>{{ product.sku }}</td>
+            <td>{{ product.sku }} <span class="badge badge-legacy" *ngIf="isLegacyMlSku(product.sku)">ML legado · revisar vínculo</span></td>
             <td>{{ product.name }}</td>
             <td>{{ product.brand }}</td>
             <td>{{ formatMoney(product.catalogPriceCents) }}</td>

@@ -95,9 +95,9 @@
     <div class="catalog-import-heading">
       <div>
         <h3>Selecionar produtos para importar</h3>
-        <p>Produtos com o mesmo SKU são agrupados; todos os anúncios espelhados serão vinculados juntos.</p>
+        <p>O código do canal identifica o anúncio. Informe o SKU mestre do PrometheusHUB para criar ou vincular o produto; anúncios espelhados com o mesmo SKU do canal são agrupados.</p>
       </div>
-      <button nbButton status="primary" [disabled]="importingCatalog || selectedProductKeys.size === 0" (click)="importProducts()">
+      <button nbButton status="primary" [disabled]="importingCatalog || !canImportSelected" (click)="importProducts()">
         {{ importingCatalog ? 'Importando...' : 'Importar ' + selectedProductKeys.size + ' selecionado(s)' }}
       </button>
     </div>
@@ -108,14 +108,15 @@
         <input type="number" min="0" step="1" [(ngModel)]="importPhysicalStock" aria-label="Estoque inicial dos produtos importados" />
       </label>
       <label>
-        <span>Preço Catálogo</span>
+        <span>Custo padrão do seller (R$)</span>
         <input type="number" min="0" step="0.01" [(ngModel)]="importCatalogPrice" aria-label="Preço de catálogo dos produtos importados" />
       </label>
       <button nbButton status="basic" size="small" (click)="selectAllVisible()">Selecionar visíveis</button>
     </div>
+    <p class="sku-bridge-help">Todo anúncio precisa de um SKU interno próprio; IDs numéricos MLB não são aceitos como SKU mestre. Escolha se vai vincular um SKU existente ou criar um novo. Vínculo existente não altera custo ou estoque; SKU novo exige o custo cobrado ao seller e recebe o estoque inicial. O preço no ML é o preço de venda. Pedidos anteriores não são remapeados.</p>
     <div class="table-wrapper">
       <table class="phub-table">
-        <thead><tr><th></th><th>Produto</th><th>SKU</th><th>Marca</th><th>Preço ML</th><th>Anúncios</th></tr></thead>
+        <thead><tr><th></th><th>Produto</th><th>SKU do canal</th><th>Operação</th><th>SKU interno PrometheusHUB</th><th>Custo seller (R$)</th><th>Marca</th><th>Preço ML</th><th>Anúncios</th></tr></thead>
         <tbody>
           <tr *ngFor="let row of productGroups" class="selectable-product" tabindex="0"
               [class.is-selected]="selectedProductKeys.has(row.key)"
@@ -126,10 +127,25 @@
                            [attr.aria-label]="'Selecionar ' + row.title"></nb-checkbox>
             </td>
             <td class="product-cell"><img *ngIf="row.thumbnailUrl" [src]="row.thumbnailUrl" alt="" /><span>{{ row.title }}</span></td>
-            <td><strong>{{ row.sku || 'Sem SKU' }}</strong></td>
+            <td><strong>{{ row.sku || 'Não informado' }}</strong><small *ngIf="!row.sku"> · {{ row.entries[0].itemId }}</small></td>
+            <td (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()">
+              <select class="internal-sku-input" [attr.aria-label]="'Operação para ' + row.title" [(ngModel)]="createNewByKey[row.key]">
+                <option [ngValue]="false">Vincular existente</option>
+                <option [ngValue]="true">Criar SKU novo</option>
+              </select>
+            </td>
+            <td (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()">
+              <input class="internal-sku-input" type="text" maxlength="64" [attr.aria-label]="'SKU interno para ' + row.title"
+                     placeholder="Informe o SKU interno" [(ngModel)]="internalSkuByKey[row.key]" />
+            </td>
+            <td (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()">
+              <input class="internal-sku-input cost-input" type="number" min="0" step="0.01"
+                     [disabled]="!createNewByKey[row.key]" [attr.aria-label]="'Custo do seller para ' + row.title" [placeholder]="importCatalogPrice ? importCatalogPrice.toString() : 'Obrigatório para SKU novo'"
+                     [(ngModel)]="catalogCostByKey[row.key]" />
+            </td>
             <td>{{ row.brand }}</td>
             <td>{{ row.priceCents / 100 | currency:'BRL' }}</td>
-            <td>{{ row.itemIds.length }}</td>
+            <td>{{ row.entries.length }}</td>
           </tr>
         </tbody>
       </table>

@@ -189,8 +189,12 @@ export class AdminProducts implements OnInit, OnDestroy {
     return !!this.form.controls.isActive.value && this.selectedCatalogIds.length === 0;
   }
 
-productTrackBy(_: number, item: AdminProductResult): string {
+  productTrackBy(_: number, item: AdminProductResult): string {
     return item.sku;
+  }
+
+  isLegacyMlSku(sku: string): boolean {
+    return /^MLB\d+$/i.test(sku);
   }
 
   imageTrackBy(_: number, item: AdminProductImageResult): string {

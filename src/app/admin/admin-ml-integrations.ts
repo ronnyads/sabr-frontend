@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbButtonModule, NbCheckboxModule, NbToastrService } from '@nebular/theme';
 import { Subject, finalize, takeUntil } from 'rxjs';
-import { AdminMercadoLivreIntegrationService, MercadoLivreCatalogImportItem, MercadoLivreSellerCatalogItem } from '../core/services/admin-mercado-livre-integration.service';
+import { AdminMercadoLivreIntegrationService, CatalogSkuAssignment, MercadoLivreCatalogImportItem, MercadoLivreSellerCatalogItem } from '../core/services/admin-mercado-livre-integration.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
 import { MercadoLivreIntegrationStatusResult } from '../core/services/mercado-livre-integration.service';
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
@@ -29,8 +29,11 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
   catalogPreview: MercadoLivreCatalogImportItem[] = [];
   catalogSearch = '';
   importPhysicalStock = 1000;
-  importCatalogPrice = 8;
+  importCatalogPrice = 0;
   selectedProductKeys = new Set<string>();
+  internalSkuByKey: Record<string, string> = {};
+  createNewByKey: Record<string, boolean> = {};
+  catalogCostByKey: Record<string, number> = {};
   sellerResearchId = '';
   sellerResearchQuery = '';
   sellerResearchLoading = false;
@@ -130,21 +133,31 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
         next: (result) => {
           this.catalogPreview = result.items;
           this.selectedProductKeys.clear();
-          if (result.warnings.length) this.toastr.warning(`${result.warnings.length} anúncio(s) sem SKU não poderão ser importados.`, 'Prévia carregada');
+          this.internalSkuByKey = {};
+          this.createNewByKey = {};
+          this.catalogCostByKey = {};
+          for (const row of this.allProductGroups) this.createNewByKey[row.key] = false;
         },
         error: (error: HttpErrorResponse) => this.toastr.danger(this.buildErrorMessage('Falha ao buscar produtos.', error), 'Mercado Livre')
       });
   }
 
-  get productGroups(): Array<{ key: string; sku: string | null; title: string; brand: string; thumbnailUrl: string | null; priceCents: number; itemIds: string[] }> {
-    const groups = new Map<string, { key: string; sku: string | null; title: string; brand: string; thumbnailUrl: string | null; priceCents: number; itemIds: string[] }>();
-    const term = this.catalogSearch.trim().toLowerCase();
+  get productGroups(): Array<{ key: string; sku: string | null; title: string; brand: string; thumbnailUrl: string | null; priceCents: number; entries: MercadoLivreCatalogImportItem[] }> {
+    return this.buildProductGroups(this.catalogSearch.trim().toLowerCase());
+  }
+
+  private get allProductGroups(): ReturnType<AdminMlIntegrations['buildProductGroups']> {
+    return this.buildProductGroups('');
+  }
+
+  private buildProductGroups(term: string): Array<{ key: string; sku: string | null; title: string; brand: string; thumbnailUrl: string | null; priceCents: number; entries: MercadoLivreCatalogImportItem[] }> {
+    const groups = new Map<string, { key: string; sku: string | null; title: string; brand: string; thumbnailUrl: string | null; priceCents: number; entries: MercadoLivreCatalogImportItem[] }>();
     for (const item of this.catalogPreview) {
       if (term && !`${item.title} ${item.sku ?? ''} ${item.brand}`.toLowerCase().includes(term)) continue;
-      const key = item.sku || item.itemId;
+      const key = item.sku || `${item.itemId}|${item.variationId ?? ''}`;
       const existing = groups.get(key);
-      if (existing) existing.itemIds.push(item.itemId);
-      else groups.set(key, { key, sku: item.sku, title: item.title, brand: item.brand || '-', thumbnailUrl: item.thumbnailUrl, priceCents: item.catalogPriceCents, itemIds: [item.itemId] });
+      if (existing) existing.entries.push(item);
+      else groups.set(key, { key, sku: item.sku, title: item.title, brand: item.brand || '-', thumbnailUrl: item.thumbnailUrl, priceCents: item.catalogPriceCents, entries: [item] });
     }
     return [...groups.values()];
   }
@@ -167,20 +180,40 @@ export class AdminMlIntegrations implements OnInit, OnDestroy {
     this.selectedProductKeys = next;
   }
 
+  get canImportSelected(): boolean {
+    return this.selectedProductKeys.size > 0 && this.allProductGroups
+      .filter(row => this.selectedProductKeys.has(row.key))
+      .every(row => /^[A-Z0-9][A-Z0-9\-_/]{0,63}$/.test((this.internalSkuByKey[row.key] ?? '').trim().toUpperCase())
+        && !/^MLB\d+$/.test((this.internalSkuByKey[row.key] ?? '').trim().toUpperCase())
+        && (!this.createNewByKey[row.key] || Number(this.catalogCostByKey[row.key] ?? this.importCatalogPrice) > 0));
+  }
+
   importProducts(): void {
-    const itemIds = this.productGroups.filter(row => this.selectedProductKeys.has(row.key)).flatMap(row => row.itemIds);
+    const selectedRows = this.allProductGroups.filter(row => this.selectedProductKeys.has(row.key));
+    const itemIds = [...new Set(selectedRows.flatMap(row => row.entries.map(entry => entry.itemId)))];
     if (itemIds.length === 0) {
       this.toastr.warning('Selecione ao menos um produto.', 'Importação');
       return;
     }
+    if (!this.canImportSelected) {
+      this.toastr.warning('Informe um SKU interno válido e, para produtos novos, um custo do seller maior que zero.', 'Importação');
+      return;
+    }
+    const skuAssignments: CatalogSkuAssignment[] = selectedRows.flatMap(row => row.entries.map(entry => ({
+      itemId: entry.itemId,
+      variationId: entry.variationId ?? null,
+      internalSku: this.internalSkuByKey[row.key].trim().toUpperCase(),
+      createNewProduct: !!this.createNewByKey[row.key],
+      catalogPriceCents: Math.round(Math.max(0, Number(this.catalogCostByKey[row.key] ?? this.importCatalogPrice) || 0) * 100)
+    })));
     this.importingCatalog = true;
     const physicalStock = Math.max(0, Math.trunc(Number(this.importPhysicalStock) || 0));
     const catalogPriceCents = Math.round(Math.max(0, Number(this.importCatalogPrice) || 0) * 100);
-    this.integrationService.importProducts(this.tenantId, this.clientId, false, itemIds, physicalStock, catalogPriceCents)
+    this.integrationService.importProducts(this.tenantId, this.clientId, false, itemIds, physicalStock, catalogPriceCents, skuAssignments)
       .pipe(finalize(() => (this.importingCatalog = false)), takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
-          const detail = `${result.productsCreated} produtos criados, ${result.productsUpdated} atualizados e ${result.mappingsCreated} anúncios vinculados.`;
+          const detail = `${result.productsCreated} produtos criados, ${result.productsLinkedExisting} SKUs existentes usados, ${result.mappingsCreated} vínculos novos e ${result.mappingsUpdated} remapeados.`;
           result.warnings.length ? this.toastr.warning(`${detail} ${result.warnings.length} aviso(s).`, 'Importação concluída') : this.toastr.success(detail, 'Importação concluída');
           this.loadStatus();
           this.loadCatalogPreview();

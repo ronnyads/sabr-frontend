@@ -117,6 +117,9 @@
 
 .product-cell { display: flex; align-items: center; gap: 10px; min-width: 320px; }
 .product-cell img { width: 44px; height: 44px; border-radius: 9px; object-fit: cover; background: var(--phub-surface-soft); }
+.sku-bridge-help { margin: 12px 0 0; color: var(--phub-text-muted); font-size: 0.82rem; line-height: 1.5; }
+.internal-sku-input { width: 190px; max-width: 100%; padding: 9px 11px; border: 1px solid var(--phub-border); border-radius: 9px; background: var(--phub-surface); color: var(--phub-text); text-transform: uppercase; }
+.internal-sku-input:focus-visible { outline: 2px solid var(--phub-primary); outline-offset: 2px; }
 .seller-research-tools input:first-child { flex: 0 1 220px; }
 
 @keyframes catalog-panel-in {

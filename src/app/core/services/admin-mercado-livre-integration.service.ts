@@ -9,7 +9,9 @@ export interface MercadoLivreCatalogImportResult {
   productsMatched: number;
   productsCreated: number;
   productsUpdated: number;
+  productsLinkedExisting: number;
   mappingsCreated: number;
+  mappingsUpdated: number;
   warnings: string[];
   items: MercadoLivreCatalogImportItem[];
 }
@@ -18,10 +20,20 @@ export interface MercadoLivreCatalogImportItem {
   itemId: string;
   title: string;
   sku: string | null;
+  variationId?: string | null;
+  internalSku?: string | null;
   brand: string;
   thumbnailUrl: string | null;
   catalogPriceCents: number;
   action: string;
+}
+
+export interface CatalogSkuAssignment {
+  itemId: string;
+  variationId: string | null;
+  internalSku: string;
+  createNewProduct: boolean;
+  catalogPriceCents?: number | null;
 }
 
 export interface MercadoLivreSellerCatalogItem {
@@ -60,13 +72,14 @@ export class AdminMercadoLivreIntegrationService {
     previewOnly: boolean,
     itemIds: string[] = [],
     physicalStock = 1000,
-    catalogPriceCents?: number | null
+    catalogPriceCents?: number | null,
+    skuAssignments: CatalogSkuAssignment[] = []
   ): Observable<MercadoLivreCatalogImportResult> {
     const tenant = encodeURIComponent((tenantSlug ?? '').trim().toLowerCase());
     const client = encodeURIComponent((clientId ?? '').trim());
     return this.http.post<MercadoLivreCatalogImportResult>(
       `${this.apiBaseUrl}/admin/tenants/${tenant}/clients/${client}/integrations/mercadolivre/catalog/import`,
-      { query: '', brands: [], physicalStock, catalogPriceCents: catalogPriceCents ?? null, previewOnly, itemIds }
+      { query: '', brands: [], physicalStock, catalogPriceCents: catalogPriceCents ?? null, previewOnly, itemIds, skuAssignments }
     );
   }
 
