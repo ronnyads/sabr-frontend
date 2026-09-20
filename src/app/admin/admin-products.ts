@@ -16,7 +16,7 @@ import {
 import { Subject, combineLatest, debounceTime, distinctUntilChanged, forkJoin, startWith, takeUntil } from 'rxjs';
 import { AdminCategoriesService, AdminCategoryTreeNode } from '../core/services/admin-categories.service';
 import { AdminCatalogResult, AdminCatalogsService } from '../core/services/admin-catalogs.service';
-import { AdminProductImageResult, AdminProductResult, AdminProductsService } from '../core/services/admin-products.service';
+import { AdminProductImageResult, AdminProductListingLinkResult, AdminProductResult, AdminProductsService } from '../core/services/admin-products.service';
 import { AdminProductImagesService } from '../core/services/admin-product-images.service';
 import { AdminProductVariantResult, AdminProductVariantsService } from '../core/services/admin-product-variants.service';
 import { AdminTenantContextService } from '../core/services/admin-tenant-context.service';
@@ -198,6 +198,18 @@ export class AdminProducts implements OnInit, OnDestroy {
 
   isLegacyMlSku(sku: string): boolean {
     return /^MLB\d+$/i.test(sku);
+  }
+
+  legacyListingLinks(product: AdminProductResult): AdminProductListingLinkResult[] {
+    return (product.listingLinks ?? []).filter(link => link.itemId === product.sku);
+  }
+
+  migratedLegacyLinks(product: AdminProductResult): AdminProductListingLinkResult[] {
+    return this.legacyListingLinks(product).filter(link => link.internalSku !== product.sku && !this.isLegacyMlSku(link.internalSku));
+  }
+
+  internalListingLinks(product: AdminProductResult): AdminProductListingLinkResult[] {
+    return (product.listingLinks ?? []).filter(link => link.internalSku === product.sku && link.itemId !== product.sku);
   }
 
   openMarketplaceLink(): void {

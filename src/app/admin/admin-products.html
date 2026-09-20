@@ -370,14 +370,15 @@
             <th>Nome</th>
             <th>Marca</th>
             <th>Catalogo</th>
-            <th>Status</th>
+            <th>Status do cadastro</th>
+            <th>Vínculo com anúncios</th>
             <th>Atualizado</th>
             <th>Acoes</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let product of products; trackBy: productTrackBy">
-            <td>{{ product.sku }} <span class="badge badge-legacy" *ngIf="isLegacyMlSku(product.sku)">ML legado · revisar vínculo</span></td>
+            <td>{{ product.sku }} <span class="badge badge-legacy" *ngIf="isLegacyMlSku(product.sku)">{{ migratedLegacyLinks(product).length ? 'ML legado · vínculo registrado' : 'ML legado · revisar vínculo' }}</span></td>
             <td>{{ product.name }}</td>
             <td>{{ product.brand }}</td>
             <td>{{ formatMoney(product.catalogPriceCents) }}</td>
@@ -385,6 +386,24 @@
               <span class="badge" [class.badge-active]="product.isActive" [class.badge-inactive]="!product.isActive">
                 {{ product.isActive ? 'Ativo' : 'Inativo' }}
               </span>
+            </td>
+            <td class="listing-link-cell">
+              <ng-container *ngIf="isLegacyMlSku(product.sku); else internalLinks">
+                <div *ngIf="migratedLegacyLinks(product).length; else noMigratedLink" class="listing-link-success">
+                  <strong>Vinculado ao SKU interno</strong>
+                  <span *ngFor="let link of migratedLegacyLinks(product)">{{ link.internalSku }}<small *ngIf="link.variationId"> · variação {{ link.variationId }}</small></span>
+                  <small *ngIf="migratedLegacyLinks(product).length < legacyListingLinks(product).length" class="listing-link-pending">Há variações ainda ligadas ao código legado.</small>
+                </div>
+                <ng-template #noMigratedLink>
+                  <span class="listing-link-pending">{{ legacyListingLinks(product).length ? 'Ainda ligado ao código legado' : 'Nenhum vínculo confirmado' }}</span>
+                </ng-template>
+              </ng-container>
+              <ng-template #internalLinks>
+                <span *ngIf="internalListingLinks(product).length; else noInternalLink" class="listing-link-success">
+                  {{ internalListingLinks(product).length }} anúncio(s) vinculado(s)
+                </span>
+                <ng-template #noInternalLink><span class="listing-link-muted">Sem anúncio vinculado</span></ng-template>
+              </ng-template>
             </td>
             <td>{{ product.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
             <td class="actions">

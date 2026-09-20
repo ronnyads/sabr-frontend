@@ -35,8 +35,18 @@ export interface AdminProductResult {
   catalogPriceCents: number;
   isActive: boolean;
   images: AdminProductImageResult[];
+  listingLinks?: AdminProductListingLinkResult[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AdminProductListingLinkResult {
+  clientId: string;
+  sellerId: number;
+  itemId: string;
+  variationId?: string | null;
+  internalSku: string;
+  mappingVersion: number;
 }
 
 export interface AdminProductUpsertRequest {

@@ -292,6 +292,26 @@
   white-space: nowrap;
 }
 
+.listing-link-cell {
+  min-width: 180px;
+  max-width: 260px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.listing-link-success {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--phub-success);
+
+  strong { font-size: 12px; }
+  small { color: var(--phub-text-muted); }
+}
+
+.listing-link-pending { color: var(--phub-warning); font-weight: 600; }
+.listing-link-muted { color: var(--phub-text-muted); }
+
 .actions {
   display: flex;
   gap: 8px;
