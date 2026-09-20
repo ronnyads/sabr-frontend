@@ -124,7 +124,7 @@
         <div><span>Faturamento bruto</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>vendas pagas, antes das deduções</small></div>
         <div><span>Líquido econômico estimado</span><strong>{{ formatCents(finance.estimatedEconomicNetCents) }}</strong><small>taxas, fretes e ajustes operacionais</small></div>
         <div class="profit-card"><span>{{ finance.coverage.operationalPercent < 100 ? 'Lucro operacional estimado · parcial' : 'Lucro operacional estimado' }}</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>após o Preço Catálogo; {{ finance.coverage.operationalPercent | number:'1.0-0' }}% dos pedidos com componentes operacionais resolvidos</small></div>
-        <div><span>Conciliado / confirmado</span><strong>{{ formatCents(finance.reconciledConfirmedValueCents) }}</strong><small>Billing confirmado, sem presumir valores ausentes</small></div>
+        <div><span>Conciliado / confirmado</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.reconciledConfirmedValueCents) : 'Aguardando Billing' }}</strong><small>{{ finance.lastBillingSyncAt ? 'Somente componentes confirmados pelo provedor' : 'Sem confirmação externa; valor desconhecido, não zero' }}</small></div>
       </div>
       <div class="financial-detail">
         <div class="coverage-block">
@@ -139,7 +139,7 @@
           </div>
         </div>
         <div class="divergence-block">
-          <div class="detail-title"><div><span>Divergência estimado × confirmado</span><strong>{{ formatCents(finance.divergence.absoluteCents) }}</strong></div><small>{{ finance.divergence.percentage == null ? 'base ainda não comparável' : (finance.divergence.percentage | number:'1.0-2') + '%' }}</small></div>
+          <div class="detail-title"><div><span>Divergência estimado × confirmado</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.divergence.absoluteCents) : 'Ainda não calculável' }}</strong></div><small>{{ !finance.lastBillingSyncAt || finance.divergence.percentage == null ? 'base ainda não comparável' : (finance.divergence.percentage | number:'1.0-2') + '%' }}</small></div>
           <p *ngIf="finance.unallocatedCents !== 0"><b>{{ formatCents(finance.unallocatedCents) }}</b> sem alocação oficial. O valor não foi rateado entre SKUs.</p>
           <p *ngIf="finance.incompleteReasons.length">Pendências: {{ finance.incompleteReasons.join(' · ') }}</p>
           <p *ngIf="!finance.incompleteReasons.length && finance.unallocatedCents === 0">Nenhuma pendência estrutural identificada neste período.</p>
