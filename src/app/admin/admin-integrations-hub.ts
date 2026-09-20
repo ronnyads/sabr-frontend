@@ -54,12 +54,17 @@ export class AdminIntegrationsHub implements OnInit, OnDestroy {
   }
 
   navigate(card: IntegrationCard): void {
+    if (card.slug) {
+      void this.router.navigate(['/integrations', card.slug]);
+      return;
+    }
     const slugMap: Record<number, string> = {
       1: 'mercadolivre',
       2: 'tinyerp',
       3: 'shopify',
       4: 'tiktokshop',
       5: 'shopee'
+      ,100: 'mercadopago'
     };
     const providerSlug = slugMap[card.provider] ?? 'mercadolivre';
     void this.router.navigate(['/integrations', providerSlug]);

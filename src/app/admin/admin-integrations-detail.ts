@@ -17,6 +17,7 @@ type ProviderConfig = {
 
 const PROVIDER_CONFIG: Record<IntegrationProviderSlug, ProviderConfig> = {
   mercadolivre: { name: 'Mercado Livre', supportsClientDetails: true },
+  mercadopago: { name: 'Mercado Pago', supportsClientDetails: true },
   tinyerp: { name: 'Tiny ERP', supportsClientDetails: true },
   shopify: { name: 'Shopify', supportsClientDetails: false },
   tiktokshop: { name: 'TikTok Shop', supportsClientDetails: true },
@@ -150,8 +151,12 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
       });
   }
 
+  canResetIntegration(): boolean {
+    return this.provider !== 'mercadopago';
+  }
+
   canViewDetails(): boolean {
-    return PROVIDER_CONFIG[this.provider].supportsClientDetails;
+    return PROVIDER_CONFIG[this.provider].supportsClientDetails && this.provider !== 'mercadopago';
   }
 
   viewDetails(client: IntegrationClient): void {
@@ -174,7 +179,7 @@ export class AdminIntegrationsDetail implements OnInit, OnDestroy {
   }
 
   private resolveProvider(provider: string | null): IntegrationProviderSlug {
-    if (provider === 'tinyerp' || provider === 'shopify' || provider === 'tiktokshop' || provider === 'shopee') {
+    if (provider === 'mercadopago' || provider === 'tinyerp' || provider === 'shopify' || provider === 'tiktokshop' || provider === 'shopee') {
       return provider;
     }
 

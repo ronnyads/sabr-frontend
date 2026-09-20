@@ -56,12 +56,17 @@ export class ClientIntegrationsHub implements OnInit, OnDestroy {
   }
 
   navigate(card: ClientIntegrationCard): void {
+    if (card.slug) {
+      void this.router.navigate(['/client/integrations', card.slug]);
+      return;
+    }
     const slugMap: Record<number, string> = {
       1: 'mercadolivre',
       2: 'tinyerp',
       3: 'shopify',
       4: 'tiktokshop',
       5: 'shopee'
+      ,100: 'mercadopago'
     };
     const slug = slugMap[card.provider] ?? 'mercadolivre';
     void this.router.navigate(['/client/integrations', slug]);
@@ -74,6 +79,7 @@ export class ClientIntegrationsHub implements OnInit, OnDestroy {
       3: 'assets/logos/shopify.svg',
       4: 'assets/logos/tiktokshop.svg',
       5: 'assets/logos/shopee.svg'
+      ,100: 'assets/logos/mercadopago.svg'
     };
     return map[provider] ?? 'assets/logos/mercadolivre.svg';
   }

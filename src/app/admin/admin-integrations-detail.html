@@ -64,7 +64,7 @@
           <td>{{ client.sellerOrCompanyInfo ?? '-' }}</td>
           <td class="actions-cell" (click)="$event.stopPropagation()">
             <button
-              *ngIf="client.isConnected && !confirmReset[client.clientId]"
+              *ngIf="client.isConnected && !confirmReset[client.clientId] && canResetIntegration()"
               nbButton
               status="danger"
               size="tiny"

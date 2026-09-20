@@ -1,0 +1,17 @@
+.mp-page { max-width: 980px; margin: 0 auto; padding: 28px; display: grid; gap: 18px; color: var(--phub-text); }
+.back-link { color: var(--phub-text-muted); text-decoration: none; font-size: .86rem; display: inline-flex; align-items: center; gap: 6px; }
+.mp-hero { display: flex; align-items: flex-start; gap: 18px; padding: 24px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, #062d52, #007eb7 62%, #00a650); box-shadow: 0 18px 40px rgba(0, 88, 140, .22); }
+.mp-mark { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 15px; background: rgba(255,255,255,.16); font-size: 1.6rem; }
+.eyebrow { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .1em; opacity: .78; }
+.mp-hero h1 { margin: 5px 0 5px; font-size: 1.8rem; }
+.mp-hero p { margin: 0; max-width: 700px; line-height: 1.55; opacity: .9; }
+.mp-card { background: var(--phub-surface); border: 1px solid var(--phub-border); border-radius: 16px; padding: 24px; box-shadow: var(--phub-shadow-sm, 0 8px 22px rgba(20,30,60,.05)); }
+.status-row { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.status-row h2 { margin: 7px 0 0; font-size: 1.22rem; }
+.status-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 11px; font-size: .7rem; font-weight: 800; color: #925800; background: #fff2db; }
+.status-pill.ok { color: #08783d; background: #dff8e9; }.status-pill.warn { color: #8a5200; }
+.explanation { color: var(--phub-text-muted); line-height: 1.55; margin: 18px 0; }
+.grant-meta { display: flex; flex-wrap: wrap; gap: 12px 22px; color: var(--phub-text-muted); font-size: .84rem; padding: 14px 0; border-top: 1px solid var(--phub-border); border-bottom: 1px solid var(--phub-border); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }.guardrail-card { display: flex; gap: 16px; align-items: flex-start; color: var(--phub-text-muted); }.guardrail-card > nb-icon { color: var(--phub-primary); font-size: 1.45rem; }.guardrail-card h3 { margin: 0 0 5px; color: var(--phub-text); font-size: .96rem; }.guardrail-card p { margin: 0; line-height: 1.55; }
+.state-error { display: flex; align-items: center; gap: 10px; padding: 18px; border-radius: 12px; color: var(--phub-danger); background: rgba(220, 53, 69, .08); }
+@media (max-width: 650px) { .mp-page { padding: 18px; }.mp-hero { padding: 20px; }.status-row { flex-direction: column; }.actions button { width: 100%; } }

@@ -87,6 +87,21 @@
     box-shadow: var(--phub-shadow-hover);
     border-color: var(--phub-primary);
   }
+
+  &--financial {
+    border-top: 3px solid #00a650;
+    background: linear-gradient(145deg, var(--phub-surface) 68%, rgba(0, 166, 80, 0.07));
+  }
+}
+
+.integration-kind {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--phub-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 // ── Card logo ──────────────────────────────────────────────────────────────────

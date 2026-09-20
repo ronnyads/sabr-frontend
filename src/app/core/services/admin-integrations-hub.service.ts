@@ -5,6 +5,8 @@ import { environment } from '../../../environments/environment';
 
 export interface IntegrationCard {
   provider: number;
+  slug: IntegrationProviderSlug;
+  category: 'Operacional' | 'Financeiro';
   name: string;
   description: string;
   connectedCount: number;
@@ -19,6 +21,7 @@ export interface IntegrationClient {
   connectedAt?: string;
   lastSyncAt?: string;
   sellerOrCompanyInfo?: string;
+  healthStatus?: 'NOT_CONNECTED' | 'PENDING' | 'VERIFIED' | 'REAUTH_REQUIRED';
 }
 
 export interface PagedIntegrationClients {
@@ -26,7 +29,7 @@ export interface PagedIntegrationClients {
   total: number;
 }
 
-export type IntegrationProviderSlug = 'mercadolivre' | 'tinyerp' | 'shopify' | 'tiktokshop' | 'shopee';
+export type IntegrationProviderSlug = 'mercadolivre' | 'mercadopago' | 'tinyerp' | 'shopify' | 'tiktokshop' | 'shopee';
 
 @Injectable({ providedIn: 'root' })
 export class AdminIntegrationsHubService {

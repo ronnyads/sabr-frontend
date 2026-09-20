@@ -5,12 +5,15 @@ import { environment } from '../../../environments/environment';
 
 export interface ClientIntegrationCard {
   provider: number;
+  slug: string;
+  category: 'Operacional' | 'Financeiro';
   name: string;
   description: string;
   isConnected: boolean;
   connectedAt?: string;
   lastSyncAt?: string;
   details?: string;
+  healthStatus?: 'NOT_CONNECTED' | 'PENDING' | 'VERIFIED' | 'REAUTH_REQUIRED';
 }
 
 @Injectable({ providedIn: 'root' })

@@ -1,7 +1,7 @@
 <div class="integrations-hub">
   <div class="page-header">
     <h1>Integrações</h1>
-    <p class="subtitle">Conecte e gerencie suas integrações de marketplace</p>
+    <p class="subtitle">Conecte seus canais de venda e autorizações financeiras</p>
   </div>
 
   <!-- Loading state -->
@@ -19,11 +19,12 @@
 
   <!-- Cards grid -->
   <div class="integrations-grid" *ngIf="!loading && !error">
-    <div class="integration-card" *ngFor="let card of cards">
+    <div class="integration-card" [class.integration-card--financial]="card.category === 'Financeiro'" *ngFor="let card of cards">
       <div class="card-logo">
         <img [src]="getLogoSrc(card.provider)" [alt]="card.name" class="provider-logo-img" />
       </div>
       <div class="card-body">
+        <span class="integration-kind">{{ card.category }}</span>
         <h3 class="card-name">{{ card.name }}</h3>
         <p class="card-desc">{{ card.description }}</p>
         <p class="card-details" *ngIf="card.isConnected && card.details">{{ card.details }}</p>
@@ -31,7 +32,7 @@
       <div class="card-footer">
         <span class="installed-badge" *ngIf="card.isConnected">
           <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
-          Instalado
+          {{ card.healthStatus === 'VERIFIED' ? 'Verificado' : card.healthStatus === 'REAUTH_REQUIRED' ? 'Ação necessária' : 'Conectado' }}
         </span>
         <button
           nbButton

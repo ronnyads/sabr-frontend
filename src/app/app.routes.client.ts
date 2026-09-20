@@ -65,6 +65,11 @@ export const clientRoutes: Routes = [
         canActivate: [clientOnboardingGuard]
       },
       {
+        path: 'integrations/mercadopago',
+        loadComponent: () => import('./client/client-mercado-pago-integration').then((m) => m.ClientMercadoPagoIntegration),
+        canActivate: [clientOnboardingGuard]
+      },
+      {
         path: 'integrations/tinyerp',
         loadComponent: () => import('./client/client-tiny-integration').then((m) => m.ClientTinyIntegration),
         canActivate: [clientOnboardingGuard]

@@ -1,0 +1,48 @@
+<div class="mp-page">
+  <a routerLink="/client/integrations" class="back-link"><nb-icon icon="arrow-back-outline"></nb-icon> Integrações</a>
+  <header class="mp-hero">
+    <div class="mp-mark"><nb-icon icon="credit-card-outline"></nb-icon></div>
+    <div>
+      <span class="eyebrow">CONCILIAÇÃO FINANCEIRA</span>
+      <h1>Mercado Pago</h1>
+      <p>Conecte a conta financeira separadamente do Mercado Livre para confirmar pagamentos, tarifas, fretes, reembolsos e ajustes.</p>
+    </div>
+  </header>
+
+  <div class="state-error" *ngIf="error">
+    <nb-icon icon="alert-circle-outline"></nb-icon><span>{{ error }}</span>
+    <button nbButton size="small" status="primary" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <section class="mp-card" *ngIf="!loading && !error">
+    <div class="status-row">
+      <div>
+        <span class="eyebrow">STATUS DA AUTORIZAÇÃO</span>
+        <h2>{{ status?.connected ? (status?.billingVerified ? 'Billing verificado' : 'Conta autorizada, Billing pendente') : 'Mercado Pago ainda não conectado' }}</h2>
+      </div>
+      <span class="status-pill" [class.ok]="status?.billingVerified" [class.warn]="status?.connected && !status?.billingVerified">
+        <nb-icon [icon]="status?.billingVerified ? 'checkmark-circle-2-outline' : 'clock-outline'"></nb-icon>
+        {{ status?.billingVerified ? 'CONFIRMADO' : status?.connected ? 'PENDENTE' : 'NÃO CONECTADO' }}
+      </span>
+    </div>
+    <p class="explanation">Sem Billing confirmado, o sistema continua operando normalmente, mas a rentabilidade permanece como estimada. Nenhuma ausência de autorização é tratada como valor zero.</p>
+    <div class="grant-meta" *ngIf="connectedGrant as grant">
+      <span><strong>Seller:</strong> {{ grant.sellerId }}</span>
+      <span><strong>Expira:</strong> {{ grant.tokenExpiresAt | date:'dd/MM/yyyy HH:mm' }}</span>
+      <span *ngIf="grant.lastCapabilityVerifiedAt"><strong>Última verificação:</strong> {{ grant.lastCapabilityVerifiedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+    </div>
+    <div class="actions">
+      <button nbButton status="primary" (click)="connect()" [disabled]="connecting">
+        <nb-icon icon="link-2-outline"></nb-icon>{{ connecting ? 'Abrindo autorização...' : status?.connected ? 'Renovar autorização' : 'Conectar Mercado Pago' }}
+      </button>
+      <button nbButton outline status="info" (click)="probe()" [disabled]="probing || !status?.connected">
+        <nb-icon icon="refresh-outline"></nb-icon>{{ probing ? 'Verificando...' : 'Verificar acesso ao Billing' }}
+      </button>
+    </div>
+  </section>
+
+  <section class="mp-card guardrail-card">
+    <nb-icon icon="shield-outline"></nb-icon>
+    <div><h3>Como os dados são usados</h3><p>Mercado Livre fornece a operação. Mercado Pago confirma os fatos financeiros. As duas camadas ficam separadas e cada valor mostra sua origem, maturidade e última confirmação.</p></div>
+  </section>
+</div>

@@ -1,7 +1,7 @@
 <div class="integrations-hub">
   <div class="page-header">
     <h1>Integrações</h1>
-    <p class="subtitle">Gerencie as integrações de marketplace dos seus clientes</p>
+    <p class="subtitle">Gerencie canais operacionais e autorizações financeiras dos seus clientes</p>
   </div>
 
   <!-- Loading -->
@@ -19,9 +19,12 @@
 
   <!-- Cards grid -->
   <div class="integrations-grid" *ngIf="!loading && !error">
-    <div class="integration-card" *ngFor="let card of cards" (click)="navigate(card)">
-      <div class="card-logo" [class.logo-ml]="card.provider === 1" [class.logo-tiny]="card.provider === 2">
-        <nb-icon [icon]="card.provider === 1 ? 'shopping-cart-outline' : 'grid-outline'"></nb-icon>
+    <div class="integration-card" [class.integration-card--financial]="card.category === 'Financeiro'" *ngFor="let card of cards" (click)="navigate(card)">
+      <div class="card-topline">
+        <div class="card-logo" [class.logo-ml]="card.provider === 1" [class.logo-mp]="card.provider === 100" [class.logo-tiny]="card.provider === 2">
+          <nb-icon [icon]="card.provider === 1 ? 'shopping-cart-outline' : card.provider === 100 ? 'credit-card-outline' : 'grid-outline'"></nb-icon>
+        </div>
+        <span class="category-badge" [class.category-badge--financial]="card.category === 'Financeiro'">{{ card.category }}</span>
       </div>
       <div class="card-body">
         <h3 class="card-name">{{ card.name }}</h3>
@@ -30,7 +33,7 @@
       <div class="card-footer">
         <span class="connected-badge">
           <nb-icon icon="people-outline"></nb-icon>
-          {{ card.connectedCount }} cliente{{ card.connectedCount !== 1 ? 's' : '' }} conectado{{ card.connectedCount !== 1 ? 's' : '' }}
+          {{ card.connectedCount }} cliente{{ card.connectedCount !== 1 ? 's' : '' }} autorizado{{ card.connectedCount !== 1 ? 's' : '' }}
         </span>
         <button nbButton status="primary" size="small" (click)="$event.stopPropagation(); navigate(card)">
           Gerenciar
