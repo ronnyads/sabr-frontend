@@ -557,11 +557,6 @@ export class AdminProducts implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.form.controls.isActive.value && this.selectedCatalogIds.length === 0) {
-      this.formError = 'Produto ativo precisa de pelo menos um catalogo vinculado.';
-      return;
-    }
-
     const raw = this.form.getRawValue();
     const sku = normalizeSkuUppercase(raw.sku);
     if (!this.editingSku && (!/^[A-Z0-9][A-Z0-9\-_/]{0,63}$/.test(sku) || this.isLegacyMlSku(sku))) {
@@ -796,7 +791,7 @@ export class AdminProducts implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          if (!intendedActive || catalogIds.length === 0) {
+          if (!intendedActive) {
             this.finishSave('Produto salvo com sucesso.');
             return;
           }

@@ -384,12 +384,12 @@
         </nb-tab>
       </nb-tabset>
 
-      <p class="error" *ngIf="activeWithoutCatalogs">Produto ativo requer pelo menos um catalogo vinculado.</p>
+      <p *ngIf="activeWithoutCatalogs" role="note">Sem catálogo específico, o produto ativo entra automaticamente no Catálogo Público.</p>
       <p class="error" *ngIf="formError">{{ formError }}</p>
 
       <div class="editor-actions">
         <button nbButton status="basic" size="small" [disabled]="saving" (click)="cancelForm()">Cancelar</button>
-        <button nbButton status="primary" size="small" [disabled]="saving || activeWithoutCatalogs" (click)="save()">
+        <button nbButton status="primary" size="small" [disabled]="saving" (click)="save()">
           {{ editingSku ? 'Salvar' : 'Criar' }}
         </button>
       </div>
