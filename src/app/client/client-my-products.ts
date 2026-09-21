@@ -267,7 +267,9 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     this.catalogService.listCatalogVariants(0, 200)
       .pipe(finalize(() => (this.variantsLoading = false)), takeUntil(this.destroy$))
       .subscribe({
-        next: (result) => { this.allowedVariants = result.items ?? []; },
+        next: (result) => {
+          this.allowedVariants = (result.items ?? []).filter(item => this.isInternalCatalogSku(item.variantSku));
+        },
         error: () => {
           this.toastr.warning('Não foi possível carregar os produtos liberados do catálogo.', 'Catálogo');
         }
@@ -316,6 +318,11 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   catalogVariantLabel(variant: CatalogVariant): string {
     const name = [variant.productName, variant.variantName].filter(Boolean).join(' / ');
     return variant.variantSku + ' — ' + name;
+  }
+
+  private isInternalCatalogSku(sku: string | null | undefined): boolean {
+    const normalized = (sku ?? '').trim().toUpperCase();
+    return !/^MLB\d+$/.test(normalized);
   }
 
   retry(): void {

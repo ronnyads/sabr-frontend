@@ -92,6 +92,7 @@
         <div class="catalog-target">
           <span class="source-badge target">PRODUTO DO CATÁLOGO</span>
           <label [for]="'catalog-target-' + item.mappingKey">Selecione o SKU mestre correspondente</label>
+          <small class="catalog-target-help">Somente SKUs internos criados pelo administrador aparecem aqui. Códigos MLB identificam anúncios externos.</small>
           <select
             class="catalog-target-select"
             [id]="'catalog-target-' + item.mappingKey"
