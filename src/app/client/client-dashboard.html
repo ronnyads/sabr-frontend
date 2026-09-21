@@ -123,18 +123,18 @@
       <div class="financial-cards">
         <div><span>Faturamento bruto</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>vendas pagas, antes das deduções</small></div>
         <div><span>Líquido econômico estimado</span><strong>{{ formatCents(finance.estimatedEconomicNetCents) }}</strong><small>taxas, fretes e ajustes operacionais</small></div>
-        <div class="profit-card" [class.negative-profit]="finance.operationalProfitCents < 0"><span>{{ finance.operationalProfitCents < 0 ? 'Prejuízo operacional estimado' : (finance.coverage.operationalPercent < 100 ? 'Resultado estimado parcial' : 'Lucro operacional estimado') }}</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>após o Preço Catálogo; {{ finance.coverage.operationalPercent | number:'1.0-0' }}% dos pedidos com componentes operacionais resolvidos</small></div>
+        <div class="profit-card" [class.negative-profit]="finance.coverage.operationalPercent === 100 && finance.operationalProfitCents < 0"><span>{{ finance.coverage.operationalPercent < 100 ? 'Resultado ainda não calculável' : (finance.operationalProfitCents < 0 ? 'Prejuízo operacional estimado' : 'Lucro operacional estimado') }}</span><strong>{{ finance.coverage.operationalPercent < 100 ? 'Em apuração' : formatCents(finance.operationalProfitCents) }}</strong><small>{{ finance.coverage.operationalPercent < 100 ? 'Faltam SKU, custo, frete ou alocação em parte dos pedidos; não é possível concluir lucro ou prejuízo.' : 'após o Preço Catálogo; componentes operacionais resolvidos' }}</small></div>
         <div><span>{{ finance.maturity === 'CONFIRMADO' ? 'Valor líquido conferido pelo Mercado Pago' : 'Valores parcialmente conferidos pelo Mercado Pago' }}</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.reconciledConfirmedValueCents) : 'Aguardando conferência do Mercado Pago' }}</strong><small>{{ finance.lastBillingSyncAt ? (finance.maturity === 'CONFIRMADO' ? 'Valor final externo confirmado pelo provedor' : 'Somente os componentes já confirmados; ainda não é o valor final') : 'Sem confirmação externa; valor desconhecido, não zero' }}</small></div>
       </div>
       <div class="financial-detail">
-        <div class="profit-waterfall" aria-label="Composição do lucro operacional estimado">
+        <div class="profit-waterfall" [attr.aria-label]="finance.coverage.operationalPercent < 100 ? 'Componentes financeiros parciais; resultado em apuração' : 'Composição do lucro operacional estimado'">
           <span><small>Faturamento bruto</small><b>{{ formatCents(finance.grossRevenueCents) }}</b></span>
           <i aria-hidden="true">−</i>
           <span><small>Deduções do canal</small><b>{{ formatCents(finance.grossRevenueCents - finance.estimatedEconomicNetCents) }}</b></span>
           <i aria-hidden="true">−</i>
           <span><small>Custo dos produtos</small><b>{{ formatCents(-finance.productCostCents) }}</b></span>
           <i aria-hidden="true">=</i>
-          <span class="waterfall-result" [class.negative-result]="finance.operationalProfitCents < 0"><small>{{ finance.operationalProfitCents < 0 ? 'Prejuízo estimado' : 'Lucro estimado' }}</small><b>{{ formatCents(finance.operationalProfitCents) }}</b></span>
+          <span class="waterfall-result" [class.negative-result]="finance.coverage.operationalPercent === 100 && finance.operationalProfitCents < 0"><small>{{ finance.coverage.operationalPercent < 100 ? 'Resultado em apuração' : (finance.operationalProfitCents < 0 ? 'Prejuízo estimado' : 'Lucro estimado') }}</small><b>{{ finance.coverage.operationalPercent < 100 ? '—' : formatCents(finance.operationalProfitCents) }}</b></span>
         </div>
         <details class="financial-explanation">
           <summary>Entenda este resultado</summary>
@@ -146,7 +146,7 @@
             <span>Ajustes, descontos e compensações <b>{{ formatCents(finance.adjustmentsCents) }}</b></span>
             <span>Líquido do marketplace <b>{{ formatCents(finance.marketplaceNetAmountCents) }}</b></span>
             <span>Custo dos produtos <b>− {{ formatCents(-finance.productCostCents) }} · {{ finance.productCostMaturity === 'CONFIRMADO' ? 'realizado' : finance.productCostMaturity === 'INCOMPLETO' ? 'incompleto' : 'estimado' }}</b></span>
-            <span>Margem operacional <b>{{ finance.operationalMarginPct == null ? 'Não calculável' : (finance.operationalMarginPct | number:'1.0-2') + '%' }}</b></span>
+            <span>Margem operacional <b>{{ finance.coverage.operationalPercent < 100 || finance.operationalMarginPct == null ? 'Não calculável' : (finance.operationalMarginPct | number:'1.0-2') + '%' }}</b></span>
           </div>
           <p *ngIf="finance.coverage.operationalPercent < 100">Resultado parcial: SKU, custo, frete ou alocação ainda podem faltar. Valores pendentes não são tratados como zero.</p>
           <button type="button" class="finance-order-action" (click)="loadFinanceOrders()" [disabled]="financeOrdersLoading">{{ financeOrdersLoading ? 'Consultando pedidos…' : 'Ver pedidos que compõem o resultado' }}</button>
@@ -154,7 +154,7 @@
           <div class="finance-order-list" *ngIf="financeOrders.length">
             <button type="button" *ngFor="let order of financeOrders" (click)="inspectFinanceOrder(order.orderId)">
               <span>Pedido {{ order.externalOrderId }} · seller {{ order.sellerId }} <small>{{ order.maturity }}</small></span>
-              <b>{{ formatCents(order.operationalProfitCents) }}</b>
+              <b>{{ order.maturity === 'INCOMPLETO' ? 'Em apuração' : formatCents(order.operationalProfitCents) }}</b>
             </button>
           </div>
           <div class="finance-order-entries" *ngIf="financeOrderDetail as detail">

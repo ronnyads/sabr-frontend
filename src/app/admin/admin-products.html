@@ -1,24 +1,25 @@
 <nb-card class="admin-page-card">
   <nb-card-header class="page-header">
     <div>
+      <span class="page-eyebrow">CATÁLOGO INTERNO</span>
       <h3>Produtos</h3>
-      <p>SKU master global com dados para marketplace, ANATEL, imagens e vinculos de catalogo.</p>
+      <p>Organize seus SKUs internos, variações, preços e anúncios vinculados em um só lugar.</p>
     </div>
-    <button nbButton status="primary" size="small" (click)="openCreate()">Novo Produto</button>
+    <button nbButton status="primary" size="small" (click)="openCreate()">+ Novo produto interno</button>
   </nb-card-header>
 
   <nb-card-body>
-    <div class="toolbar">
-      <input nbInput fullWidth placeholder="Buscar por SKU, nome, marca ou categoria" [formControl]="searchControl" />
-      <select nbInput [formControl]="productScopeControl" aria-label="Tipo de registro">
+    <div class="toolbar" role="search" aria-label="Filtrar produtos">
+      <div class="toolbar-search"><label for="admin-product-search">Buscar produto</label><input id="admin-product-search" nbInput fullWidth placeholder="SKU, nome, marca ou categoria" [formControl]="searchControl" /></div>
+      <div class="toolbar-filter"><label for="admin-product-scope">Tipo de registro</label><select id="admin-product-scope" nbInput [formControl]="productScopeControl" aria-label="Tipo de registro">
         <option value="catalog">Produtos do catálogo</option>
         <option value="legacy">Anúncios ML legados</option>
-      </select>
-      <select nbInput [formControl]="activeFilterControl" aria-label="Filtro de status">
+      </select></div>
+      <div class="toolbar-filter"><label for="admin-product-status">Status</label><select id="admin-product-status" nbInput [formControl]="activeFilterControl" aria-label="Filtro de status">
         <option value="all">Todos</option>
         <option value="active">Ativos</option>
         <option value="inactive">Inativos</option>
-      </select>
+      </select></div>
     </div>
 
     <div class="sku-guidance" role="note">
@@ -74,9 +75,14 @@
       <ng-container *ngIf="linkFlowStep === 'success'"><p role="status">{{ linkResult?.message }}</p><button nbButton status="primary" size="small" (click)="closeLinkFlow()">Concluir</button></ng-container>
     </section>
 
-    <div class="editor" *ngIf="formOpen">
+    <div class="editor" *ngIf="formOpen" aria-label="Cadastro de produto interno">
+      <div class="editor-heading">
+        <div><span class="section-eyebrow">SKU INTERNO</span><h4>{{ editingSku ? 'Editar produto' : 'Cadastrar produto' }}</h4><p>O SKU é seu identificador próprio. O código do anúncio do marketplace será vinculado depois.</p></div>
+        <span class="editor-sku" *ngIf="editingSku">{{ editingSku }}</span>
+      </div>
       <nb-tabset fullWidth>
         <nb-tab tabTitle="Basico">
+          <div class="tab-intro"><h5>Identificação do produto</h5><p>Dados que identificam o produto no catálogo interno.</p></div>
           <form [formGroup]="form" class="editor-grid">
             <div class="field">
               <label>SKU</label>
@@ -123,6 +129,7 @@
         </nb-tab>
 
         <nb-tab tabTitle="Precos">
+          <div class="tab-intro"><h5>Valores internos</h5><p>O preço de catálogo é o custo comercial do seller; não é o preço do anúncio no marketplace.</p></div>
           <form [formGroup]="form" class="editor-grid">
             <div class="field">
               <label>Custo (R$)</label>
@@ -137,6 +144,7 @@
         </nb-tab>
 
         <nb-tab tabTitle="Dimensoes">
+          <div class="tab-intro"><h5>Peso e dimensões</h5><p>Informe as medidas reais usadas no cadastro e no envio.</p></div>
           <form [formGroup]="form" class="editor-grid">
             <div class="field">
               <label>Largura (cm)</label>
@@ -158,6 +166,7 @@
         </nb-tab>
 
         <nb-tab tabTitle="Extra">
+          <div class="tab-intro"><h5>Identificação e homologação</h5><p>EAN e ANATEL devem refletir dados verificados do produto.</p></div>
           <form [formGroup]="form" class="editor-grid">
             <div class="field">
               <label>EAN/GTIN</label>
@@ -187,6 +196,7 @@
         </nb-tab>
 
         <nb-tab tabTitle="Imagens">
+          <div class="tab-intro"><h5>Imagens do produto</h5><p>Escolha uma imagem principal que represente corretamente esta SKU.</p></div>
           <div class="images-panel">
             <p class="helper" *ngIf="!canUploadImages">Salve o produto antes de enviar imagens.</p>
             <div class="upload-row">
@@ -218,6 +228,7 @@
         </nb-tab>
 
         <nb-tab tabTitle="Variacoes">
+          <div class="tab-intro"><h5>Variações e estoque</h5><p>Cada variação tem SKU e saldo próprios. Anúncios devem apontar para a variação correspondente.</p></div>
           <div class="variants-panel">
             <p class="helper" *ngIf="!canManageVariants">Salve o produto antes de gerenciar variacoes.</p>
 
@@ -367,6 +378,7 @@
         </nb-tab>
 
         <nb-tab tabTitle="Catalogos">
+          <div class="tab-intro"><h5>Visibilidade no catálogo</h5><p>Selecione os catálogos em que este produto estará disponível.</p></div>
           <div class="catalog-panel">
             <p class="helper" *ngIf="catalogsLoading">Carregando catalogos...</p>
 
@@ -405,13 +417,14 @@
     ></app-ui-state>
 
     <div class="table-wrapper" *ngIf="!loading && !errorMessage && products.length > 0">
+      <div class="list-heading"><div><span class="section-eyebrow">VISÃO GERAL</span><h4>{{ productScopeControl.value === 'legacy' ? 'Anúncios legados' : 'Produtos internos' }}</h4></div><span>{{ total }} registro(s)</span></div>
       <table class="data-table">
         <thead>
           <tr>
             <th>SKU</th>
             <th>Nome</th>
             <th>Marca</th>
-            <th>Catalogo</th>
+            <th>Preço de catálogo</th>
             <th>Status do cadastro</th>
             <th>Vínculo com anúncios</th>
             <th>Atualizado</th>
@@ -420,8 +433,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let product of products; trackBy: productTrackBy">
-            <td>{{ product.sku }} <span class="badge badge-legacy" *ngIf="isLegacyMlSku(product.sku)">{{ migratedLegacyLinks(product).length ? 'ML legado · vínculo registrado' : 'ML legado · revisar vínculo' }}</span></td>
-            <td>{{ product.name }}</td>
+            <td><strong class="sku-code">{{ product.sku }}</strong><span class="badge badge-legacy" *ngIf="isLegacyMlSku(product.sku)">{{ migratedLegacyLinks(product).length ? 'ML legado · vínculo registrado' : 'ML legado · revisar vínculo' }}</span></td>
+            <td class="product-name">{{ product.name }}</td>
             <td>{{ product.brand }}</td>
             <td>{{ formatMoney(product.catalogPriceCents) }}</td>
             <td>
