@@ -152,7 +152,15 @@ export class ClientCatalog implements OnInit, OnDestroy {
       return null;
     }
 
-    if (/^(?:https?:)?\/\//i.test(raw) || raw.startsWith('data:') || raw.startsWith('blob:')) {
+    if (/^http:\/\/(?:[^/]+\.)?mlstatic\.com\//i.test(raw)) {
+      return `https://${raw.slice('http://'.length)}`;
+    }
+
+    if (raw.startsWith('//')) {
+      return `https:${raw}`;
+    }
+
+    if (/^https?:\/\//i.test(raw) || raw.startsWith('data:') || raw.startsWith('blob:')) {
       return raw;
     }
 
