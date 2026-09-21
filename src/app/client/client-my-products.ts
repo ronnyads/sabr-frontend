@@ -322,7 +322,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
 
   private isInternalCatalogSku(sku: string | null | undefined): boolean {
     const normalized = (sku ?? '').trim().toUpperCase();
-    return !/^MLB\d+$/.test(normalized);
+    return !/^MLBU?\d+$/.test(normalized);
   }
 
   retry(): void {

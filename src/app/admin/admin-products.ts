@@ -225,7 +225,7 @@ export class AdminProducts implements OnInit, OnDestroy {
   }
 
   isLegacyMlSku(sku: string): boolean {
-    return /^MLB\d+$/i.test(sku);
+    return /^MLBU?\d+$/i.test(sku);
   }
 
   legacyListingLinks(product: AdminProductResult): AdminProductListingLinkResult[] {
