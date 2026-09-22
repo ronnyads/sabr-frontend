@@ -172,6 +172,66 @@
   min-width: 0;
 }
 
+.external-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--phub-border);
+  color: var(--phub-text-muted);
+  font-size: .76rem;
+}
+
+.external-choice-button,
+.external-cancel,
+.external-close {
+  border: 0;
+  color: var(--phub-primary);
+  background: transparent;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.external-choice-button:hover { text-decoration: underline; }
+.external-choice-button:focus-visible,
+.external-cancel:focus-visible,
+.external-close:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--phub-primary) 18%, transparent);
+  outline-offset: 3px;
+}
+
+.external-form {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--phub-info) 38%, var(--phub-border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--phub-info) 7%, var(--phub-surface));
+
+  > p { margin: 0 0 4px; color: var(--phub-text-muted); font-size: .76rem; line-height: 1.45; }
+  > label { color: var(--phub-text); font-size: .75rem; font-weight: 750; }
+  label small { color: var(--phub-text-muted); font-weight: 500; }
+}
+
+.external-form-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+
+  > div { display: grid; gap: 4px; }
+  strong { color: var(--phub-text); font-size: .86rem; }
+}
+
+.source-badge.external { color: var(--phub-info); }
+.external-close { padding: 0 3px; color: var(--phub-text-muted); font-size: 1.25rem; line-height: 1; }
+.money-input { position: relative; }
+.money-input > span { position: absolute; z-index: 1; left: 12px; top: 50%; transform: translateY(-50%); color: var(--phub-text-muted); font-size: .8rem; font-weight: 700; }
+.money-input input { padding-left: 38px !important; }
+.external-form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 4px; }
+
 .catalog-target-help {
   display: block;
   margin: -0.15rem 0 0.5rem;

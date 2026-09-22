@@ -303,14 +303,30 @@
         </label>
       </div>
 
+      <div class="external-summary" *ngIf="data.externalSupplier?.products">
+        <div><span>Produtos externos</span><strong>{{ data.externalSupplier?.products }}</strong></div>
+        <div><span>Com custo informado</span><strong>{{ data.externalSupplier?.productsWithCost }}</strong></div>
+        <div><span>Custo pendente</span><strong>{{ data.externalSupplier?.productsPendingCost }}</strong></div>
+        <p>Itens sem custo externo ficam fora dos totais de vendas e lucro até o custo ser informado.</p>
+      </div>
+
       <div class="sku-table" *ngIf="filteredProducts.length; else noSkus">
         <div class="sku-table-head"><span>Produto / SKU</span><span>Pedidos</span><span>Unidades</span><span>Vendas</span></div>
         <div class="sku-row" *ngFor="let sku of pagedProducts; let position = index">
           <div class="sku-identity">
             <b>{{ ((productPage - 1) * productPageSize) + position + 1 | number:'2.0-0' }}</b>
             <div><strong>{{ sku.productName || 'Produto do canal' }}</strong><span>{{ sku.sku }}</span></div>
-            <em *ngIf="sku.isMapped">Mapeado</em>
-            <button *ngIf="!sku.isMapped" type="button" class="sku-review-link" (click)="reviewSku(sku)" [attr.aria-label]="'Revisar SKU de ' + (sku.productName || sku.channelItemId)">{{ sku.mappingPriority === 'OVERDUE' ? 'Vencido · vincular' : sku.mappingPriority === 'DUE_TODAY' ? 'Enviar hoje · vincular' : 'Revisar SKU' }} →</button>
+            <em *ngIf="sku.isMapped && !sku.isExternalSupplier">Mapeado</em>
+            <button
+              *ngIf="sku.isExternalSupplier"
+              type="button"
+              class="external-badge"
+              [class.cost-pending]="!sku.hasExternalCost"
+              (click)="manageExternalProduct(sku)"
+              [attr.aria-label]="'Gerenciar produto externo ' + (sku.productName || sku.channelItemId)">
+              {{ !sku.hasExternalCost ? 'Externo · custo pendente' : 'Externo · custo informado' }}
+            </button>
+            <button *ngIf="!sku.isMapped && !sku.isExternalSupplier" type="button" class="sku-review-link" (click)="reviewSku(sku)" [attr.aria-label]="'Revisar SKU de ' + (sku.productName || sku.channelItemId)">{{ sku.mappingPriority === 'OVERDUE' ? 'Vencido · vincular' : sku.mappingPriority === 'DUE_TODAY' ? 'Enviar hoje · vincular' : 'Revisar SKU' }} →</button>
           </div>
           <span data-label="Pedidos">{{ sku.orders }}</span>
           <strong data-label="Unidades">{{ sku.units }}</strong>
@@ -327,5 +343,36 @@
       </footer>
       <ng-template #noSkus><div class="compact-empty">{{ productSearch ? 'Nenhum produto corresponde à busca.' : 'Os produtos aparecerão assim que houver vendas pagas no período.' }}</div></ng-template>
     </article>
+
+    <div class="external-overlay" *ngIf="externalProduct as external" (click)="closeExternalProduct()">
+      <section class="external-dialog" role="dialog" aria-modal="true" aria-labelledby="external-dialog-title" (click)="$event.stopPropagation()">
+        <header>
+          <div>
+            <span class="panel-kicker">FORNECEDOR EXTERNO</span>
+            <h2 id="external-dialog-title">Custo e origem do produto</h2>
+            <p>{{ external.productName || external.channelItemId }}</p>
+          </div>
+          <button type="button" class="dialog-close" (click)="closeExternalProduct()" aria-label="Fechar">×</button>
+        </header>
+        <div class="external-history-note">
+          <strong>O histórico permanece preservado.</strong>
+          <span>O novo custo vale para vendas a partir de agora e poderá gerar lucro ou prejuízo nas próximas vendas.</span>
+        </div>
+        <label for="dashboard-external-supplier">Fornecedor</label>
+        <input id="dashboard-external-supplier" name="dashboardExternalSupplier" [(ngModel)]="externalSupplierName" maxlength="160" required autocomplete="organization" />
+        <label for="dashboard-external-cost">Custo unitário</label>
+        <div class="dialog-money-input"><span>R$</span><input id="dashboard-external-cost" name="dashboardExternalCost" [(ngModel)]="externalUnitCost" type="number" min="0" step="0.01" inputmode="decimal" required /></div>
+        <label for="dashboard-external-reason">Motivo da alteração <small>(opcional)</small></label>
+        <input id="dashboard-external-reason" name="dashboardExternalReason" [(ngModel)]="externalReason" maxlength="300" placeholder="Ex.: novo preço negociado com o fornecedor" />
+        <p class="dialog-error" *ngIf="externalError" role="alert">{{ externalError }}</p>
+        <footer>
+          <button type="button" class="require-mapping" (click)="requireInternalMapping()" [disabled]="externalSaving">Não é externo · exigir vínculo</button>
+          <div>
+            <button type="button" class="dialog-cancel" (click)="closeExternalProduct()" [disabled]="externalSaving">Cancelar</button>
+            <button type="button" class="dialog-save" (click)="saveExternalProduct()" [disabled]="!externalProductIsValid() || externalSaving">{{ externalSaving ? 'Salvando…' : 'Salvar novo custo' }}</button>
+          </div>
+        </footer>
+      </section>
+    </div>
   </ng-container>
 </section>

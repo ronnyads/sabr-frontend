@@ -117,6 +117,73 @@
             (click)="linkUnmappedProduct(item)">
             {{ unmappedSaving[item.mappingKey] ? 'Vinculando e liberando pedidos…' : 'Confirmar vínculo e liberar pedidos' }}
           </button>
+
+          <div class="external-choice" *ngIf="externalDraftKey !== item.mappingKey">
+            <span>Este produto não pertence ao catálogo PrometheusHUB?</span>
+            <button type="button" class="external-choice-button" (click)="openExternalClassification(item)">
+              Informar fornecedor externo
+            </button>
+          </div>
+
+          <form
+            *ngIf="externalDraftKey === item.mappingKey"
+            class="external-form"
+            (ngSubmit)="saveExternalClassification(item)"
+            aria-label="Classificar produto de fornecedor externo">
+            <div class="external-form-heading">
+              <div>
+                <span class="source-badge external">FORNECEDOR EXTERNO</span>
+                <strong>Identifique a origem e o custo deste produto</strong>
+              </div>
+              <button type="button" class="external-close" (click)="closeExternalClassification()" aria-label="Cancelar classificação externa">×</button>
+            </div>
+            <p>
+              Este item não será vinculado ao catálogo PrometheusHUB. O custo informado entra no cálculo de lucro das novas vendas;
+              alterações futuras preservam o histórico anterior.
+            </p>
+            <label [for]="'external-supplier-' + item.mappingKey">Fornecedor</label>
+            <input
+              nbInput
+              fullWidth
+              [id]="'external-supplier-' + item.mappingKey"
+              name="externalSupplier"
+              [(ngModel)]="externalSupplierName"
+              maxlength="160"
+              required
+              autocomplete="organization"
+              placeholder="Nome do fornecedor" />
+            <label [for]="'external-cost-' + item.mappingKey">Custo unitário</label>
+            <div class="money-input">
+              <span>R$</span>
+              <input
+                nbInput
+                fullWidth
+                [id]="'external-cost-' + item.mappingKey"
+                name="externalUnitCost"
+                [(ngModel)]="externalUnitCost"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                required
+                placeholder="0,00" />
+            </div>
+            <label [for]="'external-reason-' + item.mappingKey">Observação <small>(opcional)</small></label>
+            <input
+              nbInput
+              fullWidth
+              [id]="'external-reason-' + item.mappingKey"
+              name="externalReason"
+              [(ngModel)]="externalReason"
+              maxlength="300"
+              placeholder="Ex.: comprado diretamente do fornecedor" />
+            <div class="external-form-actions">
+              <button type="button" class="external-cancel" (click)="closeExternalClassification()" [disabled]="externalSaving">Cancelar</button>
+              <button nbButton status="primary" type="submit" [disabled]="!externalDraftIsValid() || externalSaving">
+                {{ externalSaving ? 'Salvando…' : 'Confirmar produto externo' }}
+              </button>
+            </div>
+          </form>
         </div>
       </article>
     </div>

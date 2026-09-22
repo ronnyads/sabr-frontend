@@ -20,6 +20,15 @@ export interface ClientSalesSkuResult {
   earliestDeadlineAt?: string | null;
   mappingPriority: string;
   mappingReason: string;
+  isExternalSupplier?: boolean;
+  hasExternalCost?: boolean;
+  externalSupplierName?: string | null;
+  externalUnitCostCents?: number | null;
+  externalCurrencyId?: string | null;
+}
+export interface ExternalSupplierSalesSummary {
+  products: number; orders: number; units: number; grossRevenue: number;
+  productsWithCost: number; productsPendingCost: number;
 }
 export interface ClientSalesStatusResult { status: string; orders: number; percentage: number; }
 export interface ClientShippingTodaySkuResult {
@@ -36,6 +45,9 @@ export interface ClientShippingTodayResult {
   pendingPaymentOrders: number;
   totalUnits: number;
   unmappedUnits: number;
+  externalProductsCount?: number;
+  externalUnits?: number;
+  externalGrossRevenue?: number;
   products: ClientShippingTodaySkuResult[];
 }
 
@@ -62,6 +74,7 @@ export interface ClientSalesDashboardResult {
   topSkus: ClientSalesSkuResult[];
   statuses: ClientSalesStatusResult[];
   shippingToday: ClientShippingTodayResult;
+  externalSupplier?: ExternalSupplierSalesSummary;
 }
 
 export interface FinancialCoverageResult {

@@ -17,6 +17,7 @@ import {
 } from '../core/services/client-sales-dashboard.service';
 import { ClientProfileService } from '../core/services/client-profile.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
+import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
 
 @Component({
   selector: 'app-client-dashboard',
@@ -42,12 +43,19 @@ export class ClientDashboard implements OnInit {
   financeOrdersLoading = false;
   financeOrdersError = '';
   financeOrderDetail?: ClientProfitabilityOrderDetail;
+  externalProduct?: ClientSalesSkuResult;
+  externalSupplierName = '';
+  externalUnitCost: number | null = null;
+  externalReason = '';
+  externalSaving = false;
+  externalError = '';
 
   constructor(
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly salesDashboard: ClientSalesDashboardService,
-    private readonly profileService: ClientProfileService
+    private readonly profileService: ClientProfileService,
+    private readonly marketplaceMappings: MarketplaceMappingsService
   ) {}
 
   ngOnInit(): void {
@@ -241,6 +249,71 @@ export class ClientDashboard implements OnInit {
   reviewSku(sku: ClientSalesSkuResult): void {
     void this.router.navigate(['/client/my-products'], {
       queryParams: { focusSeller: sku.sellerId, focusItem: sku.channelItemId, focusVariation: sku.channelVariationId || null }
+    });
+  }
+
+  manageExternalProduct(sku: ClientSalesSkuResult): void {
+    this.externalProduct = sku;
+    this.externalSupplierName = sku.externalSupplierName ?? '';
+    this.externalUnitCost = sku.externalUnitCostCents == null ? null : sku.externalUnitCostCents / 100;
+    this.externalReason = '';
+    this.externalError = '';
+  }
+
+  closeExternalProduct(): void {
+    if (this.externalSaving) return;
+    this.externalProduct = undefined;
+    this.externalError = '';
+  }
+
+  externalProductIsValid(): boolean {
+    return this.externalSupplierName.trim().length >= 2
+      && this.externalUnitCost !== null
+      && Number.isFinite(this.externalUnitCost)
+      && this.externalUnitCost >= 0;
+  }
+
+  saveExternalProduct(): void {
+    const sku = this.externalProduct;
+    if (!sku || !this.externalProductIsValid() || this.externalSaving) return;
+    this.externalSaving = true;
+    this.externalError = '';
+    this.marketplaceMappings.classifyExternalSupplier({
+      provider: this.selectedProvider,
+      sellerId: String(sku.sellerId),
+      externalItemId: sku.channelItemId,
+      externalVariationId: sku.channelVariationId ?? null,
+      supplierName: this.externalSupplierName.trim(),
+      reason: this.externalReason.trim() || null,
+      unitCostCents: Math.round((this.externalUnitCost ?? 0) * 100),
+      currencyId: this.dashboard?.currencyId || 'BRL'
+    }).pipe(finalize(() => (this.externalSaving = false))).subscribe({
+      next: () => {
+        this.closeExternalProduct();
+        this.loadDashboard();
+      },
+      error: () => this.externalError = 'Não foi possível atualizar o custo externo. Tente novamente.'
+    });
+  }
+
+  requireInternalMapping(): void {
+    const sku = this.externalProduct;
+    if (!sku || this.externalSaving) return;
+    this.externalSaving = true;
+    this.externalError = '';
+    this.marketplaceMappings.removeExternalSupplierClassification({
+      provider: this.selectedProvider,
+      sellerId: sku.sellerId,
+      externalItemId: sku.channelItemId,
+      externalVariationId: sku.channelVariationId ?? null
+    }).pipe(finalize(() => (this.externalSaving = false))).subscribe({
+      next: () => {
+        this.externalProduct = undefined;
+        void this.router.navigate(['/client/my-products'], {
+          queryParams: { focusSeller: sku.sellerId, focusItem: sku.channelItemId, focusVariation: sku.channelVariationId || null }
+        });
+      },
+      error: () => this.externalError = 'Não foi possível remover a classificação externa. Tente novamente.'
     });
   }
 

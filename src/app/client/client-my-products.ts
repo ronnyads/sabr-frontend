@@ -117,6 +117,11 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   unmappedError: string | null = null;
   unmappedSelection: Record<string, string> = {};
   unmappedSaving: Record<string, boolean> = {};
+  externalDraftKey: string | null = null;
+  externalSupplierName = '';
+  externalUnitCost: number | null = null;
+  externalReason = '';
+  externalSaving = false;
   allowedVariants: CatalogVariant[] = [];
   variantsLoading = false;
   focusedItemId = '';
@@ -306,6 +311,61 @@ export class ClientMyProducts implements OnInit, OnDestroy {
       },
       error: (error: HttpErrorResponse) => {
         this.toastr.danger(this.buildErrorMessage('Falha ao vincular o produto ao catálogo.', error), 'Vínculo');
+      }
+    });
+  }
+
+  openExternalClassification(item: MarketplaceUnmappedItem): void {
+    this.externalDraftKey = item.mappingKey;
+    this.externalSupplierName = item.externalSupplierName ?? '';
+    this.externalUnitCost = item.externalUnitCostCents == null ? null : item.externalUnitCostCents / 100;
+    this.externalReason = '';
+  }
+
+  closeExternalClassification(): void {
+    if (this.externalSaving) return;
+    this.externalDraftKey = null;
+    this.externalSupplierName = '';
+    this.externalUnitCost = null;
+    this.externalReason = '';
+  }
+
+  externalDraftIsValid(): boolean {
+    return this.externalSupplierName.trim().length >= 2
+      && this.externalUnitCost !== null
+      && Number.isFinite(this.externalUnitCost)
+      && this.externalUnitCost >= 0;
+  }
+
+  saveExternalClassification(item: MarketplaceUnmappedItem): void {
+    if (!this.externalDraftIsValid() || this.externalSaving || item.sellerId == null) return;
+    this.externalSaving = true;
+    this.marketplaceMappingsService.classifyExternalSupplier({
+      provider: 'MercadoLivre',
+      integrationId: item.integrationId ?? null,
+      sellerId: String(item.sellerId),
+      externalItemId: item.externalItemId,
+      externalVariationId: item.externalVariationId ?? null,
+      supplierName: this.externalSupplierName.trim(),
+      reason: this.externalReason.trim() || null,
+      unitCostCents: Math.round((this.externalUnitCost ?? 0) * 100),
+      currencyId: 'BRL'
+    }).pipe(
+      finalize(() => (this.externalSaving = false)),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: result => {
+        this.toastr.success(
+          `${result.itemsAffected} item(ns) atualizado(s). O custo externo será usado somente nas vendas a partir desta versão.`,
+          'Produto externo classificado'
+        );
+        this.closeExternalClassification();
+        this.myProductsService.invalidate();
+        this.loadUnmappedProducts();
+        this.loadDrafts();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.danger(this.buildErrorMessage('Não foi possível classificar o produto externo.', error), 'Produto externo');
       }
     });
   }

@@ -36,6 +36,35 @@ export interface MarketplaceUnmappedItem {
   ordersAffected: number;
   totalUnits: number;
   latestImportedAt: string;
+  isExternalProduct?: boolean;
+  externalSupplierName?: string | null;
+  externalUnitCostCents?: number | null;
+  externalCurrencyId?: string | null;
+  externalCostPending?: boolean;
+}
+
+export interface MarketplaceExternalSupplierRequest {
+  provider: string;
+  integrationId?: string | null;
+  sellerId: string;
+  externalItemId: string;
+  externalVariationId?: string | null;
+  supplierName: string;
+  reason?: string | null;
+  unitCostCents: number;
+  currencyId: string;
+}
+
+export interface MarketplaceExternalSupplierResult {
+  classificationId: string;
+  version: number;
+  classification: string;
+  supplierName: string;
+  reason?: string | null;
+  unitCostCents?: number | null;
+  currencyId?: string | null;
+  effectiveAt: string;
+  itemsAffected: number;
 }
 
 export interface MarketplaceUpsertMappingRequest {
@@ -149,6 +178,26 @@ export class MarketplaceMappingsService {
   reanalyzePendingItems(provider: string): Observable<MarketplaceMappingReanalysisResult> {
     const params = new HttpParams().set('provider', provider);
     return this.http.post<MarketplaceMappingReanalysisResult>(`${this.base}/unmapped-items/reanalyze`, {}, { params });
+  }
+
+  classifyExternalSupplier(request: MarketplaceExternalSupplierRequest): Observable<MarketplaceExternalSupplierResult> {
+    return this.http.post<MarketplaceExternalSupplierResult>(`${this.base}/external-supplier`, request);
+  }
+
+  removeExternalSupplierClassification(identity: {
+    provider: string;
+    sellerId: string | number;
+    externalItemId: string;
+    externalVariationId?: string | null;
+  }): Observable<MarketplaceExternalSupplierResult> {
+    let params = new HttpParams()
+      .set('provider', identity.provider)
+      .set('sellerId', String(identity.sellerId))
+      .set('externalItemId', identity.externalItemId);
+    if ((identity.externalVariationId ?? '').trim()) {
+      params = params.set('externalVariationId', identity.externalVariationId!.trim());
+    }
+    return this.http.delete<MarketplaceExternalSupplierResult>(`${this.base}/external-supplier`, { params });
   }
 
   deleteMapping(id: string): Observable<void> {
