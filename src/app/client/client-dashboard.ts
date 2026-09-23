@@ -28,7 +28,11 @@ import { MarketplaceMappingsService } from '../core/services/marketplace-mapping
 })
 export class ClientDashboard implements OnInit {
   readonly periods = [{ label: '7 dias', days: 7 }, { label: '30 dias', days: 30 }, { label: '90 dias', days: 90 }, { label: '12 meses', days: 365 }];
-  selectedDays = 30;
+  selectedDays: number | null = 30;
+  customRangeOpen = false;
+  customFrom = '';
+  customTo = '';
+  customRangeError = '';
   readonly selectedProvider = 'MercadoLivre';
   loading = true;
   errorMessage = '';
@@ -164,10 +168,7 @@ export class ClientDashboard implements OnInit {
   }
 
   loadDashboard(): void {
-    const to = new Date();
-    const from = new Date(to);
-    from.setDate(from.getDate() - (this.selectedDays - 1));
-    from.setHours(0, 0, 0, 0);
+    const { from, to } = this.activeRange;
     this.loading = true;
     this.errorMessage = '';
     forkJoin({
@@ -225,10 +226,7 @@ export class ClientDashboard implements OnInit {
   }
 
   loadFinanceOrders(): void {
-    const to = new Date();
-    const from = new Date(to);
-    from.setDate(from.getDate() - (this.selectedDays - 1));
-    from.setHours(0, 0, 0, 0);
+    const { from, to } = this.activeRange;
     this.financeOrdersLoading = true;
     this.financeOrdersError = '';
     this.salesDashboard.getProfitabilityOrders(from, to)
@@ -320,7 +318,47 @@ export class ClientDashboard implements OnInit {
   selectPeriod(days: number): void {
     if (this.selectedDays === days) return;
     this.selectedDays = days;
+    this.customRangeOpen = false;
+    this.customRangeError = '';
     this.loadDashboard();
+  }
+
+  openCustomRange(): void {
+    const current = this.activeRange;
+    this.customFrom ||= this.toDateInput(current.from);
+    this.customTo ||= this.toDateInput(current.to);
+    this.customRangeError = '';
+    this.customRangeOpen = !this.customRangeOpen;
+  }
+
+  applyCustomRange(): void {
+    if (!this.customFrom || !this.customTo) {
+      this.customRangeError = 'Informe a data inicial e a data final.';
+      return;
+    }
+    const from = this.dateInputAtStart(this.customFrom);
+    const to = this.dateInputAtEnd(this.customTo);
+    const requestedEnd = this.dateInputAtStart(this.customTo);
+    if (!Number.isFinite(from.getTime()) || !Number.isFinite(to.getTime()) || from > to) {
+      this.customRangeError = 'A data inicial deve ser anterior ou igual à data final.';
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (requestedEnd > today) {
+      this.customRangeError = 'A data final não pode estar no futuro.';
+      return;
+    }
+    this.selectedDays = null;
+    this.customRangeOpen = false;
+    this.customRangeError = '';
+    this.loadDashboard();
+  }
+
+  get customRangeLabel(): string {
+    if (this.selectedDays !== null || !this.customFrom || !this.customTo) return 'Personalizado';
+    const format = (value: string) => value.split('-').reverse().join('/');
+    return `${format(this.customFrom)} – ${format(this.customTo)}`;
   }
 
   onProductSearch(): void { this.productPage = 1; }
@@ -370,5 +408,35 @@ export class ClientDashboard implements OnInit {
         if (Number.isFinite(status)) this.auth.updateCurrentUser({ status });
       }
     });
+  }
+
+  private get activeRange(): { from: Date; to: Date } {
+    if (this.selectedDays === null && this.customFrom && this.customTo) {
+      return { from: this.dateInputAtStart(this.customFrom), to: this.dateInputAtEnd(this.customTo) };
+    }
+    const to = new Date();
+    const from = new Date(to);
+    from.setDate(from.getDate() - ((this.selectedDays ?? 30) - 1));
+    from.setHours(0, 0, 0, 0);
+    return { from, to };
+  }
+
+  private dateInputAtStart(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day, 0, 0, 0, 0);
+  }
+
+  private dateInputAtEnd(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    const selected = new Date(year, month - 1, day, 23, 59, 59, 999);
+    const now = new Date();
+    return selected > now ? now : selected;
+  }
+
+  private toDateInput(value: Date): string {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
