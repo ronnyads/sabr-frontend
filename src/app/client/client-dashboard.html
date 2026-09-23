@@ -381,7 +381,8 @@
         </header>
         <div class="external-history-note">
           <strong>O histórico permanece preservado.</strong>
-          <span>O novo custo vale para vendas a partir de agora e poderá gerar lucro ou prejuízo nas próximas vendas.</span>
+          <span *ngIf="!externalHasExistingCost">O primeiro custo resolve também as vendas anteriores que estavam pendentes e recalcula o lucro.</span>
+          <span *ngIf="externalHasExistingCost">Alterações futuras valem somente para novas vendas e não mudam o custo histórico já registrado.</span>
         </div>
         <label for="dashboard-external-supplier">Fornecedor</label>
         <input id="dashboard-external-supplier" name="dashboardExternalSupplier" [(ngModel)]="externalSupplierName" maxlength="160" required autocomplete="organization" />

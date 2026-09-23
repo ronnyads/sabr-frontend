@@ -48,6 +48,7 @@ export class ClientDashboard implements OnInit {
   financeOrdersError = '';
   financeOrderDetail?: ClientProfitabilityOrderDetail;
   externalProduct?: ClientSalesSkuResult;
+  externalHasExistingCost = false;
   externalSupplierName = '';
   externalUnitCost: number | string | null = null;
   externalReason = '';
@@ -253,6 +254,7 @@ export class ClientDashboard implements OnInit {
 
   manageExternalProduct(sku: ClientSalesSkuResult): void {
     this.externalProduct = sku;
+    this.externalHasExistingCost = sku.externalUnitCostCents != null;
     this.externalSupplierName = sku.externalSupplierName ?? '';
     this.externalUnitCost = sku.externalUnitCostCents == null ? null : sku.externalUnitCostCents / 100;
     this.externalReason = '';
@@ -262,6 +264,7 @@ export class ClientDashboard implements OnInit {
   closeExternalProduct(): void {
     if (this.externalSaving) return;
     this.externalProduct = undefined;
+    this.externalHasExistingCost = false;
     this.externalError = '';
   }
 
