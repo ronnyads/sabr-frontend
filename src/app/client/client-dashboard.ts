@@ -290,7 +290,12 @@ export class ClientDashboard implements OnInit {
       unitCostCents: Math.round((this.parseExternalCost(this.externalUnitCost) ?? 0) * 100),
       currencyId: this.dashboard?.currencyId || 'BRL'
     }).pipe(finalize(() => (this.externalSaving = false))).subscribe({
-      next: () => {
+      next: result => {
+        if (result.itemsAffected <= 0) {
+          this.externalError = 'Nenhuma venda foi atualizada. Atualize a página e tente novamente.';
+          return;
+        }
+        this.externalSaving = false;
         this.closeExternalProduct();
         this.loadDashboard();
       },

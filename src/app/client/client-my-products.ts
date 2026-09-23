@@ -355,10 +355,18 @@ export class ClientMyProducts implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: result => {
+        if (result.itemsAffected <= 0) {
+          this.toastr.danger(
+            'Nenhuma venda foi atualizada. Atualize a página e tente novamente.',
+            'Produto externo'
+          );
+          return;
+        }
         this.toastr.success(
           `${result.itemsAffected} item(ns) atualizado(s). O primeiro custo resolve vendas pendentes; alterações futuras preservam o histórico.`,
           'Produto externo classificado'
         );
+        this.externalSaving = false;
         this.closeExternalClassification();
         this.myProductsService.invalidate();
         this.loadUnmappedProducts();
