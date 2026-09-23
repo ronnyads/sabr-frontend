@@ -148,7 +148,7 @@
       <div class="financial-cards">
         <div><span>Faturamento bruto</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>vendas pagas, antes das deduções</small></div>
         <div><span>Líquido econômico estimado</span><strong>{{ formatCents(finance.estimatedEconomicNetCents) }}</strong><small>taxas, fretes e ajustes operacionais</small></div>
-        <div class="profit-card" [class.negative-profit]="finance.coverage.operationalPercent === 100 && finance.operationalProfitCents < 0"><span>{{ finance.coverage.operationalPercent < 100 ? 'Resultado ainda não calculável' : (finance.operationalProfitCents < 0 ? 'Prejuízo operacional estimado' : 'Lucro operacional estimado') }}</span><strong>{{ finance.coverage.operationalPercent < 100 ? 'Em apuração' : formatCents(finance.operationalProfitCents) }}</strong><small>{{ finance.coverage.operationalPercent < 100 ? 'Faltam SKU, custo, frete ou alocação em parte dos pedidos; não é possível concluir lucro ou prejuízo.' : 'após o Preço Catálogo; componentes operacionais resolvidos' }}</small></div>
+        <div class="profit-card" [class.negative-profit]="finance.operationalProfitCents < 0"><span>{{ finance.operationalProfitCents < 0 ? 'Prejuízo operacional estimado' : 'Lucro operacional estimado' }}{{ finance.coverage.operationalPercent < 100 ? ' · parcial' : '' }}</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>{{ finance.coverage.operationalPercent < 100 ? 'Calculado somente com componentes resolvidos; confira a cobertura e as pendências abaixo.' : 'após o custo dos produtos; componentes operacionais resolvidos' }}</small></div>
         <div><span>{{ finance.maturity === 'CONFIRMADO' ? 'Valor líquido conferido pelo Mercado Pago' : 'Valores parcialmente conferidos pelo Mercado Pago' }}</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.reconciledConfirmedValueCents) : 'Aguardando conferência do Mercado Pago' }}</strong><small>{{ finance.lastBillingSyncAt ? (finance.maturity === 'CONFIRMADO' ? 'Valor final externo confirmado pelo provedor' : 'Somente os componentes já confirmados; ainda não é o valor final') : 'Sem confirmação externa; valor desconhecido, não zero' }}</small></div>
       </div>
       <div class="financial-detail">
@@ -159,7 +159,7 @@
           <i aria-hidden="true">−</i>
           <span><small>Custo dos produtos</small><b>{{ formatCents(-finance.productCostCents) }}</b></span>
           <i aria-hidden="true">=</i>
-          <span class="waterfall-result" [class.negative-result]="finance.coverage.operationalPercent === 100 && finance.operationalProfitCents < 0"><small>{{ finance.coverage.operationalPercent < 100 ? 'Resultado em apuração' : (finance.operationalProfitCents < 0 ? 'Prejuízo estimado' : 'Lucro estimado') }}</small><b>{{ finance.coverage.operationalPercent < 100 ? '—' : formatCents(finance.operationalProfitCents) }}</b></span>
+          <span class="waterfall-result" [class.negative-result]="finance.operationalProfitCents < 0"><small>{{ finance.operationalProfitCents < 0 ? 'Prejuízo estimado' : 'Lucro estimado' }}{{ finance.coverage.operationalPercent < 100 ? ' · parcial' : '' }}</small><b>{{ formatCents(finance.operationalProfitCents) }}</b></span>
         </div>
         <details class="financial-explanation">
           <summary>Entenda este resultado</summary>
@@ -171,7 +171,7 @@
             <span>Ajustes, descontos e compensações <b>{{ formatCents(finance.adjustmentsCents) }}</b></span>
             <span>Líquido do marketplace <b>{{ formatCents(finance.marketplaceNetAmountCents) }}</b></span>
             <span>Custo dos produtos <b>− {{ formatCents(-finance.productCostCents) }} · {{ finance.productCostMaturity === 'CONFIRMADO' ? 'realizado' : finance.productCostMaturity === 'INCOMPLETO' ? 'incompleto' : 'estimado' }}</b></span>
-            <span>Margem operacional <b>{{ finance.coverage.operationalPercent < 100 || finance.operationalMarginPct == null ? 'Não calculável' : (finance.operationalMarginPct | number:'1.0-2') + '%' }}</b></span>
+            <span>Margem operacional{{ finance.coverage.operationalPercent < 100 ? ' parcial' : '' }} <b>{{ finance.operationalMarginPct == null ? 'Não calculável' : (finance.operationalMarginPct | number:'1.0-2') + '%' }}</b></span>
           </div>
           <p *ngIf="finance.coverage.operationalPercent < 100">Resultado parcial: SKU, custo, frete ou alocação ainda podem faltar. Valores pendentes não são tratados como zero.</p>
           <button type="button" class="finance-order-action" (click)="loadFinanceOrders()" [disabled]="financeOrdersLoading">{{ financeOrdersLoading ? 'Consultando pedidos…' : 'Ver pedidos que compõem o resultado' }}</button>
@@ -179,7 +179,7 @@
           <div class="finance-order-list" *ngIf="financeOrders.length">
             <button type="button" *ngFor="let order of financeOrders" (click)="inspectFinanceOrder(order.orderId)">
               <span>Pedido {{ order.externalOrderId }} · seller {{ order.sellerId }} <small>{{ order.maturity }}</small></span>
-              <b>{{ order.maturity === 'INCOMPLETO' ? 'Em apuração' : formatCents(order.operationalProfitCents) }}</b>
+              <b>{{ formatCents(order.operationalProfitCents) }}{{ order.maturity === 'INCOMPLETO' ? ' · parcial' : '' }}</b>
             </button>
           </div>
           <div class="finance-order-entries" *ngIf="financeOrderDetail as detail">
@@ -386,7 +386,7 @@
         <label for="dashboard-external-supplier">Fornecedor</label>
         <input id="dashboard-external-supplier" name="dashboardExternalSupplier" [(ngModel)]="externalSupplierName" maxlength="160" required autocomplete="organization" />
         <label for="dashboard-external-cost">Custo unitário</label>
-        <div class="dialog-money-input"><span>R$</span><input id="dashboard-external-cost" name="dashboardExternalCost" [(ngModel)]="externalUnitCost" type="number" min="0" step="0.01" inputmode="decimal" required /></div>
+        <div class="dialog-money-input"><span>R$</span><input id="dashboard-external-cost" name="dashboardExternalCost" [(ngModel)]="externalUnitCost" type="text" inputmode="decimal" placeholder="0,00" required /></div>
         <label for="dashboard-external-reason">Motivo da alteração <small>(opcional)</small></label>
         <input id="dashboard-external-reason" name="dashboardExternalReason" [(ngModel)]="externalReason" maxlength="300" placeholder="Ex.: novo preço negociado com o fornecedor" />
         <p class="dialog-error" *ngIf="externalError" role="alert">{{ externalError }}</p>

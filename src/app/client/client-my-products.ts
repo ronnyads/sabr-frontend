@@ -119,7 +119,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   unmappedSaving: Record<string, boolean> = {};
   externalDraftKey: string | null = null;
   externalSupplierName = '';
-  externalUnitCost: number | null = null;
+  externalUnitCost: number | string | null = null;
   externalReason = '';
   externalSaving = false;
   allowedVariants: CatalogVariant[] = [];
@@ -331,10 +331,10 @@ export class ClientMyProducts implements OnInit, OnDestroy {
   }
 
   externalDraftIsValid(): boolean {
+    const cost = this.parseExternalCost(this.externalUnitCost);
     return this.externalSupplierName.trim().length >= 2
-      && this.externalUnitCost !== null
-      && Number.isFinite(this.externalUnitCost)
-      && this.externalUnitCost >= 0;
+      && cost !== null
+      && cost >= 0;
   }
 
   saveExternalClassification(item: MarketplaceUnmappedItem): void {
@@ -348,7 +348,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
       externalVariationId: item.externalVariationId ?? null,
       supplierName: this.externalSupplierName.trim(),
       reason: this.externalReason.trim() || null,
-      unitCostCents: Math.round((this.externalUnitCost ?? 0) * 100),
+      unitCostCents: Math.round((this.parseExternalCost(this.externalUnitCost) ?? 0) * 100),
       currencyId: 'BRL'
     }).pipe(
       finalize(() => (this.externalSaving = false)),
@@ -356,7 +356,7 @@ export class ClientMyProducts implements OnInit, OnDestroy {
     ).subscribe({
       next: result => {
         this.toastr.success(
-          `${result.itemsAffected} item(ns) atualizado(s). O custo externo será usado somente nas vendas a partir desta versão.`,
+          `${result.itemsAffected} item(ns) atualizado(s). O primeiro custo resolve vendas pendentes; alterações futuras preservam o histórico.`,
           'Produto externo classificado'
         );
         this.closeExternalClassification();
@@ -880,6 +880,17 @@ export class ClientMyProducts implements OnInit, OnDestroy {
 
     const numeric = Number(value);
     return Number.isFinite(numeric) ? numeric : null;
+  }
+
+  private parseExternalCost(value: number | string | null): number | null {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (value == null) return null;
+    let normalized = value.trim().replace(/\s/g, '').replace(/^R\$/i, '');
+    if (!normalized) return null;
+    if (normalized.includes(',') && normalized.includes('.')) normalized = normalized.replace(/\./g, '').replace(',', '.');
+    else normalized = normalized.replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private toIntegerOrNull(value: unknown): number | null {
