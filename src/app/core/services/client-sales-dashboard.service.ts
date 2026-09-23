@@ -59,12 +59,15 @@ export interface ClientSalesDashboardResult {
   currencyId: string;
   totalOrders: number;
   paidOrders: number;
+  totalSalesAmount: number;
+  cancelledSalesAmount: number;
   totalUnits: number;
   grossRevenue: number;
   marketplaceFees: number;
   netRevenue: number;
   averageTicket: number;
   cancelledOrders: number;
+  refundedOrders: number;
   unmappedUnits: number;
   ordersChangePercent: number;
   revenueChangePercent: number;
@@ -101,7 +104,7 @@ export interface FinancialSyncJobResult {
 }
 export interface FinancialSyncEnqueueResult { jobs: FinancialSyncJobResult[]; }
 export interface ClientProfitabilityOrder {
-  orderId: string; externalOrderId: string; sellerId: number; maturity: string;
+  orderId: string; externalOrderId: string; sellerId: number; orderStatus: string; maturity: string;
   grossRevenueCents: number; estimatedEconomicNetCents: number;
   operationalProfitCents: number; incompleteReasons: string[];
 }

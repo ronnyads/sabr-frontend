@@ -81,7 +81,7 @@
           <span *ngIf="data.lastSyncedAt; else neverSynced">Sincronizado {{ data.lastSyncedAt | date:'dd/MM, HH:mm' }}</span>
           <ng-template #neverSynced><span>Aguardando primeira sincronização</span></ng-template>
         </div>
-        <span class="metric-label">Vendas confirmadas</span>
+        <span class="metric-label">Vendas válidas / pagas</span>
         <strong class="revenue-value">{{ formatMoney(data.grossRevenue) }}</strong>
         <div class="trend-line" [ngClass]="trendClass(data.revenueChangePercent)">
           <b>{{ data.revenueChangePercent > 0 ? '↑' : data.revenueChangePercent < 0 ? '↓' : '—' }}</b>
@@ -98,6 +98,8 @@
       </div>
 
       <div class="revenue-breakdown">
+        <div><span>Vendas totais recebidas</span><strong>{{ formatMoney(data.totalSalesAmount) }}</strong><small>inclui pedidos que depois foram cancelados</small></div>
+        <div><span>Vendas canceladas</span><strong>{{ formatMoney(data.cancelledSalesAmount) }}</strong><small>{{ data.cancelledOrders }} cancelado(s), fora do lucro · {{ data.refundedOrders }} reembolsado(s)</small></div>
         <div><span>Após taxas identificadas</span><strong>{{ formatMoney(data.netRevenue) }}</strong><small>estimativa; fretes e reembolsos ficam no resultado auditável</small></div>
         <div><span>Taxas identificadas</span><strong>{{ formatMoney(data.marketplaceFees) }}</strong></div>
       </div>
@@ -178,7 +180,7 @@
           <p *ngIf="financeOrdersError" role="alert">{{ financeOrdersError }}</p>
           <div class="finance-order-list" *ngIf="financeOrders.length">
             <button type="button" *ngFor="let order of financeOrders" (click)="inspectFinanceOrder(order.orderId)">
-              <span>Pedido {{ order.externalOrderId }} · seller {{ order.sellerId }} <small>{{ order.maturity }}</small></span>
+              <span>Pedido {{ order.externalOrderId }} · seller {{ order.sellerId }} <small>{{ financialOrderStatusLabel(order.orderStatus) }} · {{ order.maturity }}</small></span>
               <b>{{ formatCents(order.operationalProfitCents) }}{{ order.maturity === 'INCOMPLETO' ? ' · parcial' : '' }}</b>
             </button>
           </div>
@@ -186,8 +188,8 @@
             <strong>Composição do pedido {{ detail.externalOrderId }}</strong>
             <p *ngIf="detail.incompleteReasons.length">Pendências: {{ financialPendingLabels(detail.incompleteReasons) }}</p>
             <div *ngFor="let entry of detail.entries" [class.historical-entry]="!entry.isActiveHead">
-              <span>{{ entry.entryType }} · {{ entry.status }}{{ entry.isActiveHead ? '' : ' · histórico' }}<small>{{ entry.sourceEndpoint }}</small></span>
-              <b>{{ formatCents(entry.amountCents) }}</b>
+              <span>{{ financialEntryLabel(entry.entryType) }} · {{ financialEntryStatusLabel(entry.status) }}{{ entry.isActiveHead ? '' : ' · histórico' }}<small>{{ entry.sourceEndpoint }}</small></span>
+              <b>{{ entry.status === 'VOIDED' && entry.isActiveHead ? 'Desconsiderado (era ' + formatCents(entry.amountCents) + ')' : formatCents(entry.amountCents) }}</b>
             </div>
           </div>
         </details>

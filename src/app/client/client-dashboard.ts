@@ -246,6 +246,31 @@ export class ClientDashboard implements OnInit {
     });
   }
 
+  financialOrderStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      paid: 'Pago', cancelled: 'Cancelado', canceled: 'Cancelado',
+      refunded: 'Reembolsado', partially_refunded: 'Parcialmente reembolsado'
+    };
+    return labels[(status || '').toLowerCase()] ?? status;
+  }
+
+  financialEntryLabel(type: string): string {
+    const labels: Record<string, string> = {
+      GROSS_SALE: 'Venda bruta', BUYER_DISCOUNT: 'Desconto do comprador',
+      SALE_FEE: 'Comissão do marketplace', FINANCING_OR_FIXED_FEE: 'Tarifa fixa ou financeira',
+      SELLER_SHIPPING_COST: 'Frete pago pelo seller', SHIPPING_DISCOUNT_OR_COMPENSATION: 'Compensação de frete',
+      REFUND: 'Reembolso', CHARGEBACK_OR_CLAIM: 'Chargeback ou reclamação',
+      RETURN_SHIPPING_COST: 'Frete de devolução', PRODUCT_COST: 'Custo do produto',
+      PRODUCT_COST_RECOVERY: 'Recuperação do custo do produto', PLATFORM_ADJUSTMENT: 'Ajuste do marketplace'
+    };
+    return labels[type] ?? type;
+  }
+
+  financialEntryStatusLabel(status: string): string {
+    return status === 'VOIDED' ? 'desconsiderado após cancelamento'
+      : status === 'CONFIRMED' ? 'confirmado' : 'estimado';
+  }
+
   reviewSku(sku: ClientSalesSkuResult): void {
     void this.router.navigate(['/client/my-products'], {
       queryParams: { focusSeller: sku.sellerId, focusItem: sku.channelItemId, focusVariation: sku.channelVariationId || null }
