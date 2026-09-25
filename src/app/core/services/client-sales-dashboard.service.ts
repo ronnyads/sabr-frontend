@@ -84,6 +84,15 @@ export interface FinancialCoverageResult {
   skuPercent: number; costPercent: number; freightPercent: number; operationalPercent: number;
   confirmedPercent: number; itemAllocationPercent: number; overallPercent: number;
 }
+export interface AuditCoverageResult {
+  resolved: number;
+  total: number;
+  percent: number;
+}
+export interface PendingFinancialCorrectionPlan {
+  planId: string;
+  status: string;
+}
 export interface FinancialDivergenceResult {
   estimatedCents: number; confirmedCents: number; absoluteCents: number; percentage?: number | null;
   componentsCents: Record<string, number>;
@@ -97,6 +106,13 @@ export interface ClientProfitabilityResult {
   operationalMarginPct?: number | null;
   profitAfterSellerTaxEstimateCents: number; unallocatedCents: number; coverage: FinancialCoverageResult;
   divergence: FinancialDivergenceResult; incompleteReasons: string[];
+  auditResultStatus?: 'PARTIAL' | 'PROFIT' | 'LOSS';
+  auditResultLabel?: string;
+  costCoverage?: AuditCoverageResult;
+  financialCoverage?: AuditCoverageResult;
+  pendingCorrectionPlan?: PendingFinancialCorrectionPlan | null;
+  reconciliationStatus?: string | null;
+  projectionStatus?: string | null;
 }
 export interface FinancialSyncJobResult {
   jobId: string; sellerId: number; jobType: string; status: string; rangeFrom: string; rangeTo: string;

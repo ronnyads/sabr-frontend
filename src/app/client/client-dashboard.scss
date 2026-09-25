@@ -335,8 +335,8 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 .results-heading p { margin: 0; color: var(--muted); font-size: .7rem; }
 .results-actions { display: flex; align-items: center; gap: .65rem; }
 .maturity-badge { padding: .38rem .58rem; border-radius: 999px; color: #8a5b07; background: rgba(255,181,71,.16); font-size: .58rem; font-weight: 850; letter-spacing: .04em; }
-.maturity-badge[data-state='CONFIRMADO'] { color: #087755; background: rgba(22,165,122,.13); }
-.maturity-badge[data-state='REABERTO'] { color: #b72e43; background: rgba(232,79,96,.12); }
+.maturity-badge[data-state='PROFIT'] { color: #087755; background: rgba(22,165,122,.13); }
+.maturity-badge[data-state='LOSS'] { color: #b72e43; background: rgba(232,79,96,.12); }
 .sync-button { display: inline-flex; align-items: center; gap: .42rem; min-height: 2.35rem; border: 1px solid rgba(47,117,255,.24); border-radius: .7rem; padding: 0 .8rem; color: #fff; background: linear-gradient(135deg, var(--blue), #1765e9); font: inherit; font-size: .67rem; font-weight: 800; cursor: pointer; transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease; }
 .sync-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(47,117,255,.22); }
 .sync-button:disabled { opacity: .65; cursor: wait; }
@@ -378,6 +378,11 @@ button:focus-visible { outline: 3px solid rgba(47, 117, 255, 0.27); outline-offs
 .finance-order-entries > div { display: flex; justify-content: space-between; gap: .7rem; padding: .4rem 0; border-bottom: 1px solid var(--line); font-size: .63rem; }
 .finance-order-entries .historical-entry { opacity: .55; }
 .coverage-block, .divergence-block { min-width: 0; }
+.audit-coverages { display: grid; gap: .75rem; }
+.coverage-metric { min-width: 0; }
+.coverage-metric p, .correction-plan-note { margin: -.2rem 0 0; color: var(--muted); font-size: .59rem; line-height: 1.4; }
+.financial-coverage .coverage-track i { background: linear-gradient(90deg, #7c5cff, #2f75ff); }
+.correction-plan-note { border-left: 3px solid #ffb547; padding: .45rem .55rem; border-radius: .25rem; background: rgba(255,181,71,.09); }
 .detail-title { display: flex; align-items: flex-end; justify-content: space-between; gap: .8rem; }
 .detail-title > div { display: flex; align-items: baseline; gap: .55rem; }
 .detail-title span { color: var(--muted); font-size: .65rem; font-weight: 700; }

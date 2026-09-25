@@ -18,6 +18,8 @@ import {
 import { ClientProfileService } from '../core/services/client-profile.service';
 import { ClientStatus } from '../core/utils/client-status.constants';
 import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
+import { resolveAuditPresentation } from './client-dashboard-audit';
+import { brazilianDayBoundary } from './client-dashboard-period';
 
 @Component({
   selector: 'app-client-dashboard',
@@ -395,6 +397,10 @@ export class ClientDashboard implements OnInit {
     return `${format(this.customFrom)} – ${format(this.customTo)}`;
   }
 
+  auditPresentation(finance: ClientProfitabilityResult) {
+    return resolveAuditPresentation(finance);
+  }
+
   onProductSearch(): void { this.productPage = 1; }
 
   setProductPage(page: number): void {
@@ -467,15 +473,13 @@ export class ClientDashboard implements OnInit {
   }
 
   private dateInputAtStart(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day, 0, 0, 0, 0);
+    return brazilianDayBoundary(value);
   }
 
   private dateInputAtEnd(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    const selected = new Date(year, month - 1, day, 23, 59, 59, 999);
-    const now = new Date();
-    return selected > now ? now : selected;
+    // API ranges are half-open: the selected final day is shown to the user,
+    // while `to` is the beginning of the following day.
+    return brazilianDayBoundary(value, true);
   }
 
   private toDateInput(value: Date): string {
