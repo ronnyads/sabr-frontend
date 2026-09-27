@@ -83,6 +83,46 @@ export interface MercadoLivreSyncNowResult {
   reservationsCreated?: number;
 }
 
+export type MercadoLivreHistorySyncState =
+  | 'INITIAL_PENDING'
+  | 'BACKFILLING'
+  | 'PARTIAL_WITH_GAPS'
+  | 'CURRENT'
+  | 'FAILED';
+
+export interface MercadoLivreHistorySellerStatusResult {
+  sellerId: string;
+  nickname?: string | null;
+  status: MercadoLivreHistorySyncState | string;
+  coverageFrom?: string | null;
+  coverageTo?: string | null;
+  remoteReportedTotal?: number | null;
+  discoveredUniqueOrderIds: number;
+  localImportedOrderIds: number;
+  resolvedUnavailableOrderIds: number;
+  unresolvedGapOrderIds: number;
+  completedWindows: number;
+  totalWindows: number;
+  oldestOrderAt?: string | null;
+  newestOrderAt?: string | null;
+  lastError?: string | null;
+}
+
+export interface MercadoLivreHistorySyncStatusResult {
+  overallStatus: MercadoLivreHistorySyncState | string;
+  sellers: MercadoLivreHistorySellerStatusResult[];
+}
+
+export interface MercadoLivreHistorySyncStartResult {
+  overallStatus?: MercadoLivreHistorySyncState | string;
+  sellers?: MercadoLivreHistorySellerStatusResult[];
+  jobs?: Array<{
+    jobId: string;
+    sellerId: string | number;
+    status: string;
+  }>;
+}
+
 export interface MarketplaceOrderListItemResult {
   id: string;
   provider: string;
@@ -252,6 +292,19 @@ export class MercadoLivreIntegrationService {
     return this.http.post<MercadoLivreSyncNowResult>(
       `${this.apiBaseUrl}/client/integrations/mercadolivre/sync-now`,
       { sellerId: sellerId ?? null }
+    );
+  }
+
+  historySyncStatus(): Observable<MercadoLivreHistorySyncStatusResult> {
+    return this.http.get<MercadoLivreHistorySyncStatusResult>(
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/history-sync/status`
+    );
+  }
+
+  startHistorySync(sellerId?: string | null): Observable<MercadoLivreHistorySyncStartResult> {
+    return this.http.post<MercadoLivreHistorySyncStartResult>(
+      `${this.apiBaseUrl}/client/integrations/mercadolivre/history-sync`,
+      { sellerId: (sellerId ?? '').trim() || null }
     );
   }
 

@@ -1,0 +1,113 @@
+<section class="history-coverage" [class.history-coverage--compact]="compact" aria-labelledby="ml-history-title">
+  <header class="history-heading">
+    <div>
+      <span class="history-kicker">Cobertura dos pedidos</span>
+      <h2 id="ml-history-title">Histórico do Mercado Livre</h2>
+      <p>O sincronismo recente e a recuperação do histórico são processos diferentes.</p>
+    </div>
+    <button
+      nbButton
+      status="primary"
+      size="small"
+      type="button"
+      (click)="startHistorySync()"
+      [disabled]="starting || hasActiveBackfill"
+      [attr.aria-busy]="starting || hasActiveBackfill">
+      {{ starting ? 'Iniciando…' : hasActiveBackfill ? 'Histórico em andamento' : 'Buscar histórico disponível' }}
+    </button>
+  </header>
+
+  <div class="history-callout history-callout--loading" *ngIf="loading && !status" role="status" aria-live="polite">
+    Consultando a cobertura histórica…
+  </div>
+
+  <div class="history-callout history-callout--error" *ngIf="errorMessage" role="alert">
+    <span>{{ errorMessage }}</span>
+    <button type="button" (click)="loadStatus()">Tentar novamente</button>
+  </div>
+
+  <div class="history-callout" *ngIf="!loading && !errorMessage && sellers.length === 0" role="status">
+    <span>Nenhuma conta conectada possui cobertura histórica registrada.</span>
+    <button type="button" (click)="startHistorySync()" [disabled]="starting">Iniciar primeira busca</button>
+  </div>
+
+  <div class="seller-history-list" *ngIf="sellers.length > 0">
+    <article
+      class="seller-history"
+      *ngFor="let seller of sellers; trackBy: trackSeller"
+      [attr.data-tone]="presentation(seller).tone">
+      <div class="seller-history__topline">
+        <div>
+          <span class="seller-name">{{ seller.nickname || 'Conta Mercado Livre' }}</span>
+          <small>Seller {{ seller.sellerId }}</small>
+        </div>
+        <span class="history-badge" role="status">
+          <i aria-hidden="true"></i>{{ presentation(seller).label }}
+        </span>
+      </div>
+
+      <p class="history-description">{{ presentation(seller).description }}</p>
+
+      <div class="history-progress" *ngIf="!presentation(seller).complete">
+        <div
+          class="history-progress__bar"
+          role="progressbar"
+          aria-label="Pedidos históricos resolvidos"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="presentation(seller).progressPct">
+          <span [style.width.%]="presentation(seller).progressPct"></span>
+        </div>
+        <small>{{ presentation(seller).progressPct }}% dos IDs descobertos resolvidos</small>
+      </div>
+
+      <dl class="history-metrics">
+        <div>
+          <dt>IDs descobertos</dt>
+          <dd>{{ seller.discoveredUniqueOrderIds | number:'1.0-0' }}</dd>
+          <small>únicos, sem duplicar janelas</small>
+        </div>
+        <div>
+          <dt>Pedidos importados</dt>
+          <dd>{{ seller.localImportedOrderIds | number:'1.0-0' }}</dd>
+          <small>existem no PrometheusHUB</small>
+        </div>
+        <div>
+          <dt>Indisponíveis resolvidos</dt>
+          <dd>{{ seller.resolvedUnavailableOrderIds | number:'1.0-0' }}</dd>
+          <small>classificados sem ocultar gaps</small>
+        </div>
+        <div [class.metric-alert]="seller.unresolvedGapOrderIds > 0">
+          <dt>Gaps pendentes</dt>
+          <dd>{{ seller.unresolvedGapOrderIds | number:'1.0-0' }}</dd>
+          <small>pedidos ainda não resolvidos</small>
+        </div>
+      </dl>
+
+      <div class="history-details">
+        <span><b>Janelas</b> {{ seller.completedWindows | number:'1.0-0' }} de {{ seller.totalWindows | number:'1.0-0' }}</span>
+        <span><b>Período consultado</b> {{ seller.coverageFrom ? (seller.coverageFrom | date:'dd/MM/yyyy HH:mm') : '—' }} até {{ seller.coverageTo ? (seller.coverageTo | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+        <span><b>Pedidos encontrados</b> {{ seller.oldestOrderAt ? (seller.oldestOrderAt | date:'dd/MM/yyyy HH:mm') : '—' }} até {{ seller.newestOrderAt ? (seller.newestOrderAt | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+        <span *ngIf="seller.remoteReportedTotal != null" title="Informação diagnóstica da janela; não é somada como total histórico.">
+          <b>Total informado pelo canal</b> {{ seller.remoteReportedTotal | number:'1.0-0' }} <i>(diagnóstico)</i>
+        </span>
+      </div>
+
+      <div class="history-error-detail" *ngIf="seller.lastError" role="alert">
+        Última ocorrência: {{ seller.lastError }}
+      </div>
+
+      <footer class="history-footer">
+        <span *ngIf="presentation(seller).complete">Este histórico pode ser usado na auditoria de rentabilidade.</span>
+        <span *ngIf="!presentation(seller).complete">Dados e lucro permanecem parciais até a reconciliação terminar.</span>
+        <button
+          *ngIf="['FAILED', 'PARTIAL_WITH_GAPS'].includes((seller.status || '').toUpperCase())"
+          type="button"
+          (click)="startHistorySync(seller)"
+          [disabled]="starting">
+          Continuar janelas incompletas
+        </button>
+      </footer>
+    </article>
+  </div>
+</section>
