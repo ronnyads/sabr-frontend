@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { NbButtonModule } from '@nebular/theme';
 import { Subject, finalize, takeUntil, timer } from 'rxjs';
 import {
   MercadoLivreHistorySellerStatusResult,
@@ -13,7 +12,7 @@ import { presentHistoryCoverage } from './client-ml-history-coverage.presenter';
 @Component({
   selector: 'app-client-ml-history-coverage',
   standalone: true,
-  imports: [CommonModule, NbButtonModule],
+  imports: [CommonModule],
   templateUrl: './client-ml-history-coverage.html',
   styleUrls: ['./client-ml-history-coverage.scss']
 })
@@ -22,7 +21,6 @@ export class ClientMlHistoryCoverage implements OnInit, OnDestroy {
   @Input() selectedSellerId = '';
 
   loading = true;
-  starting = false;
   errorMessage = '';
   status: MercadoLivreHistorySyncStatusResult | null = null;
 
@@ -57,29 +55,6 @@ export class ClientMlHistoryCoverage implements OnInit, OnDestroy {
 
   trackSeller(_: number, seller: MercadoLivreHistorySellerStatusResult): string {
     return String(seller.sellerId);
-  }
-
-  startHistorySync(seller?: MercadoLivreHistorySellerStatusResult): void {
-    if (this.starting) return;
-    this.starting = true;
-    this.errorMessage = '';
-    this.integration.startHistorySync((seller?.sellerId ?? this.selectedSellerId) || null)
-      .pipe(finalize(() => (this.starting = false)), takeUntil(this.destroy$))
-      .subscribe({
-        next: (result) => {
-          if (Array.isArray(result.sellers)) {
-            this.status = {
-              overallStatus: result.overallStatus ?? 'INITIAL_PENDING',
-              sellers: result.sellers
-            };
-          }
-          // Enqueue may return jobs or an inline snapshot. Reload the canonical view either way.
-          this.loadStatus(true);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.errorMessage = this.errorFrom(error, 'Não foi possível iniciar a busca do histórico.');
-        }
-      });
   }
 
   loadStatus(silent = false): void {

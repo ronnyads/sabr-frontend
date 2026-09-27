@@ -1,13 +1,13 @@
 <section class="phub-page ml-integration-page">
   <ng-template #headerActions>
     <button nbButton status="primary" size="small" (click)="syncNow()" [disabled]="syncing || !connected">
-      {{ syncing ? 'Sincronizando...' : 'Sincronizar pedidos agora' }}
+      {{ syncing ? 'Sincronizando...' : 'Sincronizar tudo agora' }}
     </button>
   </ng-template>
 
   <app-page-header
     [title]="'Integracoes'"
-    [subtitle]="'Mercado Livre: conexao OAuth, mappings e pedidos importados.'"
+    [subtitle]="'Pedidos novos entram automaticamente a cada 5 minutos. Use o botao apenas para priorizar uma atualizacao completa agora.'"
     [actionsTemplate]="headerActions"
   ></app-page-header>
 

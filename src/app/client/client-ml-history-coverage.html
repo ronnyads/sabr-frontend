@@ -3,18 +3,9 @@
     <div>
       <span class="history-kicker">Cobertura dos pedidos</span>
       <h2 id="ml-history-title">Histórico do Mercado Livre</h2>
-      <p>O sincronismo recente e a recuperação do histórico são processos diferentes.</p>
+      <p>A carga inicial, os reparos e os novos pedidos são sincronizados automaticamente.</p>
     </div>
-    <button
-      nbButton
-      status="primary"
-      size="small"
-      type="button"
-      (click)="startHistorySync()"
-      [disabled]="starting || hasActiveBackfill"
-      [attr.aria-busy]="starting || hasActiveBackfill">
-      {{ starting ? 'Iniciando…' : hasActiveBackfill ? 'Histórico em andamento' : 'Buscar histórico disponível' }}
-    </button>
+    <span class="history-auto-badge" role="status"><i aria-hidden="true"></i>Sincronização automática</span>
   </header>
 
   <div class="history-callout history-callout--loading" *ngIf="loading && !status" role="status" aria-live="polite">
@@ -27,8 +18,7 @@
   </div>
 
   <div class="history-callout" *ngIf="!loading && !errorMessage && sellers.length === 0" role="status">
-    <span>Nenhuma conta conectada possui cobertura histórica registrada.</span>
-    <button type="button" (click)="startHistorySync()" [disabled]="starting">Iniciar primeira busca</button>
+    <span>Preparando automaticamente a primeira carga desta conta. Não é necessário iniciar outro processo.</span>
   </div>
 
   <div class="seller-history-list" *ngIf="sellers.length > 0">
@@ -99,14 +89,7 @@
 
       <footer class="history-footer">
         <span *ngIf="presentation(seller).complete">Este histórico pode ser usado na auditoria de rentabilidade.</span>
-        <span *ngIf="!presentation(seller).complete">Dados e lucro permanecem parciais até a reconciliação terminar.</span>
-        <button
-          *ngIf="['FAILED', 'PARTIAL_WITH_GAPS'].includes((seller.status || '').toUpperCase())"
-          type="button"
-          (click)="startHistorySync(seller)"
-          [disabled]="starting">
-          Continuar janelas incompletas
-        </button>
+        <span *ngIf="!presentation(seller).complete">Dados e lucro permanecem parciais; o sistema continuará os reparos automaticamente.</span>
       </footer>
     </article>
   </div>

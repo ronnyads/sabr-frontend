@@ -23,6 +23,8 @@
 .history-heading h2 { margin: 0.22rem 0 0.3rem; font-size: clamp(1.1rem, 2vw, 1.35rem); }
 .history-heading p, .history-description { margin: 0; color: var(--phub-text-muted, #6f7d94); }
 .history-kicker { color: var(--phub-primary, #2f75ff); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+.history-auto-badge { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.72rem; border: 1px solid #a7f3d0; border-radius: 999px; color: #087657; background: #ecfdf5; font-size: 0.72rem; font-weight: 800; white-space: nowrap; }
+.history-auto-badge i { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12); }
 .seller-history-list { display: grid; gap: 0.85rem; margin-top: 1rem; }
 
 .seller-history {

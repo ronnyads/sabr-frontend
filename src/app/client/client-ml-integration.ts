@@ -293,8 +293,8 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
           const job = result.jobs?.[0];
           this.toastr.success(
             job
-              ? `Atualização iniciada em ${job.total} etapa(s). Ela continuará em segundo plano sem travar esta tela.`
-              : 'A atualização já está em andamento para este seller.',
+              ? 'Atualização completa garantida: histórico faltante e pedidos recentes continuarão em segundo plano, sem duplicar pedidos.'
+              : 'A atualização completa já está em andamento para este seller.',
             'Mercado Livre'
           );
           this.loadStatusAndData();
