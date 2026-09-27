@@ -20,12 +20,11 @@ import {
 import { PageHeaderComponent } from '../shared/page-header/page-header.component';
 import { UiStateComponent } from '../shared/ui-state/ui-state.component';
 import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
-import { ClientMlHistoryCoverage } from './client-ml-history-coverage';
 
 @Component({
   selector: 'app-client-ml-integration',
   standalone: true,
-  imports: [CommonModule, FormsModule, NbButtonModule, NbInputModule, NbSelectModule, PageHeaderComponent, UiStateComponent, ClientMlHistoryCoverage],
+  imports: [CommonModule, FormsModule, NbButtonModule, NbInputModule, NbSelectModule, PageHeaderComponent, UiStateComponent],
   templateUrl: './client-ml-integration.html',
   styleUrls: ['./client-ml-integration.scss']
 })

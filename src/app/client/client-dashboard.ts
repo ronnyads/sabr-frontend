@@ -20,12 +20,11 @@ import { ClientStatus } from '../core/utils/client-status.constants';
 import { MarketplaceMappingsService } from '../core/services/marketplace-mappings.service';
 import { resolveAuditPresentation } from './client-dashboard-audit';
 import { brazilianDayBoundary } from './client-dashboard-period';
-import { ClientMlHistoryCoverage } from './client-ml-history-coverage';
 
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, NbButtonModule, ClientMlHistoryCoverage],
+  imports: [CommonModule, FormsModule, NbButtonModule],
   templateUrl: './client-dashboard.html',
   styleUrls: ['./client-dashboard.scss']
 })

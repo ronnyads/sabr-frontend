@@ -57,8 +57,6 @@
     <button *ngIf="showAccessAlertAction" type="button" (click)="goToOnboarding()">{{ accessAlertAction }}</button>
   </aside>
 
-  <app-client-ml-history-coverage [compact]="true"></app-client-ml-history-coverage>
-
   <div class="dashboard-error" *ngIf="!loading && errorMessage">
     <div><strong>Os dados não carregaram</strong><span>{{ errorMessage }}</span></div>
     <button type="button" (click)="loadDashboard()">Tentar novamente</button>
@@ -110,9 +108,9 @@
     <div class="metric-grid">
       <article class="metric-card enter-item" style="--delay: 70ms">
         <div class="metric-icon icon-orders">▣</div>
-        <span>Pedidos no período</span>
-        <strong>{{ data.totalOrders | number:'1.0-0' }}</strong>
-        <small [ngClass]="trendClass(data.ordersChangePercent)">{{ data.ordersChangePercent | number:'1.0-1' }}% vs. período anterior</small>
+        <span>Vendas válidas / pagas</span>
+        <strong>{{ data.paidOrders | number:'1.0-0' }}</strong>
+        <small>{{ data.totalOrders | number:'1.0-0' }} pedidos recebidos · {{ data.cancelledOrders | number:'1.0-0' }} cancelados</small>
       </article>
       <article class="metric-card enter-item" style="--delay: 120ms">
         <div class="metric-icon icon-units">◫</div>
