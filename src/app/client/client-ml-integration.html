@@ -1,6 +1,15 @@
 <section class="phub-page ml-integration-page">
   <ng-template #headerActions>
-    <button nbButton status="primary" size="small" (click)="syncNow()" [disabled]="syncing || !connected">
+    <button
+      type="button"
+      nbButton
+      status="primary"
+      size="small"
+      data-testid="ml-sync-now"
+      (click)="syncNow()"
+      [disabled]="syncing"
+      [attr.aria-busy]="syncing"
+    >
       {{ syncing ? 'Sincronizando...' : 'Sincronizar tudo agora' }}
     </button>
   </ng-template>

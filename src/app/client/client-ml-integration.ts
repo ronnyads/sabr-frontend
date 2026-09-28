@@ -356,6 +356,14 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
       return;
     }
 
+    // Do not disable the control based on a stale status poll. The button must
+    // always produce an observable result; the API will reject an actually
+    // disconnected account and the user will see the precise error.
+    if (!this.connected) {
+      this.toastr.warning('Conecte uma conta do Mercado Livre antes de sincronizar.', 'Mercado Livre');
+      return;
+    }
+
     this.syncing = true;
     this.integrationService
       .syncNow(this.selectedSellerId || null)
