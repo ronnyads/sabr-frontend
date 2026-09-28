@@ -45,6 +45,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   financialProbing = false;
   financialStatusLoading = false;
   historyStatusLoading = false;
+  historyStatusError = false;
 
   statusError: string | null = null;
   mappingsError: string | null = null;
@@ -123,6 +124,8 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   }
 
   get historyStatusTone(): 'progress' | 'success' | 'warning' | 'danger' {
+    if (this.historyStatusError) return 'danger';
+
     switch (this.selectedHistorySeller?.status?.toUpperCase()) {
       case 'CURRENT': return 'success';
       case 'PARTIAL_WITH_GAPS': return 'warning';
@@ -132,6 +135,8 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   }
 
   get historyStatusLabel(): string {
+    if (this.historyStatusError) return 'Não foi possível consultar o andamento';
+
     switch (this.selectedHistorySeller?.status?.toUpperCase()) {
       case 'CURRENT': return 'Pedidos atualizados';
       case 'PARTIAL_WITH_GAPS': return 'Atualizado com pendências';
@@ -141,6 +146,10 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   }
 
   get historyStatusMessage(): string {
+    if (this.historyStatusError) {
+      return 'A importação continua no servidor. Vamos consultar o andamento novamente de forma automática.';
+    }
+
     const seller = this.selectedHistorySeller;
     switch (seller?.status?.toUpperCase()) {
       case 'CURRENT':
@@ -148,11 +157,23 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
       case 'PARTIAL_WITH_GAPS':
         return `${seller.unresolvedGapOrderIds} pedido(s) ainda serão conferidos novamente de forma automática.`;
       case 'FAILED':
-        return 'A atualização automática encontrou uma falha. O sistema fará uma nova tentativa sem duplicar pedidos.';
+        return 'A atualização encontrou uma falha. O progresso foi preservado e a nova tentativa não duplicará pedidos.';
       default:
         return seller?.totalWindows
-          ? `${this.status?.ordersCount ?? seller.localImportedOrderIds} pedidos já disponíveis. ${seller.completedWindows} de ${seller.totalWindows} dias conferidos. Você pode sair desta tela.`
+          ? `${seller.localImportedOrderIds || this.status?.ordersCount || 0} pedidos disponíveis • ${seller.completedWindows} de ${seller.totalWindows} dias conferidos.`
           : 'Preparando a importação. Você pode sair desta tela; o processo continuará automaticamente.';
+    }
+  }
+
+  get historyActivityLabel(): string | null {
+    if (this.historyStatusError) return 'Nova consulta automática em instantes';
+
+    switch (this.selectedHistorySeller?.status?.toUpperCase()) {
+      case 'BACKFILLING': return 'Conferindo pedidos do dia…';
+      case 'INITIAL_PENDING': return 'Preparando a fila de pedidos…';
+      case 'PARTIAL_WITH_GAPS': return 'Nova tentativa automática programada';
+      case 'FAILED': return 'Aguardando nova tentativa automática';
+      default: return null;
     }
   }
 
@@ -524,21 +545,26 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (result) => {
+          this.historyStatusError = false;
           this.historyStatus = result;
           this.scheduleHistoryPoll();
         },
         error: () => {
-          this.historyStatus = null;
+          this.historyStatusError = true;
+          this.scheduleHistoryPoll(true);
         }
       });
   }
 
-  private scheduleHistoryPoll(): void {
+  private scheduleHistoryPoll(retryAfterError = false): void {
     const hasActiveImport = (this.historyStatus?.sellers ?? []).some((seller) => {
       const state = seller.status?.toUpperCase();
-      return state === 'INITIAL_PENDING' || state === 'BACKFILLING';
+      return state === 'INITIAL_PENDING'
+        || state === 'BACKFILLING'
+        || state === 'PARTIAL_WITH_GAPS'
+        || state === 'FAILED';
     });
-    if (!hasActiveImport || this.historyPollScheduled) return;
+    if ((!hasActiveImport && !retryAfterError) || this.historyPollScheduled) return;
 
     this.historyPollScheduled = true;
     timer(10_000)

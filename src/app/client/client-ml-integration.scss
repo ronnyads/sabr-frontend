@@ -55,6 +55,19 @@
   white-space: nowrap;
 }
 
+.sync-progress-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.sync-progress-block small,
+.sync-next-action {
+  color: var(--sync-accent);
+  font-weight: 700;
+}
+
 .sync-progress {
   height: 6px;
   overflow: hidden;
@@ -347,7 +360,7 @@
     grid-template-columns: auto 1fr;
   }
 
-  .sync-progress,
+  .sync-progress-block,
   .sync-status-strip small {
     grid-column: 2;
   }

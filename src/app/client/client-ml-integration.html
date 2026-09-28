@@ -13,7 +13,7 @@
 
   <div
     class="sync-status-strip"
-    *ngIf="connected && (historyStatus || historyStatusLoading)"
+    *ngIf="connected && (historyStatus || historyStatusLoading || historyStatusError)"
     [attr.data-state]="historyStatusTone"
     role="status"
     aria-live="polite"
@@ -21,20 +21,25 @@
     <span class="sync-status-dot" aria-hidden="true"></span>
     <div class="sync-status-copy">
       <strong>{{ historyStatusLoading && !historyStatus ? 'Verificando sincronização...' : historyStatusLabel }}</strong>
-      <span *ngIf="historyStatus">{{ historyStatusMessage }}</span>
+      <span *ngIf="historyStatus || historyStatusError">{{ historyStatusMessage }}</span>
     </div>
-    <div
-      class="sync-progress"
-      *ngIf="historySyncActive"
-      role="progressbar"
-      aria-label="Progresso da importação de pedidos"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      [attr.aria-valuenow]="historyProgressPct"
-    >
-      <span [style.width.%]="historyProgressPct"></span>
+    <div class="sync-progress-block" *ngIf="historySyncActive">
+      <small>{{ historyActivityLabel }}</small>
+      <div
+        class="sync-progress"
+        role="progressbar"
+        aria-label="Progresso da importação de pedidos"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="historyProgressPct"
+      >
+        <span [style.width.%]="historyProgressPct"></span>
+      </div>
     </div>
-    <small *ngIf="!historySyncActive && status?.lastSyncAt">
+    <small class="sync-next-action" *ngIf="!historySyncActive && historyActivityLabel">
+      {{ historyActivityLabel }}
+    </small>
+    <small *ngIf="!historySyncActive && !historyActivityLabel && status?.lastSyncAt">
       Última atualização {{ status?.lastSyncAt | date: 'dd/MM/yyyy HH:mm' }}
     </small>
   </div>
