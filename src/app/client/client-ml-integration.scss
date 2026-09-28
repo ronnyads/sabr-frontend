@@ -8,6 +8,69 @@
   padding: 18px;
 }
 
+.sync-status-strip {
+  --sync-accent: var(--phub-primary);
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) minmax(120px, 240px) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--sync-accent) 28%, var(--phub-border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--sync-accent) 6%, var(--phub-surface-raised));
+}
+
+.sync-status-strip[data-state='success'] { --sync-accent: var(--phub-success); }
+.sync-status-strip[data-state='warning'] { --sync-accent: var(--phub-warning); }
+.sync-status-strip[data-state='danger'] { --sync-accent: var(--phub-danger); }
+
+.sync-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sync-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sync-accent) 14%, transparent);
+}
+
+.sync-status-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sync-status-copy strong {
+  color: var(--phub-text);
+  font-size: 0.88rem;
+}
+
+.sync-status-copy span,
+.sync-status-strip small {
+  color: var(--phub-text-muted);
+  font-size: 0.78rem;
+}
+
+.sync-status-strip small {
+  white-space: nowrap;
+}
+
+.sync-progress {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sync-accent) 14%, var(--phub-surface-soft));
+}
+
+.sync-progress span {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: var(--sync-accent);
+  transition: width 240ms ease;
+}
+
 .panel h3 {
   margin: 0 0 12px;
   color: var(--phub-text);
@@ -280,6 +343,15 @@
 }
 
 @media (max-width: 900px) {
+  .sync-status-strip {
+    grid-template-columns: auto 1fr;
+  }
+
+  .sync-progress,
+  .sync-status-strip small {
+    grid-column: 2;
+  }
+
   .financial-connection {
     align-items: stretch;
     flex-direction: column;
@@ -291,5 +363,11 @@
 
   .phub-table {
     min-width: 980px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sync-progress span {
+    transition: none;
   }
 }

@@ -4,7 +4,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbButtonModule, NbInputModule, NbSelectModule, NbToastrService } from '@nebular/theme';
-import { Subject, finalize, takeUntil } from 'rxjs';
+import { Subject, finalize, takeUntil, timer } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   MarketplaceOrderListItemResult,
@@ -14,6 +14,8 @@ import {
   MercadoLivreCreateMappingRequest,
   MercadoLivreIntegrationService,
   MercadoLivreIntegrationStatusResult,
+  MercadoLivreHistorySellerStatusResult,
+  MercadoLivreHistorySyncStatusResult,
   MercadoLivreListingMapResult,
   MercadoPagoFinancialStatusResult
 } from '../core/services/mercado-livre-integration.service';
@@ -42,6 +44,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   financialConnecting = false;
   financialProbing = false;
   financialStatusLoading = false;
+  historyStatusLoading = false;
 
   statusError: string | null = null;
   mappingsError: string | null = null;
@@ -50,6 +53,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
 
   status: MercadoLivreIntegrationStatusResult | null = null;
   financialStatus: MercadoPagoFinancialStatusResult | null = null;
+  historyStatus: MercadoLivreHistorySyncStatusResult | null = null;
   mappings: MercadoLivreListingMapResult[] = [];
   orders: MarketplaceOrderListItemResult[] = [];
   listings: MercadoLivreListingItemDetails[] = [];
@@ -69,6 +73,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
   orderTotal = 0;
 
   private readonly destroy$ = new Subject<void>();
+  private historyPollScheduled = false;
 
   constructor(
     private readonly integrationService: MercadoLivreIntegrationService,
@@ -99,6 +104,56 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
 
   get availableSellers(): string[] {
     return this.status?.connections?.map((item) => item.sellerId) ?? [];
+  }
+
+  get selectedHistorySeller(): MercadoLivreHistorySellerStatusResult | null {
+    const sellers = this.historyStatus?.sellers ?? [];
+    return sellers.find((seller) => String(seller.sellerId) === this.selectedSellerId) ?? sellers[0] ?? null;
+  }
+
+  get historySyncActive(): boolean {
+    const state = this.selectedHistorySeller?.status?.toUpperCase();
+    return state === 'INITIAL_PENDING' || state === 'BACKFILLING';
+  }
+
+  get historyProgressPct(): number {
+    const seller = this.selectedHistorySeller;
+    if (!seller || seller.totalWindows <= 0) return 0;
+    return Math.min(100, Math.max(0, Math.round((seller.completedWindows / seller.totalWindows) * 100)));
+  }
+
+  get historyStatusTone(): 'progress' | 'success' | 'warning' | 'danger' {
+    switch (this.selectedHistorySeller?.status?.toUpperCase()) {
+      case 'CURRENT': return 'success';
+      case 'PARTIAL_WITH_GAPS': return 'warning';
+      case 'FAILED': return 'danger';
+      default: return 'progress';
+    }
+  }
+
+  get historyStatusLabel(): string {
+    switch (this.selectedHistorySeller?.status?.toUpperCase()) {
+      case 'CURRENT': return 'Pedidos atualizados';
+      case 'PARTIAL_WITH_GAPS': return 'Atualizado com pendências';
+      case 'FAILED': return 'Sincronização precisa de atenção';
+      default: return 'Sincronizando em segundo plano';
+    }
+  }
+
+  get historyStatusMessage(): string {
+    const seller = this.selectedHistorySeller;
+    switch (seller?.status?.toUpperCase()) {
+      case 'CURRENT':
+        return 'Todos os períodos disponíveis foram conferidos. Novos pedidos entram automaticamente.';
+      case 'PARTIAL_WITH_GAPS':
+        return `${seller.unresolvedGapOrderIds} pedido(s) ainda serão conferidos novamente de forma automática.`;
+      case 'FAILED':
+        return 'A atualização automática encontrou uma falha. O sistema fará uma nova tentativa sem duplicar pedidos.';
+      default:
+        return seller?.totalWindows
+          ? `${seller.completedWindows} de ${seller.totalWindows} períodos concluídos. Você pode sair desta tela.`
+          : 'Preparando a importação. Você pode sair desta tela; o processo continuará automaticamente.';
+    }
   }
 
   get hasPreviousPage(): boolean {
@@ -335,6 +390,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
     this.mappingDraft.sellerId = this.selectedSellerId;
     this.loadMappings();
     this.loadListings();
+    this.scheduleHistoryPoll();
   }
 
   createMapping(): void {
@@ -453,8 +509,45 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
 
   loadStatusAndData(): void {
     this.loadStatus(true);
+    this.loadHistorySyncStatus();
     this.loadFinancialStatus();
     this.loadOrders();
+  }
+
+  private loadHistorySyncStatus(silent = false): void {
+    if (!silent) this.historyStatusLoading = true;
+    this.integrationService
+      .historySyncStatus()
+      .pipe(
+        finalize(() => (this.historyStatusLoading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (result) => {
+          this.historyStatus = result;
+          this.scheduleHistoryPoll();
+        },
+        error: () => {
+          this.historyStatus = null;
+        }
+      });
+  }
+
+  private scheduleHistoryPoll(): void {
+    const hasActiveImport = (this.historyStatus?.sellers ?? []).some((seller) => {
+      const state = seller.status?.toUpperCase();
+      return state === 'INITIAL_PENDING' || state === 'BACKFILLING';
+    });
+    if (!hasActiveImport || this.historyPollScheduled) return;
+
+    this.historyPollScheduled = true;
+    timer(10_000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.historyPollScheduled = false;
+        this.loadHistorySyncStatus(true);
+        this.loadStatus(false);
+      });
   }
 
   private loadFinancialStatus(): void {
