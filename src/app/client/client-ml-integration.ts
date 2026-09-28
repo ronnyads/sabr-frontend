@@ -151,7 +151,7 @@ export class ClientMlIntegration implements OnInit, OnDestroy {
         return 'A atualização automática encontrou uma falha. O sistema fará uma nova tentativa sem duplicar pedidos.';
       default:
         return seller?.totalWindows
-          ? `${seller.completedWindows} de ${seller.totalWindows} períodos concluídos. Você pode sair desta tela.`
+          ? `${this.status?.ordersCount ?? seller.localImportedOrderIds} pedidos já disponíveis. ${seller.completedWindows} de ${seller.totalWindows} dias conferidos. Você pode sair desta tela.`
           : 'Preparando a importação. Você pode sair desta tela; o processo continuará automaticamente.';
     }
   }
