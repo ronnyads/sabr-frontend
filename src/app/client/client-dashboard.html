@@ -144,7 +144,7 @@
         <div>
           <span class="panel-kicker">Resultados auditáveis</span>
           <h2>Rentabilidade do período</h2>
-          <p>Estimativa operacional separada da confirmação financeira do Mercado Livre<span *ngIf="selectedSupplierScope !== 'ALL'"> · recorte por origem/fornecedor ativo</span>.</p>
+          <p>Lucro somente das vendas pagas. Cancelamentos e reembolsos permanecem no histórico, fora deste cálculo<span *ngIf="selectedSupplierScope !== 'ALL'"> · recorte por origem/fornecedor ativo</span>.</p>
         </div>
         <div class="results-actions">
           <span class="maturity-badge" [attr.data-state]="auditPresentation(finance).status">{{ auditPresentation(finance).label }}</span>
@@ -155,14 +155,14 @@
       </header>
       <div class="sync-feedback" *ngIf="syncMessage" aria-live="polite">{{ syncMessage }}</div>
       <div class="financial-cards">
-        <div><span>Faturamento bruto</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>vendas pagas, antes das deduções</small></div>
+        <div><span>Faturamento válido</span><strong>{{ formatCents(finance.grossRevenueCents) }}</strong><small>somente vendas pagas, antes das deduções</small></div>
         <div><span>Líquido econômico estimado</span><strong>{{ formatCents(finance.estimatedEconomicNetCents) }}</strong><small>taxas, fretes e ajustes operacionais</small></div>
         <div class="profit-card" [class.negative-profit]="finance.operationalProfitCents < 0"><span>{{ auditPresentation(finance).label }}</span><strong>{{ formatCents(finance.operationalProfitCents) }}</strong><small>{{ auditPresentation(finance).isPartial ? 'Calculado somente com componentes resolvidos; confira as duas coberturas e as pendências abaixo.' : 'Custos e componentes financeiros integralmente resolvidos.' }}</small></div>
-        <div><span>{{ finance.maturity === 'CONFIRMADO' ? 'Valor líquido conferido pelo Mercado Pago' : 'Valores parcialmente conferidos pelo Mercado Pago' }}</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.reconciledConfirmedValueCents) : 'Aguardando conferência do Mercado Pago' }}</strong><small>{{ finance.lastBillingSyncAt ? (finance.maturity === 'CONFIRMADO' ? 'Valor final externo confirmado pelo provedor' : 'Somente os componentes já confirmados; ainda não é o valor final') : 'Sem confirmação externa; valor desconhecido, não zero' }}</small></div>
+        <div><span>{{ finance.maturity === 'CONFIRMADO' ? 'Movimentação líquida confirmada' : 'Movimentação parcialmente confirmada' }}</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.reconciledConfirmedValueCents) : 'Aguardando conferência do Mercado Pago' }}</strong><small>{{ finance.lastBillingSyncAt ? 'Entradas e saídas já conciliadas das vendas pagas; não representa o saldo disponível da conta' : 'Sem confirmação externa; valor desconhecido, não zero' }}</small></div>
       </div>
       <div class="financial-detail">
         <div class="profit-waterfall" [attr.aria-label]="auditPresentation(finance).isPartial ? 'Componentes financeiros parciais; resultado auditado em apuração' : 'Composição do resultado operacional auditado'">
-          <span><small>Faturamento bruto</small><b>{{ formatCents(finance.grossRevenueCents) }}</b></span>
+          <span><small>Faturamento válido</small><b>{{ formatCents(finance.grossRevenueCents) }}</b></span>
           <i aria-hidden="true">−</i>
           <span><small>Deduções do canal</small><b>{{ formatCents(finance.grossRevenueCents - finance.estimatedEconomicNetCents) }}</b></span>
           <i aria-hidden="true">−</i>
@@ -173,7 +173,7 @@
         <details class="financial-explanation">
           <summary>Entenda este resultado</summary>
           <div class="explanation-grid">
-            <span>Faturamento bruto <b>{{ formatCents(finance.grossRevenueCents) }}</b></span>
+            <span>Faturamento válido <b>{{ formatCents(finance.grossRevenueCents) }}</b></span>
             <span>Tarifas e comissões <b>− {{ formatCents(finance.marketplaceFeesCents) }}</b></span>
             <span>Frete do seller <b>− {{ formatCents(finance.sellerShippingCents) }}</b></span>
             <span>Reembolsos <b>− {{ formatCents(finance.refundsCents) }}</b></span>
@@ -182,6 +182,8 @@
             <span>Custo dos produtos <b>− {{ formatCents(-finance.productCostCents) }} · {{ finance.productCostMaturity === 'CONFIRMADO' ? 'realizado' : finance.productCostMaturity === 'INCOMPLETO' ? 'incompleto' : 'estimado' }}</b></span>
             <span>Margem operacional{{ auditPresentation(finance).isPartial ? ' parcial' : ' auditada' }} <b>{{ finance.operationalMarginPct == null ? 'Não calculável' : (finance.operationalMarginPct | number:'1.0-2') + '%' }}</b></span>
           </div>
+          <p><b>Regra do lucro:</b> entram somente pedidos pagos. Cancelados, reembolsados e parcialmente reembolsados continuam nas contagens gerais e na auditoria financeira, mas ficam integralmente fora deste cálculo.</p>
+          <p><b>Saldo disponível:</b> será apresentado somente quando vier do Relatório de Liberações/Dinheiro em Conta do Mercado Pago. Uma conciliação parcial nunca é tratada como saldo da conta.</p>
           <p *ngIf="auditPresentation(finance).isPartial">Resultado auditado parcial: custo, confirmação financeira ou alocação ainda podem faltar. Valores pendentes não são tratados como zero.</p>
           <button type="button" class="finance-order-action" (click)="loadFinanceOrders()" [disabled]="financeOrdersLoading">{{ financeOrdersLoading ? 'Consultando pedidos…' : 'Ver pedidos que compõem o resultado' }}</button>
           <p *ngIf="financeOrdersError" role="alert">{{ financeOrdersError }}</p>
