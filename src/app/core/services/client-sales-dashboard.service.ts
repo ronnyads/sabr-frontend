@@ -30,6 +30,7 @@ export interface ExternalSupplierSalesSummary {
   products: number; orders: number; units: number; grossRevenue: number;
   productsWithCost: number; productsPendingCost: number;
 }
+export interface ClientSupplierFilterOption { key: string; label: string; origin: string; }
 export interface ClientSalesStatusResult { status: string; orders: number; percentage: number; }
 export interface ClientShippingTodaySkuResult {
   sku: string;
@@ -78,6 +79,8 @@ export interface ClientSalesDashboardResult {
   statuses: ClientSalesStatusResult[];
   shippingToday: ClientShippingTodayResult;
   externalSupplier?: ExternalSupplierSalesSummary;
+  supplierScope?: string;
+  supplierFilters?: ClientSupplierFilterOption[];
 }
 
 export interface FinancialCoverageResult {
@@ -113,6 +116,8 @@ export interface ClientProfitabilityResult {
   pendingCorrectionPlan?: PendingFinancialCorrectionPlan | null;
   reconciliationStatus?: string | null;
   projectionStatus?: string | null;
+  supplierScope?: string;
+  supplierUnallocatedCents?: number;
 }
 export interface FinancialSyncJobResult {
   jobId: string; sellerId: number; jobType: string; status: string; rangeFrom: string; rangeTo: string;
@@ -137,25 +142,30 @@ export interface ClientProfitabilityOrderDetail extends ClientProfitabilityOrder
 export class ClientSalesDashboardService {
   constructor(private readonly http: HttpClient) {}
 
-  getSales(options: { from: Date; to: Date; provider?: string | null }): Observable<ClientSalesDashboardResult> {
+  getSales(options: { from: Date; to: Date; provider?: string | null; supplier?: string | null }): Observable<ClientSalesDashboardResult> {
     let params = new HttpParams().set('from', options.from.toISOString()).set('to', options.to.toISOString());
     if (options.provider) params = params.set('provider', options.provider);
+    if (options.supplier && options.supplier !== 'ALL') params = params.set('supplier', options.supplier);
     return this.http.get<ClientSalesDashboardResult>(`${environment.apiBaseUrl}/client/dashboard/sales`, { params });
   }
 
-  getProfitability(options: { from: Date; to: Date; provider?: string | null }): Observable<ClientProfitabilityResult> {
+  getProfitability(options: { from: Date; to: Date; provider?: string | null; supplier?: string | null }): Observable<ClientProfitabilityResult> {
     let params = new HttpParams().set('from', options.from.toISOString()).set('to', options.to.toISOString());
     if (options.provider) params = params.set('provider', options.provider);
+    if (options.supplier && options.supplier !== 'ALL') params = params.set('supplier', options.supplier);
     return this.http.get<ClientProfitabilityResult>(`${environment.apiBaseUrl}/client/dashboard/profitability`, { params });
   }
 
-  getProfitabilityOrders(from: Date, to: Date): Observable<ClientProfitabilityOrder[]> {
-    const params = new HttpParams().set('from', from.toISOString()).set('to', to.toISOString());
+  getProfitabilityOrders(from: Date, to: Date, supplier?: string | null): Observable<ClientProfitabilityOrder[]> {
+    let params = new HttpParams().set('from', from.toISOString()).set('to', to.toISOString());
+    if (supplier && supplier !== 'ALL') params = params.set('supplier', supplier);
     return this.http.get<ClientProfitabilityOrder[]>(`${environment.apiBaseUrl}/client/dashboard/profitability/orders`, { params });
   }
 
-  getProfitabilityOrder(orderId: string): Observable<ClientProfitabilityOrderDetail> {
-    return this.http.get<ClientProfitabilityOrderDetail>(`${environment.apiBaseUrl}/client/dashboard/profitability/orders/${orderId}`);
+  getProfitabilityOrder(orderId: string, supplier?: string | null): Observable<ClientProfitabilityOrderDetail> {
+    let params = new HttpParams();
+    if (supplier && supplier !== 'ALL') params = params.set('supplier', supplier);
+    return this.http.get<ClientProfitabilityOrderDetail>(`${environment.apiBaseUrl}/client/dashboard/profitability/orders/${orderId}`, { params });
   }
 
   startSync(): Observable<FinancialSyncEnqueueResult> {

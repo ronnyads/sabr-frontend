@@ -30,6 +30,13 @@
       <div class="channel-chip" aria-label="Canal de venda: Mercado Livre">
         <span>ML</span> Mercado Livre
       </div>
+      <label class="supplier-filter" for="dashboard-supplier-filter">
+        <span>Origem / fornecedor</span>
+        <select id="dashboard-supplier-filter" [(ngModel)]="selectedSupplierScope" (ngModelChange)="onSupplierScopeChange()">
+          <option value="ALL">Todos os fornecedores</option>
+          <option *ngFor="let option of dashboard?.supplierFilters" [value]="option.key" [hidden]="option.key === 'ALL'">{{ option.label }}</option>
+        </select>
+      </label>
     </div>
   </header>
 
@@ -137,7 +144,7 @@
         <div>
           <span class="panel-kicker">Resultados auditáveis</span>
           <h2>Rentabilidade do período</h2>
-          <p>Estimativa operacional separada da confirmação financeira do Mercado Livre.</p>
+          <p>Estimativa operacional separada da confirmação financeira do Mercado Livre<span *ngIf="selectedSupplierScope !== 'ALL'"> · recorte por origem/fornecedor ativo</span>.</p>
         </div>
         <div class="results-actions">
           <span class="maturity-badge" [attr.data-state]="auditPresentation(finance).status">{{ auditPresentation(finance).label }}</span>
@@ -216,6 +223,7 @@
           <div class="detail-title"><div><span>Divergência estimado × confirmado</span><strong>{{ finance.lastBillingSyncAt ? formatCents(finance.divergence.absoluteCents) : 'Ainda não calculável' }}</strong></div><small>{{ !finance.lastBillingSyncAt || finance.divergence.percentage == null ? 'base ainda não comparável' : (finance.divergence.percentage | number:'1.0-2') + '%' }}</small></div>
           <p *ngIf="finance.unallocatedCents !== 0"><b>{{ formatCents(finance.unallocatedCents) }}</b> sem alocação oficial. O valor não foi rateado entre SKUs.</p>
           <p *ngIf="finance.incompleteReasons.length">Pendências: {{ financialPendingLabels(finance.incompleteReasons) }}</p>
+          <p *ngIf="finance.supplierUnallocatedCents"><b>{{ formatCents(finance.supplierUnallocatedCents) }}</b> em frete ou ajustes de pedidos mistos ficou fora deste recorte, pois o canal não informa a divisão por fornecedor.</p>
           <p *ngIf="!finance.incompleteReasons.length && finance.unallocatedCents === 0">Nenhuma pendência estrutural identificada neste período.</p>
         </div>
       </div>

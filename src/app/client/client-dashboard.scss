@@ -62,6 +62,39 @@
 
 .dashboard-controls { display: flex; align-items: center; gap: 0.65rem; }
 
+.supplier-filter {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 220px;
+  padding: 0.42rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(25, 43, 74, 0.05);
+
+  > span {
+    color: var(--muted);
+    font-size: 0.58rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  select {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    color: var(--ink);
+    background: transparent;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  &:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47, 117, 255, 0.14); }
+}
+
 .custom-range-panel {
   position: relative;
   display: flex;
@@ -112,6 +145,7 @@
 @media (max-width: 900px) {
   .dashboard-header { align-items: flex-start; flex-direction: column; }
   .dashboard-controls { width: 100%; flex-wrap: wrap; }
+  .supplier-filter { min-width: min(100%, 260px); }
   .period-switcher { max-width: 100%; overflow-x: auto; }
   .period-switcher button { white-space: nowrap; }
   .custom-range-panel { align-items: stretch; flex-direction: column; }

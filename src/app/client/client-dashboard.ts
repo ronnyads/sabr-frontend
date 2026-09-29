@@ -36,6 +36,7 @@ export class ClientDashboard implements OnInit {
   customTo = '';
   customRangeError = '';
   readonly selectedProvider = 'MercadoLivre';
+  selectedSupplierScope = 'ALL';
   loading = true;
   errorMessage = '';
   dashboard?: ClientSalesDashboardResult;
@@ -148,7 +149,8 @@ export class ClientDashboard implements OnInit {
       MARKETPLACE_FEE_PENDING: 'tarifa do marketplace ainda não informada',
       SHIPPING_COST_PENDING: 'frete do seller ainda não conferido',
       EXTERNAL_COST_PENDING: 'custo do fornecedor externo não definido',
-      UNALLOCATED_EXTERNAL_VALUE: 'valor externo sem identificação por produto'
+      UNALLOCATED_EXTERNAL_VALUE: 'valor externo sem identificação por produto',
+      SUPPLIER_SCOPE_UNALLOCATED: 'frete ou ajuste do pedido não pode ser atribuído com segurança a um fornecedor'
     };
     return reasons.map(reason => labels[reason] ?? reason).join(' · ');
   }
@@ -176,10 +178,10 @@ export class ClientDashboard implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     forkJoin({
-      sales: this.salesDashboard.getSales({ from, to, provider: this.selectedProvider }),
+      sales: this.salesDashboard.getSales({ from, to, provider: this.selectedProvider, supplier: this.selectedSupplierScope }),
       // The financial module is feature-gated during rollout. A temporarily
       // unavailable projection must never take the operational sales dashboard down.
-      profitability: this.salesDashboard.getProfitability({ from, to, provider: this.selectedProvider })
+      profitability: this.salesDashboard.getProfitability({ from, to, provider: this.selectedProvider, supplier: this.selectedSupplierScope })
         .pipe(catchError(() => of(undefined)))
     })
       .pipe(finalize(() => (this.loading = false)))
@@ -233,7 +235,7 @@ export class ClientDashboard implements OnInit {
     const { from, to } = this.activeRange;
     this.financeOrdersLoading = true;
     this.financeOrdersError = '';
-    this.salesDashboard.getProfitabilityOrders(from, to)
+    this.salesDashboard.getProfitabilityOrders(from, to, this.selectedSupplierScope)
       .pipe(finalize(() => (this.financeOrdersLoading = false)))
       .subscribe({
         next: orders => this.financeOrders = [...orders].sort((a, b) => a.operationalProfitCents - b.operationalProfitCents).slice(0, 20),
@@ -242,7 +244,7 @@ export class ClientDashboard implements OnInit {
   }
 
   inspectFinanceOrder(orderId: string): void {
-    this.salesDashboard.getProfitabilityOrder(orderId).subscribe({
+    this.salesDashboard.getProfitabilityOrder(orderId, this.selectedSupplierScope).subscribe({
       next: detail => this.financeOrderDetail = detail,
       error: () => this.financeOrdersError = 'Não foi possível abrir os lançamentos deste pedido.'
     });
@@ -402,6 +404,12 @@ export class ClientDashboard implements OnInit {
   }
 
   onProductSearch(): void { this.productPage = 1; }
+
+  onSupplierScopeChange(): void {
+    this.productSearch = '';
+    this.productPage = 1;
+    this.loadDashboard();
+  }
 
   setProductPage(page: number): void {
     this.productPage = Math.min(this.productPageCount, Math.max(1, page));
