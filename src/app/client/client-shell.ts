@@ -10,8 +10,6 @@ import { DocumentStatus, REQUIRED_PJ_DOCUMENT_TYPES } from '../core/utils/docume
 import { PhubShellLayoutComponent } from '../shared/phub-shell-layout/phub-shell-layout.component';
 import { PhubMenuItem } from '../shared/phub-sidebar/phub-sidebar.component';
 import { environment } from '../../environments/environment';
-import { WalletService } from '../core/services/wallet.service';
-import { formatBrlFromCents } from '../core/utils/money.utils';
 
 const DOCUMENT_TYPE_LABELS: Record<number, string> = {
   [REQUIRED_PJ_DOCUMENT_TYPES[0]]: 'Certidao CNPJ',
@@ -32,7 +30,6 @@ export class ClientShell implements OnInit, AfterViewInit {
   readonly darkModeEnabled = !!environment.ui?.darkModeV1;
 
   rejectedDocumentLabels: string[] = [];
-  walletBalanceLabel = 'Carregando…';
 
   // ── Static menu (same for all users in the shell) ─────────────────────────
   // Access restriction is handled inside each page component / guard.
@@ -44,8 +41,7 @@ export class ClientShell implements OnInit, AfterViewInit {
     private profileService: ClientProfileService,
     private documentsService: ClientDocumentsService,
     private readonly host: ElementRef<HTMLElement>,
-    private readonly overlayContainer: NbOverlayContainerAdapter,
-    private readonly walletService: WalletService
+    private readonly overlayContainer: NbOverlayContainerAdapter
   ) {}
 
   ngOnInit(): void {
@@ -60,10 +56,6 @@ export class ClientShell implements OnInit, AfterViewInit {
       error: () => {
         this.loadRejectedDocumentsIfNeeded();
       }
-    });
-    this.walletService.getClientWallet().subscribe({
-      next: wallet => this.walletBalanceLabel = formatBrlFromCents(wallet.balanceCents),
-      error: () => this.walletBalanceLabel = 'Indisponível'
     });
   }
 
@@ -187,15 +179,15 @@ export class ClientShell implements OnInit, AfterViewInit {
 
   private buildMenuItems(): PhubMenuItem[] {
     const menu: PhubMenuItem[] = [
-      { label: 'Dashboard', group: 'Visão geral', icon: 'home-outline', link: '/client/dashboard', exact: true },
-      { label: 'Catálogo', group: 'Operação', icon: 'book-open-outline', link: '/client/catalog' },
-      { label: 'Meus produtos', group: 'Operação', icon: 'cube-outline', link: '/client/my-products' },
-      { label: 'Meus pedidos', group: 'Operação', icon: 'shopping-bag-outline', link: '/client/orders' },
-      { label: 'Carteira', group: 'Financeiro', icon: 'credit-card-outline', link: '/client/wallet' },
-      { label: 'Integrações', group: 'Configurações', icon: 'link-2-outline', link: '/client/integrations' }
+      { label: 'Dashboard', icon: 'home-outline', link: '/client/dashboard', exact: true },
+      { label: 'Catalogo', icon: 'book-open-outline', link: '/client/catalog' },
+      { label: 'Meus Produtos', icon: 'cube-outline', link: '/client/my-products' },
+      { label: 'Integrações', icon: 'link-2-outline', link: '/client/integrations' },
+      { label: 'Meus Pedidos', icon: 'shopping-bag-outline', link: '/client/orders' },
+      { label: 'Carteira', icon: 'credit-card-outline', link: '/client/wallet' }
     ];
     if (environment.ui?.publicationsEnabled) {
-      menu.splice(3, 0, { label: 'Publicações', group: 'Operação', icon: 'layers-outline', link: '/client/publications' });
+      menu.splice(3, 0, { label: 'Publicacoes', icon: 'layers-outline', link: '/client/publications' });
     }
     return menu;
   }

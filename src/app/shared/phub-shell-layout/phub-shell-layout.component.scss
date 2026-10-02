@@ -28,18 +28,6 @@
   padding:   var(--phub-space-lg);
 }
 
-.shell-breadcrumbs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-  color: var(--phub-text-muted);
-  font-size: 12px;
-}
-
-.shell-breadcrumbs a { color: inherit; text-decoration: none; }
-.shell-breadcrumbs a:hover { color: var(--phub-primary-strong); }
-
 // ─── Overlay (mobile) ────────────────────────────────────────────────────────
 .phub-overlay {
   position:         fixed;
