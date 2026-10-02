@@ -4,7 +4,7 @@ import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NbButtonModule, NbIconModule, NbToastrService } from '@nebular/theme';
-import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil, timeout } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
 import { CatalogProduct, CatalogProductDetail, CatalogProductFacets, CatalogService } from '../core/services/catalog.service';
 import { MyProductsService, PricingMode } from '../core/services/my-products.service';
 import { formatBrlFromCents } from '../core/utils/money.utils';
@@ -265,7 +265,7 @@ export class ClientCatalog implements OnInit, OnDestroy {
         sort: this.sort.split(':')[0] as any,
         direction: this.sort.split(':')[1] as any
       })
-      .pipe(timeout({ first: 20_000 }), takeUntil(this.destroy$))
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           this.products = response.items ?? [];
