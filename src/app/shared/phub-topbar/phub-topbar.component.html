@@ -23,5 +23,14 @@
     </div>
   </div>
 
-  <div class="right"></div>
+  <div class="right">
+    <a *ngIf="walletBalanceLabel" class="wallet-context" routerLink="/client/wallet" aria-label="Abrir carteira">
+      <nb-icon icon="credit-card-outline"></nb-icon>
+      <span><small>Saldo da carteira</small><strong>{{ walletBalanceLabel }}</strong></span>
+    </a>
+    <button *ngIf="themeToggleEnabled" type="button" class="theme-toggle" [attr.aria-label]="themeLabel" [title]="themeLabel" (click)="toggleTheme()">
+      <nb-icon [icon]="themeIcon"></nb-icon><span>{{ themeLabel }}</span>
+    </button>
+    <div class="account-context" *ngIf="userName"><span class="account-dot"></span><span><small>Conta atual</small><strong>{{ userName }}</strong></span></div>
+  </div>
 </header>

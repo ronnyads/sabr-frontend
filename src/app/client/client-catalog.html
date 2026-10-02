@@ -1,65 +1,98 @@
-<section class="phub-page client-catalog-page">
-  <app-page-header
-    [title]="'Catálogo de produtos'"
-    [subtitle]="'Escolha produtos disponíveis, vincule seus anúncios ou publique diretamente no marketplace.'"
-  ></app-page-header>
+<section class="catalog-page">
+  <header class="catalog-hero">
+    <div>
+      <span class="eyebrow">Operação · Produtos autorizados</span>
+      <h1>Catálogo</h1>
+      <p>Encontre produtos do PrometheusHUB, confira estoque e prepare sua próxima publicação.</p>
+    </div>
+    <a nbButton status="primary" routerLink="/client/my-products"><nb-icon icon="cube-outline"></nb-icon> Abrir meus produtos</a>
+  </header>
 
-  <app-search-toolbar
-    [placeholder]="'Buscar por SKU ou nome...'"
-    [value]="searchControl.value"
-    (searchChange)="onToolbarSearchChange($event)"
-    (clear)="clearToolbar()"
-  ></app-search-toolbar>
+  <section class="catalog-pulse" aria-label="Resumo do catálogo">
+    <article><span>Produtos autorizados</span><strong>{{ total }}</strong><small>para esta conta</small></article>
+    <article><span>Com estoque</span><strong>{{ facets.inStockCount }}</strong><small>prontos para operar</small></article>
+    <article><span>Nos meus produtos</span><strong>{{ facets.addedCount }}</strong><small>já selecionados</small></article>
+    <article class="pulse-attention"><span>Sem estoque</span><strong>{{ facets.outOfStockCount }}</strong><small>aguardando reposição</small></article>
+  </section>
 
-  <div class="phub-card panel">
-    <app-ui-state
-      [loading]="loading"
-      [errorMessage]="errorMessage"
-      [empty]="empty"
-      emptyTitle="Nenhum produto encontrado"
-      emptyDescription="Nao ha produtos no catalogo para esse filtro."
-      (retry)="retry()"
-    ></app-ui-state>
-
-    <section class="grid" *ngIf="!loading && !errorMessage && products.length > 0">
-      <article class="product-card" *ngFor="let product of products; trackBy: productBySku">
-        <div class="thumb">
-          <img *ngIf="resolveImageUrl(product.thumbnailUrl); else noImage" [src]="resolveImageUrl(product.thumbnailUrl) || ''" [alt]="product.name" />
-          <ng-template #noImage>
-            <span>Sem imagem</span>
-          </ng-template>
-        </div>
-        <div class="product-content">
-          <div class="product-meta">
-            <small class="sku">SKU {{ product.sku }}</small>
-            <span class="stock" [class.stock-empty]="product.availableStock === 0">
-              {{ product.availableStock > 0 ? product.availableStock + ' disponíveis' : 'Sem estoque' }}
-            </span>
-          </div>
-          <h4>{{ product.name }}</h4>
-          <small class="price-label">Preço de catálogo</small>
-          <p class="price">{{ formatMoney(product.catalogPriceCents) }}</p>
-        </div>
-        <button
-          nbButton
-          status="primary"
-          size="small"
-          [disabled]="product.availableStock === 0 || isAdding(product.sku) || isAdded(product.sku)"
-          (click)="addToMyProducts(product)"
-        >
-          <ng-container *ngIf="!isAdding(product.sku) && !isAdded(product.sku)">Adicionar aos meus produtos</ng-container>
-          <ng-container *ngIf="isAdding(product.sku)">Adicionando...</ng-container>
-          <ng-container *ngIf="isAdded(product.sku)">Adicionado</ng-container>
-        </button>
-      </article>
-    </section>
-
-    <div class="pager" *ngIf="!loading && !errorMessage && total > 0">
-      <span>{{ skip + 1 }}-{{ skip + products.length }} de {{ total }}</span>
-      <div class="pager-actions">
-        <button nbButton size="small" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button>
-        <button nbButton size="small" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Proxima</button>
+  <section class="catalog-workbench" aria-label="Busca e filtros do catálogo">
+    <div class="search-row">
+      <label class="search-field">
+        <span class="sr-only">Buscar no catálogo</span>
+        <nb-icon icon="search-outline"></nb-icon>
+        <input type="search" [formControl]="searchControl" placeholder="Buscar por produto, SKU, marca ou categoria" />
+      </label>
+      <div class="view-switch" role="group" aria-label="Modo de exibição">
+        <button type="button" [class.active]="viewMode === 'grid'" [attr.aria-pressed]="viewMode === 'grid'" (click)="setViewMode('grid')" aria-label="Exibir em cards"><nb-icon icon="grid-outline"></nb-icon></button>
+        <button type="button" [class.active]="viewMode === 'list'" [attr.aria-pressed]="viewMode === 'list'" (click)="setViewMode('list')" aria-label="Exibir em lista"><nb-icon icon="list-outline"></nb-icon></button>
       </div>
     </div>
+
+    <div class="filter-grid">
+      <label><span>Categoria</span><select [value]="categoryId" (change)="changeFilter('categoryId', $event)"><option value="">Todas</option><option *ngFor="let option of facets.categories" [value]="option.value">{{ option.label }} ({{ option.count }})</option></select></label>
+      <label><span>Marca</span><select [value]="brand" (change)="changeFilter('brand', $event)"><option value="">Todas</option><option *ngFor="let option of facets.brands" [value]="option.value">{{ option.label }} ({{ option.count }})</option></select></label>
+      <label><span>Estoque</span><select [value]="stockStatus" (change)="changeFilter('stockStatus', $event)"><option value="ALL">Todos</option><option value="IN_STOCK">Com estoque</option><option value="OUT_OF_STOCK">Sem estoque</option></select></label>
+      <label><span>Seleção</span><select [value]="membership" (change)="changeFilter('membership', $event)"><option value="ALL">Todos</option><option value="NOT_ADDED">Ainda não adicionados</option><option value="ADDED">Já adicionados</option></select></label>
+      <label><span>Ordenar</span><select [value]="sort" (change)="changeFilter('sort', $event)"><option value="NAME:ASC">Nome: A–Z</option><option value="NAME:DESC">Nome: Z–A</option><option value="NEWEST:DESC">Mais recentes</option><option value="PRICE:ASC">Menor preço</option><option value="PRICE:DESC">Maior preço</option><option value="STOCK:DESC">Maior estoque</option><option value="RELEVANCE:DESC">Relevância</option></select></label>
+      <button type="button" class="clear-filters" (click)="clearToolbar()"><nb-icon icon="refresh-outline"></nb-icon> Limpar filtros</button>
+    </div>
+  </section>
+
+  <div class="result-heading">
+    <div><strong>{{ total }} produto{{ total === 1 ? '' : 's' }}</strong><span> exibidos conforme o acesso da sua conta</span></div>
+    <label class="page-size">Mostrar <select [value]="limit" (change)="changePageSize($event)"><option [value]="12">12</option><option [value]="28">28</option><option [value]="52">52</option><option [value]="100">100</option></select></label>
+  </div>
+
+  <app-ui-state [loading]="loading" [errorMessage]="errorMessage" [empty]="empty"
+    emptyTitle="Nenhum produto encontrado" emptyDescription="Ajuste os filtros ou limpe a busca para ver outros produtos."
+    (retry)="retry()"></app-ui-state>
+
+  <section class="product-results" [class.list-mode]="viewMode === 'list'" *ngIf="!loading && !errorMessage && products.length > 0" [attr.aria-busy]="loading">
+    <article class="product-card" *ngFor="let product of products; trackBy: productBySku">
+      <button type="button" class="product-visual" (click)="openDetail(product, $event)" [attr.aria-label]="'Ver detalhes de ' + product.name">
+        <img *ngIf="resolveImageUrl(product.thumbnailUrl); else noImage" [src]="resolveImageUrl(product.thumbnailUrl) || ''" [alt]="product.name" />
+        <ng-template #noImage><span class="image-placeholder"><nb-icon icon="image-outline"></nb-icon>Sem imagem</span></ng-template>
+      </button>
+      <div class="product-copy">
+        <div class="product-kicker"><span class="sku">{{ product.sku }}</span><span class="stock" [class.out]="product.availableStock === 0">{{ product.availableStock > 0 ? product.availableStock + ' em estoque' : 'Sem estoque' }}</span></div>
+        <h2>{{ product.name }}</h2>
+        <p class="product-taxonomy">{{ product.brand || 'Marca não informada' }}<span aria-hidden="true">·</span>{{ product.categoryName || 'Sem categoria' }}</p>
+        <div class="variant-note"><nb-icon icon="layers-outline"></nb-icon>{{ product.variantCount || 1 }} variaç{{ (product.variantCount || 1) === 1 ? 'ão' : 'ões' }}</div>
+      </div>
+      <div class="product-price"><span>Preço de catálogo</span><strong>{{ formatMoney(product.catalogPriceCents) }}</strong></div>
+      <div class="product-actions">
+        <button nbButton status="basic" size="small" type="button" (click)="openDetail(product, $event)">Ver detalhes</button>
+        <button *ngIf="!isAdded(product.sku)" nbButton status="primary" size="small" type="button" [disabled]="product.availableStock === 0 || isAdding(product.sku)" (click)="addToMyProducts(product)">{{ isAdding(product.sku) ? 'Adicionando…' : 'Adicionar' }}</button>
+        <ng-container *ngIf="isAdded(product.sku)">
+          <button nbButton status="basic" size="small" type="button" (click)="openMyProducts(product)">Abrir produto</button>
+          <button nbButton status="primary" size="small" type="button" [disabled]="product.availableStock === 0" (click)="publish(product)">Publicar</button>
+        </ng-container>
+      </div>
+    </article>
+  </section>
+
+  <footer class="pager" *ngIf="!loading && !errorMessage && total > 0">
+    <span>Mostrando {{ skip + 1 }}–{{ skip + products.length }} de {{ total }}</span>
+    <div><button nbButton size="small" status="basic" [disabled]="!hasPreviousPage" (click)="previousPage()">Anterior</button><button nbButton size="small" status="basic" [disabled]="!hasNextPage" (click)="nextPage()">Próxima</button></div>
+  </footer>
+
+  <div class="drawer-layer" *ngIf="detail || detailLoading || detailError" (click)="closeDetail()">
+    <aside class="detail-drawer" role="dialog" aria-modal="true" aria-labelledby="detail-title" (click)="$event.stopPropagation()">
+      <button type="button" class="detail-close" aria-label="Fechar detalhes" (click)="closeDetail()"><nb-icon icon="close-outline"></nb-icon></button>
+      <app-ui-state [loading]="detailLoading" [errorMessage]="detailError" [empty]="false"></app-ui-state>
+      <ng-container *ngIf="detail as selected">
+        <div class="detail-image"><img *ngIf="selected.images[0]?.url; else detailNoImage" [src]="resolveImageUrl(selected.images[0].url) || ''" [alt]="selected.name" /><ng-template #detailNoImage><nb-icon icon="image-outline"></nb-icon></ng-template></div>
+        <span class="eyebrow">SKU {{ selected.sku }}</span>
+        <h2 id="detail-title">{{ selected.name }}</h2>
+        <p class="detail-taxonomy">{{ selected.brand || 'Marca não informada' }} · {{ selected.categoryName || 'Sem categoria' }}</p>
+        <p class="detail-description">{{ selected.description || 'Descrição ainda não cadastrada.' }}</p>
+        <dl class="detail-facts"><div><dt>Preço de catálogo</dt><dd>{{ formatMoney(selected.catalogPriceCents) }}</dd></div><div><dt>Estoque disponível</dt><dd>{{ selected.availableStock }}</dd></div><div><dt>EAN/GTIN</dt><dd>{{ selected.ean || 'Não informado' }}</dd></div><div><dt>NCM</dt><dd>{{ selected.ncm || 'Não informado' }}</dd></div><div><dt>Peso</dt><dd>{{ selected.weightKg ? selected.weightKg + ' kg' : 'Não informado' }}</dd></div><div><dt>Dimensões</dt><dd>{{ selected.widthCm && selected.heightCm && selected.lengthCm ? selected.widthCm + ' × ' + selected.heightCm + ' × ' + selected.lengthCm + ' cm' : 'Não informadas' }}</dd></div></dl>
+        <section class="detail-variants" *ngIf="selected.variants.length"><h3>Variações</h3><div *ngFor="let variant of selected.variants"><span><strong>{{ variant.name }}</strong><small>{{ variant.sku }}</small></span><span>{{ variant.availableStock }} un.</span></div></section>
+        <div class="detail-actions">
+          <button *ngIf="!selected.isAddedToMyProducts" nbButton status="primary" [disabled]="selected.availableStock === 0" (click)="addDetailToMyProducts()">Adicionar aos meus produtos</button>
+          <ng-container *ngIf="selected.isAddedToMyProducts"><button nbButton status="basic" (click)="openMyProducts(selected)">Abrir em Meus Produtos</button><button nbButton status="primary" [disabled]="selected.availableStock === 0" (click)="publish(selected)">Publicar</button></ng-container>
+        </div>
+      </ng-container>
+    </aside>
   </div>
 </section>

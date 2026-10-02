@@ -24,11 +24,18 @@
       [userSubtitle]="userSubtitle"
       [redesignV1]="redesignV1"
       [mobile]="mobile"
+      [themeToggleEnabled]="darkModeEnabled"
+      [walletBalanceLabel]="walletBalanceLabel"
       (menuToggle)="toggleDrawer()"
     ></app-phub-topbar>
 
     <div class="phub-content">
       <div class="phub-content-inner">
+        <nav *ngIf="breadcrumbsEnabled" class="shell-breadcrumbs" aria-label="Navegação estrutural">
+          <a routerLink="/client/dashboard">Visão geral</a>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{{ breadcrumbLabel }}</span>
+        </nav>
         <ng-content></ng-content>
       </div>
     </div>

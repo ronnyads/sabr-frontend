@@ -7,6 +7,7 @@ import { ThemeService } from '../../core/services/theme.service';
 export interface PhubMenuItem {
   label: string;
   link: string;
+  group?: string;
   icon?: string;
   exact?: boolean;
   disabled?: boolean;
@@ -38,6 +39,20 @@ export class PhubSidebarComponent {
   profileMenuOpen = false;
 
   constructor(readonly themeService: ThemeService) {}
+
+  get menuGroups(): Array<{ label: string; items: PhubMenuItem[] }> {
+    const groups: Array<{ label: string; items: PhubMenuItem[] }> = [];
+    for (const item of this.menuItems) {
+      const label = item.group || '';
+      let group = groups.find(candidate => candidate.label === label);
+      if (!group) {
+        group = { label, items: [] };
+        groups.push(group);
+      }
+      group.items.push(item);
+    }
+    return groups;
+  }
 
   get themeIcon(): string {
     return this.themeService.isDark ? 'sun-outline' : 'moon-outline';

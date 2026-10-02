@@ -80,7 +80,37 @@
   gap:         5px;
   color:       var(--phub-text-muted);
   transition:  color var(--phub-transition-fast);
+  min-height:  40px;
+  padding:     0 10px;
+  border:      0;
+  border-radius: 10px;
+  background:  transparent;
+  cursor:      pointer;
 }
+
+.wallet-context,
+.account-context {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 11px;
+  border: 1px solid var(--phub-border);
+  border-radius: 12px;
+  background: var(--phub-surface-soft);
+  color: var(--phub-text);
+  text-decoration: none;
+}
+
+.wallet-context:hover { border-color: var(--phub-primary); background: var(--phub-primary-weak); }
+.wallet-context > span,
+.account-context > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.wallet-context small,
+.account-context small { color: var(--phub-text-muted); font-size: 9px; line-height: 1.1; text-transform: uppercase; letter-spacing: .06em; }
+.wallet-context strong,
+.account-context strong { max-width: 160px; overflow: hidden; color: var(--phub-text); font-size: 12px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.wallet-context nb-icon { color: var(--phub-primary-strong); }
+.account-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--phub-success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--phub-success) 12%, transparent); }
 
 .theme-toggle:hover { color: var(--phub-text); }
 
@@ -108,4 +138,7 @@
   .tenant-pill       { display: none; }
   .user-meta span    { display: none; }
   .theme-toggle span { display: none; }
+  .account-context { display: none; }
+  .wallet-context small { display: none; }
+  .wallet-context { min-height: 38px; padding: 4px 8px; }
 }

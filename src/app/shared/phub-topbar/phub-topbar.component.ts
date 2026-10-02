@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NbButtonModule, NbIconModule } from '@nebular/theme';
 import { ThemeService } from '../../core/services/theme.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-phub-topbar',
   standalone: true,
-  imports: [CommonModule, NbButtonModule, NbIconModule],
+  imports: [CommonModule, RouterLink, NbButtonModule, NbIconModule],
   templateUrl: './phub-topbar.component.html',
   styleUrls: ['./phub-topbar.component.scss']
 })
@@ -18,6 +19,7 @@ export class PhubTopbarComponent {
   @Input() redesignV1 = false;
   @Input() themeToggleEnabled = false;
   @Input() mobile = false;
+  @Input() walletBalanceLabel: string | null = null;
 
   @Output() menuToggle = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
