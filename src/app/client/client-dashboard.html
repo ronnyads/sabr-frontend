@@ -88,11 +88,11 @@
           <span *ngIf="data.lastSyncedAt; else neverSynced">Sincronizado {{ data.lastSyncedAt | date:'dd/MM, HH:mm' }}</span>
           <ng-template #neverSynced><span>Aguardando primeira sincronização</span></ng-template>
         </div>
-        <span class="metric-label">Vendas válidas / pagas</span>
-        <strong class="revenue-value">{{ formatMoney(data.grossRevenue) }}</strong>
+        <span class="metric-label">Vendas brutas</span>
+        <strong class="revenue-value">{{ formatMoney(data.totalSalesAmount) }}</strong>
         <div class="trend-line" [ngClass]="trendClass(data.revenueChangePercent)">
           <b>{{ data.revenueChangePercent > 0 ? '↑' : data.revenueChangePercent < 0 ? '↓' : '—' }}</b>
-          <span>{{ data.revenueChangePercent | number:'1.0-1' }}% contra o período anterior</span>
+          <span>vendas pagas: {{ data.revenueChangePercent | number:'1.0-1' }}% contra o período anterior</span>
         </div>
       </div>
 
@@ -101,15 +101,15 @@
         <div class="radar-ring ring-two"></div>
         <div class="radar-ring ring-three"></div>
         <div class="radar-sweep"></div>
-        <div class="radar-core"><strong>{{ data.paidOrders }}</strong><span>pedidos pagos</span></div>
+        <div class="radar-core"><strong>{{ data.totalOrders }}</strong><span>vendas</span></div>
       </div>
 
       <div class="revenue-breakdown">
-        <div><span>Vendas totais recebidas</span><strong>{{ formatMoney(data.totalSalesAmount) }}</strong><small>inclui pedidos que depois foram cancelados</small></div>
+        <div><span>Vendas válidas / pagas</span><strong>{{ formatMoney(data.grossRevenue) }}</strong><small>exclui vendas canceladas</small></div>
         <div>
-          <span>Cancelamentos no período</span>
+          <span>Vendas canceladas</span>
           <strong>{{ formatMoney(data.cancelledSalesAmount) }}</strong>
-          <small>{{ data.cancelledOrders }} cancelamento(s) ocorrido(s) no período · {{ data.refundedOrders }} reembolsado(s)</small>
+          <small>{{ data.cancelledOrders }} cancelada(s) conforme o Mercado Livre · {{ data.refundedOrders }} reembolsado(s)</small>
           <small *ngIf="data.cancellationTimestampPendingOrders > 0">{{ data.cancellationTimestampPendingOrders }} pedido(s) aguardando classificação oficial do cancelamento</small>
         </div>
         <div><span>Após taxas identificadas</span><strong>{{ formatMoney(data.netRevenue) }}</strong><small>estimativa; fretes e reembolsos ficam no resultado auditável</small></div>
@@ -120,9 +120,9 @@
     <div class="metric-grid">
       <article class="metric-card enter-item" style="--delay: 70ms">
         <div class="metric-icon icon-orders">▣</div>
-        <span>Vendas válidas / pagas</span>
-        <strong>{{ data.paidOrders | number:'1.0-0' }}</strong>
-        <small>{{ data.totalOrders | number:'1.0-0' }} vendas totais · {{ data.cancelledOrders | number:'1.0-0' }} canceladas no período</small>
+        <span>Quantidade de vendas</span>
+        <strong>{{ data.totalOrders | number:'1.0-0' }}</strong>
+        <small>{{ data.paidOrders | number:'1.0-0' }} pagas · {{ data.cancelledOrders | number:'1.0-0' }} canceladas conforme o ML</small>
       </article>
       <article class="metric-card enter-item" style="--delay: 120ms">
         <div class="metric-icon icon-units">◫</div>
