@@ -110,7 +110,7 @@
           <span>Cancelamentos no período</span>
           <strong>{{ formatMoney(data.cancelledSalesAmount) }}</strong>
           <small>{{ data.cancelledOrders }} cancelamento(s) ocorrido(s) no período · {{ data.refundedOrders }} reembolsado(s)</small>
-          <small *ngIf="data.cancellationTimestampPendingOrders > 0">{{ data.cancellationTimestampPendingOrders }} pedido(s) aguardando reconciliação da data oficial</small>
+          <small *ngIf="data.cancellationTimestampPendingOrders > 0">{{ data.cancellationTimestampPendingOrders }} pedido(s) aguardando classificação oficial do cancelamento</small>
         </div>
         <div><span>Após taxas identificadas</span><strong>{{ formatMoney(data.netRevenue) }}</strong><small>estimativa; fretes e reembolsos ficam no resultado auditável</small></div>
         <div><span>Taxas identificadas</span><strong>{{ formatMoney(data.marketplaceFees) }}</strong></div>
