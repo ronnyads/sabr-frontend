@@ -237,7 +237,9 @@
               <article *ngFor="let capability of providerCapabilities" [class.selected]="capability.provider === state.channel" [class.disabled]="!capability.connected">
                 <img
                   class="channel-logo"
-                  [src]="capability.provider === 'tiktokshop' ? 'assets/logos/tiktokshop.svg' : 'assets/logos/mercadolivre.svg'"
+                  [src]="capability.provider === 'tiktokshop'
+                    ? 'https://lf16-tiktok-common.ttwstatic.com/obj/tiktok-web-common-sg/mtact/static/images/logo_144c91a.png?v=2'
+                    : 'https://http2.mlstatic.com/static/org-img/homesnw/mercado-libre.png'"
                   [alt]="capability.displayName"
                 />
                 <div><strong>{{ capability.displayName }}</strong><small>{{ capability.connected ? 'Conta conectada' : 'Não conectado' }}</small></div>
@@ -663,7 +665,7 @@
 
         <aside class="editor-side side-column">
           <section class="editor-card preview-card">
-            <div class="section-heading"><div class="section-title"><span class="section-icon compact"><nb-icon icon="eye-outline"></nb-icon></span><div><small>ANÚNCIO</small><h4>Pré-visualização</h4></div></div><img class="marketplace-logo" src="assets/logos/mercadolivre.svg" alt="Mercado Livre" /></div>
+            <div class="section-heading"><div class="section-title"><span class="section-icon compact"><nb-icon icon="eye-outline"></nb-icon></span><div><small>ANÚNCIO</small><h4>Pré-visualização</h4></div></div><img class="marketplace-logo" src="https://http2.mlstatic.com/static/org-img/homesnw/mercado-libre.png" alt="Mercado Livre" /></div>
             <div class="preview-product">
               <img *ngIf="displayPrimaryImageUrl" [src]="displayPrimaryImageUrl" [alt]="displayProductName" />
               <div><strong>{{ state.title || displayProductName }}</strong><b>{{ state.price ?? 0 | currency: 'BRL' }}</b></div>
