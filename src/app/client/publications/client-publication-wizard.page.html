@@ -1,14 +1,15 @@
 <section class="phub-page publication-wizard-page">
   <header class="wizard-page-topbar">
     <div class="wizard-page-title">
+      <span class="page-kicker"><nb-icon icon="cloud-upload-outline"></nb-icon> Central de publicações</span>
       <h1>Publicar produto</h1>
-      <p>Configure como este produto do catálogo será anunciado.</p>
+      <p>Prepare o anúncio sem alterar os dados protegidos do catálogo.</p>
     </div>
     <div class="topbar-actions">
       <button nbButton status="basic" size="small" (click)="saveDraftNow()" [disabled]="saving || !state.variantSku">
-        {{ saving ? 'Salvando...' : 'Salvar rascunho' }}
+        <nb-icon icon="save-outline"></nb-icon>{{ saving ? 'Salvando...' : 'Salvar rascunho' }}
       </button>
-      <button nbButton status="basic" size="small" (click)="goToPublications()">Voltar para Publicações</button>
+      <button nbButton status="basic" size="small" (click)="goToPublications()"><nb-icon icon="arrow-back-outline"></nb-icon>Publicações</button>
     </div>
   </header>
 
@@ -159,7 +160,7 @@
         </div>
         <div class="context-main">
           <div class="context-title-row">
-            <span class="chip base">PRODUTO DO CATÁLOGO</span>
+            <span class="chip base"><nb-icon icon="lock-outline"></nb-icon> PRODUTO MESTRE</span>
             <h3>{{ masterProductName }}</h3>
           </div>
           <div class="context-chips">
@@ -178,35 +179,31 @@
           </div>
         </div>
         <div class="context-actions">
-          <span class="catalog-lock">🔒 Dados definidos pelo catálogo</span>
-          <button nbButton status="basic" size="small" (click)="toggleTechnicalDetails()">Ver ficha do catálogo</button>
+          <span class="catalog-lock"><nb-icon icon="shield-outline"></nb-icon> Somente leitura</span>
+          <button nbButton status="basic" size="tiny" (click)="toggleTechnicalDetails()">
+            {{ showTechnicalDetails ? 'Fechar ficha' : 'Ver ficha do catálogo' }}
+          </button>
           <div class="context-price">
-            <small>Preco atual</small>
+            <small>Preço do anúncio</small>
             <strong>{{ state.price ?? 0 | currency: 'BRL' }}</strong>
             <small>Taxa estimada: {{ listingTypeFeePercentLabel }}</small>
           </div>
         </div>
       </article>
-      <div class="publication-divider" *ngIf="state.variantSku"><span>CONFIGURAR PUBLICAÇÃO</span></div>
-      <div class="context-tech-toggle">
-        <button nbButton status="basic" size="tiny" (click)="toggleTechnicalDetails()">
-          {{ showTechnicalDetails ? 'Ocultar detalhes tecnicos' : 'Mostrar detalhes tecnicos' }}
-        </button>
-      </div>
-      <section class="context-technical" *ngIf="showTechnicalDetails">
-        <p><strong>SKU:</strong> {{ state.variantSku || '-' }}</p>
-        <p><strong>Seller ID:</strong> {{ state.sellerId || '-' }}</p>
-        <p><strong>Seller tecnico:</strong> {{ selectedSellerTechnicalLabel }}</p>
-        <p><strong>Canal tecnico:</strong> {{ state.channel || '-' }}</p>
-        <p><strong>Site ID:</strong> {{ state.siteId || '-' }}</p>
-        <p><strong>Draft ID:</strong> {{ draftId || '-' }}</p>
-        <p><strong>RowVersion:</strong> {{ rowVersion || '-' }}</p>
-        <p><strong>Listing type tecnico:</strong> {{ state.listingTypeId || '-' }}</p>
+      <section class="context-technical catalog-sheet" *ngIf="showTechnicalDetails">
+        <div><small>SKU mestre</small><strong>{{ state.variantSku || '-' }}</strong></div>
+        <div><small>Marca</small><strong>{{ catalogDetail?.brand || 'Não informada' }}</strong></div>
+        <div><small>GTIN</small><strong>{{ catalogDetail?.ean || 'Não cadastrado' }}</strong></div>
+        <div><small>NCM</small><strong>{{ catalogDetail?.ncm || 'Não cadastrado' }}</strong></div>
+        <div><small>Estoque disponível</small><strong>{{ displayStockAvailable }}</strong></div>
+        <div><small>Preço para o seller</small><strong>{{ displaySnapshotCost | currency: 'BRL' }}</strong></div>
       </section>
+      <div class="publication-divider" *ngIf="state.variantSku"><span>CONFIGURAR PUBLICAÇÃO</span></div>
 
       <section class="context-issues" *ngIf="snapshotIssues.length > 0">
         <article *ngFor="let issue of snapshotIssues">
-          <strong>{{ issue.code }}</strong>
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          <strong>Pendência no produto mestre</strong>
           <span>{{ issue.message }}</span>
         </article>
       </section>
@@ -220,7 +217,7 @@
           [disabled]="missingVariantBlocked"
           (click)="goToStep(i)"
         >
-          {{ i + 1 }}. {{ step.label }}
+          <span class="step-number">{{ i + 1 }}</span><span>{{ step.label }}</span>
         </button>
       </nav>
 
@@ -233,13 +230,18 @@
             [class.step-panel--hidden]="currentStep !== 'seller'"
           >
             <div class="section-heading">
-              <h4>Canal e conta</h4>
+              <div class="section-title"><span class="section-icon"><nb-icon icon="shopping-bag-outline"></nb-icon></span><div><small>ETAPA 1</small><h4>Produto e canal</h4></div></div>
+              <span class="section-status">Conta e operação</span>
             </div>
             <div class="channel-cards">
               <article *ngFor="let capability of providerCapabilities" [class.selected]="capability.provider === state.channel" [class.disabled]="!capability.connected">
-                <strong>{{ capability.displayName }}</strong>
-                <small>{{ capability.connected ? 'Conta conectada' : 'Não conectado' }}</small>
-                <span *ngIf="capability.provider === 'tiktokshop'">Recursos liberados conforme a API ativa</span>
+                <img
+                  class="channel-logo"
+                  [src]="capability.provider === 'tiktokshop' ? 'assets/logos/tiktokshop.svg' : 'assets/logos/mercadolivre.svg'"
+                  [alt]="capability.displayName"
+                />
+                <div><strong>{{ capability.displayName }}</strong><small>{{ capability.connected ? 'Conta conectada' : 'Não conectado' }}</small></div>
+                <span class="connection-dot" [class.connected]="capability.connected"></span>
               </article>
             </div>
             <div class="form-grid seller-grid">
@@ -310,7 +312,7 @@
             [class.section-error]="publishInputInvalid"
           >
             <div class="section-heading">
-              <h4>Categoria e Atributos</h4>
+              <div class="section-title"><span class="section-icon"><nb-icon icon="grid-outline"></nb-icon></span><div><small>ETAPA 2</small><h4>Categoria e conteúdo</h4></div></div>
               <span class="required-pill" *ngIf="categoryCapabilities && categoryCapabilities.requiredAttributes.length > 0">
                 {{ categoryCapabilities.requiredAttributes.length }} obrigatorios pendentes
               </span>
@@ -583,7 +585,7 @@
             [class.step-panel--hidden]="currentStep !== 'content'"
           >
             <div class="title-row">
-              <h4>Titulo da publicacao</h4>
+              <div class="section-title"><span class="section-icon"><nb-icon icon="edit-2-outline"></nb-icon></span><div><small>CONTEÚDO</small><h4>Título e descrição</h4></div></div>
               <span class="counter">{{ titleLength }}/60</span>
             </div>
             <label>
@@ -628,7 +630,7 @@
             [class.section-error]="publishInputInvalid"
           >
             <div class="section-heading">
-              <h4>Variacoes e Atributos Tecnicos</h4>
+              <div class="section-title"><span class="section-icon"><nb-icon icon="cube-outline"></nb-icon></span><div><small>ETAPA 3</small><h4>Variações e atributos</h4></div></div>
             </div>
             <div class="form-grid two-cols">
               <label>
@@ -661,12 +663,28 @@
 
         <aside class="editor-side side-column">
           <section class="editor-card preview-card">
-            <div class="section-heading"><h4>Pré-visualização</h4><span class="chip">Mercado Livre</span></div>
+            <div class="section-heading"><div class="section-title"><span class="section-icon compact"><nb-icon icon="eye-outline"></nb-icon></span><div><small>ANÚNCIO</small><h4>Pré-visualização</h4></div></div><img class="marketplace-logo" src="assets/logos/mercadolivre.svg" alt="Mercado Livre" /></div>
             <div class="preview-product">
               <img *ngIf="displayPrimaryImageUrl" [src]="displayPrimaryImageUrl" [alt]="displayProductName" />
               <div><strong>{{ state.title || displayProductName }}</strong><b>{{ state.price ?? 0 | currency: 'BRL' }}</b></div>
             </div>
             <small>Frete: {{ shippingDisplay }}</small>
+          </section>
+
+          <section class="editor-card sidebar-glance">
+            <div class="section-heading"><div class="section-title"><span class="section-icon compact"><nb-icon icon="trending-up-outline"></nb-icon></span><div><small>SIMULADOR</small><h4>Resumo financeiro</h4></div></div></div>
+            <div class="glance-grid">
+              <p><span>Preço</span><strong>{{ state.price ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Taxas</span><strong>{{ estimate?.totalFees ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Lucro estimado</span><strong>{{ estimate?.estimatedProfit ?? 0 | currency: 'BRL' }}</strong></p>
+              <p class="accent"><span>Margem</span><strong>{{ estimate?.marginPercent ?? 0 }}%</strong></p>
+            </div>
+          </section>
+
+          <section class="editor-card sidebar-glance readiness-glance">
+            <div class="section-heading"><div class="section-title"><span class="section-icon compact"><nb-icon icon="checkmark-circle-2-outline"></nb-icon></span><div><small>CHECKLIST</small><h4>Pronto para publicar</h4></div></div><strong>{{ checklistCompletionPercent }}%</strong></div>
+            <div class="progress-track" aria-label="Progresso da publicação"><div class="progress-value" [style.width.%]="checklistCompletionPercent"></div></div>
+            <div class="readiness-meta"><span>{{ severityErrors }} erro(s)</span><span>{{ severityWarnings }} aviso(s)</span></div>
           </section>
           <section
             id="wizard-section-pricing"
@@ -675,7 +693,7 @@
             [class.step-panel--hidden]="currentStep !== 'pricing'"
             [class.sidebar-card--focus]="currentStep === 'pricing'"
           >
-            <h4>Simulador de preco</h4>
+            <div class="section-heading"><div class="section-title"><span class="section-icon"><nb-icon icon="trending-up-outline"></nb-icon></span><div><small>ETAPA 4</small><h4>Preço e rentabilidade</h4></div></div></div>
             <div class="sidebar-summary">
               <p><span>Tipo</span><strong>{{ listingTypeDisplayName }}</strong></p>
               <p><span>Preco</span><strong>{{ state.price ?? 0 | currency: 'BRL' }}</strong></p>
@@ -768,7 +786,7 @@
             [class.sidebar-card--focus]="currentStep === 'pricing'"
             [class.section-error]="publishInputInvalid"
           >
-            <h4>Produto base e mídia</h4>
+            <div class="section-heading"><div class="section-title"><span class="section-icon"><nb-icon icon="image-outline"></nb-icon></span><div><small>ETAPA 4</small><h4>Mídia e políticas</h4></div></div><span class="catalog-lock"><nb-icon icon="lock-outline"></nb-icon> Mestre protegido</span></div>
             <div class="sidebar-summary">
               <p><span>GTIN</span><strong>{{ state.gtin || '-' }}</strong></p>
               <p><span>NCM</span><strong>{{ state.ncm || '-' }}</strong></p>
@@ -849,7 +867,7 @@
             [class.step-panel--hidden]="currentStep !== 'review'"
             [class.sidebar-card--focus]="currentStep === 'review'"
           >
-            <h4>Checklist de publicação</h4>
+            <div class="section-heading"><div class="section-title"><span class="section-icon"><nb-icon icon="checkmark-circle-2-outline"></nb-icon></span><div><small>ETAPA 5</small><h4>Revisão final</h4></div></div><span class="section-status">{{ checklistCompletionPercent }}% completo</span></div>
             <div class="sidebar-summary">
               <p><span>Conclusao</span><strong>{{ checklistCompletionPercent }}%</strong></p>
               <p><span>Erros</span><strong>{{ severityErrors }}</strong></p>

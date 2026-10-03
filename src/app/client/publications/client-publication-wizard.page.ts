@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NbButtonModule, NbInputModule, NbSelectModule, NbToastrService } from '@nebular/theme';
+import { NbButtonModule, NbIconModule, NbInputModule, NbSelectModule, NbToastrService } from '@nebular/theme';
 import { EMPTY, Observable, Subject, catchError, debounceTime, finalize, map, of, switchMap, takeUntil, tap } from 'rxjs';
 import {
   CatalogVariantSnapshotIssue,
@@ -132,7 +132,7 @@ const LISTING_TYPE_UI: Record<string, { label: string; hint: string }> = {
 @Component({
   selector: 'app-client-publication-wizard-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, NbButtonModule, NbInputModule, NbSelectModule, UiStateComponent],
+  imports: [CommonModule, FormsModule, NbButtonModule, NbIconModule, NbInputModule, NbSelectModule, UiStateComponent],
   templateUrl: './client-publication-wizard.page.html',
   styleUrls: ['./client-publication-wizard.page.scss']
 })
