@@ -106,7 +106,12 @@
 
       <div class="revenue-breakdown">
         <div><span>Vendas totais recebidas</span><strong>{{ formatMoney(data.totalSalesAmount) }}</strong><small>inclui pedidos que depois foram cancelados</small></div>
-        <div><span>Vendas canceladas</span><strong>{{ formatMoney(data.cancelledSalesAmount) }}</strong><small>{{ data.cancelledOrders }} cancelado(s), fora do lucro · {{ data.refundedOrders }} reembolsado(s)</small></div>
+        <div>
+          <span>Cancelamentos no período</span>
+          <strong>{{ formatMoney(data.cancelledSalesAmount) }}</strong>
+          <small>{{ data.cancelledOrders }} cancelamento(s) ocorrido(s) no período · {{ data.refundedOrders }} reembolsado(s)</small>
+          <small *ngIf="data.cancellationTimestampPendingOrders > 0">{{ data.cancellationTimestampPendingOrders }} pedido(s) aguardando reconciliação da data oficial</small>
+        </div>
         <div><span>Após taxas identificadas</span><strong>{{ formatMoney(data.netRevenue) }}</strong><small>estimativa; fretes e reembolsos ficam no resultado auditável</small></div>
         <div><span>Taxas identificadas</span><strong>{{ formatMoney(data.marketplaceFees) }}</strong></div>
       </div>
@@ -117,13 +122,13 @@
         <div class="metric-icon icon-orders">▣</div>
         <span>Vendas válidas / pagas</span>
         <strong>{{ data.paidOrders | number:'1.0-0' }}</strong>
-        <small>{{ data.totalOrders | number:'1.0-0' }} pedidos recebidos · {{ data.cancelledOrders | number:'1.0-0' }} cancelados</small>
+        <small>{{ data.totalOrders | number:'1.0-0' }} vendas totais · {{ data.cancelledOrders | number:'1.0-0' }} canceladas no período</small>
       </article>
       <article class="metric-card enter-item" style="--delay: 120ms">
         <div class="metric-icon icon-units">◫</div>
         <span>Unidades vendidas</span>
         <strong>{{ data.totalUnits | number:'1.0-0' }}</strong>
-        <small>{{ data.paidOrders }} pedidos confirmados</small>
+        <small>{{ data.paidUnits | number:'1.0-0' }} pagas · {{ data.cancelledUnits | number:'1.0-0' }} canceladas · {{ data.refundedUnits | number:'1.0-0' }} reembolsadas</small>
       </article>
       <article class="metric-card enter-item" style="--delay: 170ms">
         <div class="metric-icon icon-ticket">↗</div>

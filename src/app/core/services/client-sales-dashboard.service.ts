@@ -63,11 +63,16 @@ export interface ClientSalesDashboardResult {
   totalSalesAmount: number;
   cancelledSalesAmount: number;
   totalUnits: number;
+  paidUnits: number;
+  cancelledUnits: number;
+  refundedUnits: number;
   grossRevenue: number;
   marketplaceFees: number;
   netRevenue: number;
   averageTicket: number;
   cancelledOrders: number;
+  currentStatusCancelledOrders: number;
+  cancellationTimestampPendingOrders: number;
   refundedOrders: number;
   unmappedUnits: number;
   ordersChangePercent: number;
