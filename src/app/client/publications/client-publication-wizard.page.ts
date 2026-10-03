@@ -4,7 +4,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NbButtonModule, NbIconModule, NbInputModule, NbSelectModule, NbToastrService } from '@nebular/theme';
-import { EMPTY, Observable, Subject, catchError, debounceTime, finalize, map, of, switchMap, takeUntil, tap } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, debounceTime, finalize, forkJoin, fromEvent, interval, map, of, switchMap, takeUntil, tap } from 'rxjs';
 import {
   CatalogVariantSnapshotIssue,
   CatalogVariantSnapshotResult,
@@ -289,6 +289,8 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   private autoEstimateRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private suggestRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private destroyed = false;
+  private refreshingMasterData = false;
+  private publicationImagesEdited = false;
   private readonly autoFailureStats: Record<string, { count: number; lastToastAt: number }> = {};
   private readonly categoryRegexBySite = new Map<string, RegExp>();
   private readonly categoryLabelById = new Map<string, string>();
@@ -338,6 +340,14 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     this.categoryCapabilitiesLoad$
       .pipe(debounceTime(350), takeUntil(this.destroy$))
       .subscribe(() => this.loadCategoryCapabilities());
+    interval(10_000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.refreshMasterData());
+    if (typeof window !== 'undefined') {
+      fromEvent(window, 'focus')
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => this.refreshMasterData());
+    }
     this.variantSelection$
       .pipe(
         takeUntil(this.destroy$),
@@ -460,13 +470,53 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     if (!normalized) return;
     this.catalogService.getCatalogProduct(normalized).pipe(takeUntil(this.destroy$)).subscribe({
       next: (detail) => {
-        this.catalogDetail = detail;
-        this.state.gtin = detail.ean ?? '';
-        this.state.ncm = detail.ncm ?? '';
-        this.state.origin = detail.fiscalOrigin ?? '';
+        this.applyCatalogDetail(detail);
       },
       error: () => (this.catalogDetail = null)
     });
+  }
+
+  private refreshMasterData(): void {
+    const baseSku = (this.snapshot?.baseSku ?? this.catalogDetail?.sku ?? '').trim();
+    const variantSku = (this.state.variantSku ?? '').trim().toUpperCase();
+    if (!baseSku || !variantSku || this.refreshingMasterData || this.loadingSnapshot) {
+      return;
+    }
+
+    this.refreshingMasterData = true;
+    const previousCost = this.currentCatalogPriceCents;
+    forkJoin({
+      detail: this.catalogService.getCatalogProduct(baseSku),
+      snapshot: this.catalogSnapshotService.getVariantSnapshot({ variantSku })
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => (this.refreshingMasterData = false))
+    ).subscribe({
+      next: ({ detail, snapshot }) => {
+        this.snapshot = snapshot;
+        this.snapshotIssues = snapshot.qualityIssues ?? [];
+        this.applyCatalogDetail(detail);
+        if (previousCost !== this.currentCatalogPriceCents) {
+          this.estimate = null;
+          this.queueEstimate();
+        }
+      }
+    });
+  }
+
+  private applyCatalogDetail(detail: CatalogProductDetail): void {
+    this.catalogDetail = detail;
+    this.state.gtin = detail.ean ?? '';
+    this.state.ncm = detail.ncm ?? '';
+    this.state.origin = detail.fiscalOrigin ?? '';
+
+    if (!this.publicationImagesEdited) {
+      this.state.images = (detail.images ?? [])
+        .filter((item) => !!item.url?.trim())
+        .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.position - b.position)
+        .map((item, index) => ({ url: item.url.trim(), position: index + 1 }));
+      this.prefillOrigins.images = 'catalogCurrent';
+    }
   }
 
   ngOnDestroy(): void {
@@ -877,6 +927,16 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   }
 
   get displayPrimaryImageUrl(): string | null {
+    if (!this.publicationImagesEdited) {
+      const catalogImage = (this.catalogDetail?.images ?? [])
+        .slice()
+        .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.position - b.position)
+        .find((item) => !!item.url?.trim());
+      if (catalogImage?.url) {
+        return catalogImage.url;
+      }
+    }
+
     const first = this.state.images
       .slice()
       .sort((a, b) => a.position - b.position)
@@ -889,22 +949,32 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   }
 
   get displayStockAvailable(): number {
-    return this.snapshot?.stockAvailable ?? 0;
+    const selected = this.catalogDetail?.variants.find((item) => item.sku.trim().toUpperCase() === this.state.variantSku.trim().toUpperCase());
+    return selected?.availableStock ?? this.snapshot?.stockAvailable ?? this.catalogDetail?.availableStock ?? 0;
   }
 
   get effectiveProductCost(): number | null {
-    if (typeof this.estimate?.productCost === 'number' && Number.isFinite(this.estimate.productCost)) {
-      return this.estimate.productCost;
-    }
-
-    if (typeof this.catalogDetail?.catalogPriceCents === 'number' && Number.isFinite(this.catalogDetail.catalogPriceCents)) {
-      return this.catalogDetail.catalogPriceCents / 100;
+    const currentCatalogPriceCents = this.currentCatalogPriceCents;
+    if (currentCatalogPriceCents != null) {
+      return currentCatalogPriceCents / 100;
     }
 
     if (typeof this.snapshot?.catalogPrice === 'number' && Number.isFinite(this.snapshot.catalogPrice)) {
       return this.snapshot.catalogPrice;
     }
 
+    return null;
+  }
+
+  private get currentCatalogPriceCents(): number | null {
+    const normalizedVariantSku = this.state.variantSku.trim().toUpperCase();
+    const selected = this.catalogDetail?.variants.find((item) => item.sku.trim().toUpperCase() === normalizedVariantSku);
+    if (typeof selected?.catalogPriceCents === 'number' && Number.isFinite(selected.catalogPriceCents)) {
+      return selected.catalogPriceCents;
+    }
+    if (typeof this.catalogDetail?.catalogPriceCents === 'number' && Number.isFinite(this.catalogDetail.catalogPriceCents)) {
+      return this.catalogDetail.catalogPriceCents;
+    }
     return null;
   }
 
@@ -1691,6 +1761,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
       return;
     }
 
+    this.publicationImagesEdited = true;
     this.state.images = [...this.state.images, { url, position: this.state.images.length + 1 }];
     urlInput.value = '';
     this.queueAutosave();
@@ -1702,6 +1773,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
       return;
     }
 
+    this.publicationImagesEdited = true;
     const images = [...this.state.images];
     const current = images[index];
     images[index] = images[targetIndex];
@@ -1711,6 +1783,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   }
 
   removeImage(index: number): void {
+    this.publicationImagesEdited = true;
     this.state.images = this.state.images
       .filter((_, idx) => idx !== index)
       .map((item, idx) => ({ ...item, position: idx + 1 }));

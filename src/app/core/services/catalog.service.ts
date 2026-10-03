@@ -36,7 +36,7 @@ export interface CatalogProductFacets {
 }
 export interface CatalogProductPage extends PagedResult<CatalogProduct> { facets: CatalogProductFacets; }
 export interface CatalogProductImage { id: string; url: string; position: number; isPrimary: boolean; }
-export interface CatalogProductDetailVariant { variantId: string; sku: string; name: string; availableStock: number; catalogPriceCents: number; }
+export interface CatalogProductDetailVariant { variantId: string; sku: string; name: string; availableStock: number; catalogPriceCents: number; pricingMode?: 'INHERITED' | 'OVERRIDE' | string; }
 export interface CatalogProductQuality { fiscalComplete: boolean; dimensionsComplete: boolean; gtinComplete: boolean; imagesComplete: boolean; missingFields: string[]; }
 export interface CatalogProductDetail {
   productId: string; sku: string; name: string; brand: string; supplier?: string | null; description?: string | null;
@@ -117,7 +117,8 @@ export class CatalogService {
   }
 
   getCatalogProduct(sku: string): Observable<CatalogProductDetail> {
-    return this.http.get<CatalogProductDetail>(`${this.apiBaseUrl}/catalog/products/${encodeURIComponent(sku)}`);
+    const params = new HttpParams().set('_fresh', Date.now().toString());
+    return this.http.get<CatalogProductDetail>(`${this.apiBaseUrl}/catalog/products/${encodeURIComponent(sku)}`, { params });
   }
 
   listCatalogVariants(skip = 0, limit = 200, search?: string, productSku?: string): Observable<PagedResult<CatalogVariant>> {
