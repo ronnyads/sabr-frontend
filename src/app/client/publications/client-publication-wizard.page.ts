@@ -31,6 +31,8 @@ import {
 } from '../../core/services/publications.service';
 import { UiStateComponent } from '../../shared/ui-state/ui-state.component';
 import { environment } from '../../../environments/environment';
+import { CatalogProduct, CatalogProductDetail, CatalogService } from '../../core/services/catalog.service';
+import { PublicationProviderCapabilityResult } from '../../core/services/publications.service';
 
 interface WizardState {
   channel: string;
@@ -44,7 +46,6 @@ interface WizardState {
   title: string;
   description: string;
   price: number | null;
-  productCost: number | null;
   operationalCost: number | null;
   currencyId: string;
   gtin: string;
@@ -75,8 +76,8 @@ interface PublicationRouterStatePrefill {
   description?: string | null;
 }
 
-type PrefillField = 'title' | 'description' | 'gtin' | 'ncm' | 'origin';
-type PrefillOriginField = PrefillField | 'images' | 'productCost';
+type PrefillField = 'title' | 'description';
+type PrefillOriginField = PrefillField | 'images';
 type CategoryValidityReason = 'empty' | 'site_invalid' | 'format_invalid' | 'ok';
 type AutoEstimatePauseReason = 'unavailable' | 'category_invalid' | null;
 type CategoryGuardEndpoint = 'queue_estimate' | 'fees_estimate' | 'category_attributes';
@@ -136,14 +137,13 @@ const LISTING_TYPE_UI: Record<string, { label: string; hint: string }> = {
   styleUrls: ['./client-publication-wizard.page.scss']
 })
 export class ClientPublicationWizardPage implements OnInit, OnDestroy {
+  // Esta tela publica produtos existentes; nunca cria ou altera o produto mestre.
   readonly steps: Array<{ id: string; label: string }> = [
-    { id: 'seller', label: 'canal e seller' },
-    { id: 'category', label: 'categoria' },
-    { id: 'content', label: 'conteudo' },
-    { id: 'attributes', label: 'atributos' },
-    { id: 'pricing', label: 'precos' },
-    { id: 'fiscal', label: 'fiscal, envio e imagens' },
-    { id: 'review', label: 'revisao' }
+    { id: 'seller', label: 'Produto e canal' },
+    { id: 'content', label: 'Conteúdo' },
+    { id: 'attributes', label: 'Atributos' },
+    { id: 'pricing', label: 'Preço e mídia' },
+    { id: 'review', label: 'Revisão' }
   ];
   currentStepIndex = 0;
 
@@ -182,6 +182,12 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   lastPublishResult: ListingDraftPublishResult | null = null;
   issues: ListingDraftValidationIssueResult[] = [];
   snapshot: CatalogVariantSnapshotResult | null = null;
+  catalogDetail: CatalogProductDetail | null = null;
+  catalogProducts: CatalogProduct[] = [];
+  catalogSearch = '';
+  catalogSearching = false;
+  providerCapabilities: PublicationProviderCapabilityResult[] = [];
+  operationMode: 'PUBLISH_NEW' | 'LINK_EXISTING' = 'PUBLISH_NEW';
   snapshotIssues: CatalogVariantSnapshotIssue[] = [];
   categorySuggestions: MarketplaceCategorySuggestItemResult[] = [];
   categorySelectOptionsState: CategorySelectOption[] = [];
@@ -251,7 +257,6 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     title: '',
     description: '',
     price: null,
-    productCost: null,
     operationalCost: null,
     currencyId: 'BRL',
     gtin: '',
@@ -307,6 +312,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly publicationsService: PublicationsService,
+    private readonly catalogService: CatalogService,
     private readonly catalogSnapshotService: CatalogSnapshotService,
     private readonly myProductsService: MyProductsService,
     private readonly integrationService: MercadoLivreIntegrationService,
@@ -318,6 +324,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
       signature: this.runtimeSignature
     });
     this.syncSalePriceInputFromState();
+    this.loadProviderCapabilities();
 
     this.autosave$
       .pipe(debounceTime(500), takeUntil(this.destroy$))
@@ -371,6 +378,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
         this.loadingSnapshot = false;
         this.snapshot = snapshot;
         this.snapshotIssues = snapshot.qualityIssues ?? [];
+        this.loadCatalogDetail(snapshot.baseSku);
         const resolvedVariantSku = ((snapshot.resolvedVariantSku ?? snapshot.variantSku) || '').trim().toUpperCase();
         if (resolvedVariantSku) {
           this.state.variantSku = resolvedVariantSku;
@@ -379,6 +387,86 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
       });
 
     this.loadContext();
+  }
+
+  searchCatalog(): void {
+    this.catalogSearching = true;
+    this.catalogService.listCatalogProducts({ search: this.catalogSearch, limit: 12, sort: 'RELEVANCE' })
+      .pipe(finalize(() => (this.catalogSearching = false)), takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => (this.catalogProducts = result.items ?? []),
+        error: () => this.toastr.danger('Não foi possível buscar o catálogo.', 'Publicações')
+      });
+  }
+
+  selectCatalogProduct(product: CatalogProduct): void {
+    this.catalogService.getCatalogProduct(product.sku)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (detail) => {
+          const variant = detail.variants.find((item) => item.availableStock > 0) ?? detail.variants[0];
+          if (!variant) {
+            this.toastr.warning('Este produto não possui variação ativa para publicação.', 'Publicações');
+            return;
+          }
+          this.catalogDetail = detail;
+          this.catalogProducts = [];
+          this.catalogSearch = '';
+          this.selectVariantCandidate(variant.sku);
+          void this.router.navigate([], { relativeTo: this.route, queryParams: { variantSku: variant.sku }, queryParamsHandling: 'merge', replaceUrl: true });
+        },
+        error: () => this.toastr.danger('Não foi possível abrir o produto do catálogo.', 'Publicações')
+      });
+  }
+
+  requestCatalogCorrection(): void {
+    const productId = this.catalogDetail?.productId ?? this.snapshot?.baseSku;
+    const fields = this.catalogDetail?.qualityStatus?.missingFields ?? this.snapshotIssues.map((issue) => issue.code);
+    if (!productId || fields.length === 0) {
+      this.toastr.info('Não há pendência de catálogo identificada.', 'Publicações');
+      return;
+    }
+    this.publicationsService.requestProductCorrection({
+      productId,
+      fields,
+      message: `Correção solicitada durante a configuração da publicação ${this.state.variantSku || productId}.`
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => this.toastr.success('Solicitação enviada ao catálogo.', 'Publicações'),
+      error: () => this.toastr.danger('Não foi possível solicitar a correção.', 'Publicações')
+    });
+  }
+
+  focusIssue(issue: ListingDraftValidationIssueResult): void {
+    const target = issue.step === 'category' ? 'content' : issue.step === 'fiscal' ? 'pricing' : issue.step;
+    this.goToStepById(this.steps.some((step) => step.id === target) ? target : 'review');
+  }
+
+  chooseOperation(mode: 'PUBLISH_NEW' | 'LINK_EXISTING'): void {
+    this.operationMode = mode;
+    if (mode === 'LINK_EXISTING') {
+      void this.router.navigate(['/client/my-products'], { queryParams: { focus: this.state.variantSku, action: 'link-existing' } });
+    }
+  }
+
+  private loadProviderCapabilities(): void {
+    this.publicationsService.getCapabilities().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (items) => (this.providerCapabilities = items ?? []),
+      error: () => (this.providerCapabilities = [])
+    });
+  }
+
+  private loadCatalogDetail(baseSku?: string | null): void {
+    const normalized = (baseSku ?? '').trim();
+    if (!normalized) return;
+    this.catalogService.getCatalogProduct(normalized).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (detail) => {
+        this.catalogDetail = detail;
+        this.state.gtin = detail.ean ?? '';
+        this.state.ncm = detail.ncm ?? '';
+        this.state.origin = detail.fiscalOrigin ?? '';
+      },
+      error: () => (this.catalogDetail = null)
+    });
   }
 
   ngOnDestroy(): void {
@@ -784,6 +872,10 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     return this.state.variantSku || 'Produto sem nome';
   }
 
+  get masterProductName(): string {
+    return this.catalogDetail?.name || this.getCandidateNameFor(this.state.variantSku) || this.state.variantSku || 'Produto do catálogo';
+  }
+
   get displayPrimaryImageUrl(): string | null {
     const first = this.state.images
       .slice()
@@ -801,8 +893,12 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   }
 
   get effectiveProductCost(): number | null {
-    if (typeof this.state.productCost === 'number' && Number.isFinite(this.state.productCost)) {
-      return this.state.productCost;
+    if (typeof this.estimate?.productCost === 'number' && Number.isFinite(this.estimate.productCost)) {
+      return this.estimate.productCost;
+    }
+
+    if (typeof this.catalogDetail?.catalogPriceCents === 'number' && Number.isFinite(this.catalogDetail.catalogPriceCents)) {
+      return this.catalogDetail.catalogPriceCents / 100;
     }
 
     if (typeof this.snapshot?.catalogPrice === 'number' && Number.isFinite(this.snapshot.catalogPrice)) {
@@ -876,6 +972,20 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     }
 
     return required.every((attr) => this.isRequiredAttributeFilled(attr));
+  }
+
+  get productBaseIssues(): ListingDraftValidationIssueResult[] {
+    return this.issues.filter((issue) => issue.issueSource === 'PRODUCT_BASE');
+  }
+
+  get publicationIssues(): ListingDraftValidationIssueResult[] {
+    return this.issues.filter((issue) => issue.issueSource !== 'PRODUCT_BASE');
+  }
+
+  get shippingDisplay(): string {
+    return this.estimate?.shippingStatus === 'CALCULATED' && typeof this.estimate.shippingCost === 'number'
+      ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(this.estimate.shippingCost)
+      : 'Ainda não calculado';
   }
 
   get isAttributesGateBlocked(): boolean {
@@ -971,21 +1081,6 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
 
   get severityWarnings(): number {
     return this.issues.filter((item) => item.severity === 'warning').length;
-  }
-
-  get gtinPrefillSourceLabel(): string | null {
-    const source = this.prefillOrigins.gtin;
-    if (!source) {
-      return null;
-    }
-
-    return source === 'routerState'
-      ? 'router state'
-      : source === 'myProducts'
-        ? '/my-products'
-        : source === 'snapshot'
-          ? 'snapshot catálogo'
-          : source;
   }
 
   nextStep(): void {
@@ -1880,7 +1975,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
         listingTypeId: this.state.listingTypeId,
         price: this.state.price,
         currencyId: this.state.currencyId,
-        productCost: this.effectiveProductCost,
+        variantSku: this.state.variantSku,
         operationalCost: this.state.operationalCost
       })
       .pipe(
@@ -2041,7 +2136,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
             this.publishInputInvalid = true;
             this.lastValidationIsValid = false;
             this.lastValidatedRowVersion = null;
-            this.goToStepById('category');
+            this.goToStepById('content');
             this.toastr.warning(this.buildErrorMessage('Mercado Livre rejeitou o payload. Revise categoria, atributos e fiscal.', error), 'Publicacoes');
             return;
           }
@@ -2070,6 +2165,10 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
 
   goToPublications(): void {
     void this.router.navigate(['/client/publications']);
+  }
+
+  saveDraftNow(): void {
+    this.runAutosave();
   }
 
   goToMyProducts(): void {
@@ -2472,19 +2571,22 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     this.state.price = draft.price ?? null;
     this.syncSalePriceInputFromState();
     this.priceInputInvalid = false;
-    this.state.productCost = this.state.productCost ?? null;
-    this.state.operationalCost = this.state.operationalCost ?? null;
+    this.state.operationalCost = draft.operationalCost ?? this.state.operationalCost ?? null;
     this.state.currencyId = draft.currencyId || 'BRL';
-    this.state.gtin = draft.gtin || '';
     this.state.emptyGtinReason = draft.emptyGtinReason || '';
     if (this.state.gtin.trim() && this.state.emptyGtinReason.trim()) {
       this.state.emptyGtinReason = '';
     }
-    this.state.ncm = draft.ncm || '';
-    this.state.origin = draft.origin || '';
     this.state.images = [...(draft.images ?? [])].sort((a, b) => a.position - b.position);
     this.state.attributes = [...(draft.attributes ?? [])];
-    this.state.selectedVariantSkus = draft.sabrVariantSku ? [draft.sabrVariantSku] : this.state.selectedVariantSkus;
+    this.state.publishMode = draft.publishMode || this.state.publishMode;
+    this.state.selectedVariantSkus = draft.selectedVariantSkus?.length
+      ? [...draft.selectedVariantSkus]
+      : draft.sabrVariantSku ? [draft.sabrVariantSku] : this.state.selectedVariantSkus;
+    this.state.variationAxes = [...(draft.variationAxes ?? this.state.variationAxes)];
+    this.state.warrantyType = draft.warrantyType ?? null;
+    this.state.warrantyTime = draft.warrantyTime ?? null;
+    this.state.freeShipping = draft.freeShipping ?? false;
     this.refreshRecentCategories();
     this.selectedCategoryLabel = this.state.categoryId ? this.resolveSelectedCategoryLabel(this.state.categoryId) : null;
     this.rebuildCategorySelectOptions();
@@ -2556,18 +2658,6 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     let changed = false;
     changed = this.setIfBlankFromSource('title', this.state.title, state.titleSuggestion, 'routerState') || changed;
     changed = this.setIfBlankFromSource('description', this.state.description, state.description, 'routerState') || changed;
-    changed = this.setIfBlankFromSource('gtin', this.state.gtin, state.gtin, 'routerState') || changed;
-    changed = this.setIfBlankFromSource('ncm', this.state.ncm, state.ncm, 'routerState') || changed;
-    changed = this.setIfBlankFromSource('origin', this.state.origin, state.origin, 'routerState') || changed;
-
-    if (this.state.productCost == null && typeof state.catalogPrice === 'number' && Number.isFinite(state.catalogPrice)) {
-      const normalized = this.normalizePrefillMoney(state.catalogPrice, 'routerState', 'catalogPrice', state.catalogPriceScale ?? null, true);
-      if (typeof normalized === 'number' && Number.isFinite(normalized)) {
-        this.state.productCost = normalized;
-        this.prefillOrigins.productCost = 'routerState';
-        changed = true;
-      }
-    }
 
     if (this.state.images.length === 0 && (state.images?.length ?? 0) > 0) {
       this.state.images = (state.images ?? [])
@@ -2585,12 +2675,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   }
 
   private loadFallbackFromMyProductsIfNeeded(onDone: (changed: boolean) => void): void {
-    const needsFallback = !this.state.description.trim() ||
-      !this.state.gtin.trim() ||
-      !this.state.ncm.trim() ||
-      !this.state.origin.trim() ||
-      this.state.images.length === 0 ||
-      this.state.productCost == null;
+    const needsFallback = !this.state.description.trim() || this.state.images.length === 0;
 
     if (!needsFallback || !this.state.variantSku) {
       onDone(false);
@@ -2630,18 +2715,6 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     this.prefillHydrating = true;
     let changed = false;
     changed = this.setIfBlankFromSource('description', this.state.description, item.description, 'myProducts') || changed;
-    changed = this.setIfBlankFromSource('gtin', this.state.gtin, item.gtin, 'myProducts') || changed;
-    changed = this.setIfBlankFromSource('ncm', this.state.ncm, item.ncm, 'myProducts') || changed;
-    changed = this.setIfBlankFromSource('origin', this.state.origin, item.origin, 'myProducts') || changed;
-
-    if (this.state.productCost == null && typeof item.catalogPrice === 'number' && Number.isFinite(item.catalogPrice)) {
-      const normalized = this.normalizePrefillMoney(item.catalogPrice, 'myProducts', 'catalogPrice', 'brl', true);
-      if (typeof normalized === 'number' && Number.isFinite(normalized)) {
-        this.state.productCost = normalized;
-        this.prefillOrigins.productCost = 'myProducts';
-        changed = true;
-      }
-    }
 
     if (this.state.images.length === 0 && (item.images?.length ?? 0) > 0) {
       this.state.images = (item.images ?? [])
@@ -2692,33 +2765,11 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
       changed = true;
     }
 
-    if (
-      this.state.productCost == null &&
-      typeof snapshot.catalogPrice === 'number' &&
-      Number.isFinite(snapshot.catalogPrice) &&
-      snapshot.catalogPrice > 0
-    ) {
-      const normalized = this.normalizePrefillMoney(snapshot.catalogPrice, 'snapshot', 'catalogPrice', 'brl', false);
-      if (typeof normalized === 'number' && Number.isFinite(normalized)) {
-        this.state.productCost = normalized;
-        this.prefillOrigins.productCost = 'snapshot';
-        changed = true;
-      }
-    } else if (this.state.productCost == null) {
-      this.debugWizardEvent('catalog_price_missing_for_product_cost', {
-        variantSku: this.state.variantSku,
-        snapshotVariantSku: snapshot.variantSku,
-        resolvedVariantSku: snapshot.resolvedVariantSku ?? null,
-        baseSku: snapshot.baseSku,
-        catalogPrice: snapshot.catalogPrice ?? null
-      });
-    }
-
     changed = this.setIfBlankFromSource('title', this.state.title, snapshot.title, 'snapshot') || changed;
     changed = this.setIfBlankFromSource('description', this.state.description, snapshot.description, 'snapshot') || changed;
-    changed = this.setIfBlankFromSource('gtin', this.state.gtin, snapshot.gtin, 'snapshot') || changed;
-    changed = this.setIfBlankFromSource('ncm', this.state.ncm, snapshot.ncm, 'snapshot') || changed;
-    changed = this.setIfBlankFromSource('origin', this.state.origin, snapshot.origin, 'snapshot') || changed;
+    this.state.gtin = (snapshot.gtin ?? '').trim();
+    this.state.ncm = (snapshot.ncm ?? '').trim();
+    this.state.origin = (snapshot.origin ?? '').trim();
 
     if (this.state.images.length === 0 && (snapshot.images?.length ?? 0) > 0) {
       this.state.images = (snapshot.images ?? [])
@@ -2732,10 +2783,6 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     }
     this.prefillHydrating = false;
     return changed;
-  }
-
-  private setIfBlank(field: 'title' | 'description' | 'gtin' | 'ncm' | 'origin', currentValue: string, fallbackValue?: string | null): boolean {
-    return this.setIfBlankFromSource(field, currentValue, fallbackValue);
   }
 
   private setIfBlankFromSource(
@@ -2756,9 +2803,6 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
     this.state[field] = normalized;
     if (source) {
       this.prefillOrigins[field] = source;
-    }
-    if (field === 'gtin' && this.state.gtin.trim() && this.state.emptyGtinReason.trim()) {
-      this.state.emptyGtinReason = '';
     }
     return true;
   }
@@ -3029,18 +3073,16 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
         title: this.state.title || null,
         description: this.state.description || null,
         price: this.state.price,
-        productCost: this.state.productCost,
         operationalCost: this.state.operationalCost,
         currencyId: this.state.currencyId || null,
-        gtin: this.state.gtin || null,
-        emptyGtinReason: this.state.emptyGtinReason || null,
-        ncm: this.state.ncm || null,
-        origin: this.state.origin || null,
         images: this.state.images,
         attributes: this.state.attributes,
         publishMode: this.state.publishMode,
         selectedVariantSkus: this.state.selectedVariantSkus,
         variationAxes: this.state.variationAxes,
+        warrantyType: this.state.warrantyType,
+        warrantyTime: this.state.warrantyTime,
+        freeShipping: this.state.freeShipping,
         clearFields: clearFields.length > 0 ? clearFields : null
       })
       .pipe(
@@ -3411,6 +3453,10 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
   }
 
   private getSectionId(stepId: string): string {
+    if (stepId === 'content') {
+      return 'wizard-section-category';
+    }
+
     return `wizard-section-${stepId}`;
   }
 
@@ -3969,7 +4015,7 @@ export class ClientPublicationWizardPage implements OnInit, OnDestroy {
       categoryIdPart,
       (this.state.listingTypeId ?? '').trim().toLowerCase(),
       this.toEstimateNumberKeyPart(this.state.price),
-      this.toEstimateNumberKeyPart(this.effectiveProductCost),
+      (this.state.variantSku ?? '').trim().toUpperCase(),
       this.toEstimateNumberKeyPart(this.state.operationalCost)
     ].join('|');
   }

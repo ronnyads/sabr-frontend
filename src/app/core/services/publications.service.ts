@@ -42,13 +42,8 @@ export interface ListingDraftUpsertRequest {
   description?: string | null;
   price?: number | null;
   currencyId?: string | null;
-  gtin?: string | null;
-  emptyGtinReason?: string | null;
-  ncm?: string | null;
-  origin?: string | null;
   images?: ListingDraftImageRequest[] | null;
   attributes?: ListingDraftAttributeRequest[] | null;
-  productCost?: number | null;
   operationalCost?: number | null;
   publishMode?: string | null;
   selectedVariantSkus?: string[] | null;
@@ -81,6 +76,14 @@ export interface ListingDraftResult {
   origin?: string | null;
   images: ListingDraftImageRequest[];
   attributes: ListingDraftAttributeRequest[];
+  operationalCost?: number | null;
+  publishMode?: string | null;
+  selectedVariantSkus?: string[] | null;
+  variationAxes?: string[] | null;
+  variations?: ListingDraftVariationRequest[] | null;
+  warrantyType?: string | null;
+  warrantyTime?: string | null;
+  freeShipping?: boolean;
   status: string;
   rowVersion: string;
   updatedAt: string;
@@ -145,6 +148,24 @@ export interface ListingDraftValidationIssueResult {
   message: string;
   severity: 'error' | 'warning';
   step: string;
+  issueSource: 'PRODUCT_BASE' | 'PUBLICATION';
+  remediation: 'ADMIN_CORRECTION' | 'EDIT_HERE';
+  blocking: boolean;
+}
+
+export interface PublicationProviderCapabilityResult {
+  provider: 'mercadolivre' | 'tiktokshop' | string;
+  displayName: string;
+  connected: boolean;
+  categories: boolean;
+  attributes: boolean;
+  variations: boolean;
+  catalogImages: boolean;
+  publicationMedia: boolean;
+  shipping: boolean;
+  warranty: boolean;
+  pricingSimulator: boolean;
+  linkExisting: boolean;
 }
 
 export interface ListingDraftValidateResult {
@@ -294,7 +315,7 @@ export interface MarketplaceFeesEstimateRequest {
   listingTypeId?: string | null;
   price?: number | null;
   currencyId?: string | null;
-  productCost?: number | null;
+  variantSku: string;
   operationalCost?: number | null;
 }
 
@@ -313,6 +334,10 @@ export interface MarketplaceFeesEstimateResult {
   estimatedProfit: number;
   marginPercent?: number | null;
   source?: string | null;
+  costSource: 'CATALOG_PRICE' | string;
+  costStatus: 'RESOLVED' | 'CATALOG_COST_PENDING' | string;
+  shippingCost?: number | null;
+  shippingStatus: 'CALCULATED' | 'NOT_CALCULATED' | string;
 }
 
 export interface ListingDraftAiGenerateRequest {
@@ -333,20 +358,31 @@ export class PublicationsService {
 
   constructor(private readonly http: HttpClient) {}
 
+  getCapabilities(): Observable<PublicationProviderCapabilityResult[]> {
+    return this.http.get<PublicationProviderCapabilityResult[]>(`${this.apiBaseUrl}/client/publications/capabilities`);
+  }
+
+  requestProductCorrection(request: { productId: string; fields: string[]; message: string }): Observable<{ requestId: string; status: string }> {
+    return this.http.post<{ requestId: string; status: string }>(
+      `${this.apiBaseUrl}/client/publications/product-correction-requests`,
+      request
+    );
+  }
+
   upsertDraft(request: ListingDraftUpsertRequest): Observable<ListingDraftResult> {
-    return this.http.post<ListingDraftResult>(`${this.apiBaseUrl}/client/listings/drafts/upsert`, request);
+    return this.http.post<ListingDraftResult>(`${this.apiBaseUrl}/client/publications/drafts/upsert`, request);
   }
 
   getDraft(request: ListingDraftGetRequest): Observable<ListingDraftGetResult> {
-    return this.http.post<ListingDraftGetResult>(`${this.apiBaseUrl}/client/listings/drafts/get`, request);
+    return this.http.post<ListingDraftGetResult>(`${this.apiBaseUrl}/client/publications/drafts/get`, request);
   }
 
   validateDraft(draftId: string): Observable<ListingDraftValidateResult> {
-    return this.http.post<ListingDraftValidateResult>(`${this.apiBaseUrl}/client/listings/drafts/validate`, { draftId });
+    return this.http.post<ListingDraftValidateResult>(`${this.apiBaseUrl}/client/publications/drafts/validate`, { draftId });
   }
 
   publishDraft(draftId: string, rowVersion: string): Observable<ListingDraftPublishResult> {
-    return this.http.post<ListingDraftPublishResult>(`${this.apiBaseUrl}/client/listings/drafts/publish`, {
+    return this.http.post<ListingDraftPublishResult>(`${this.apiBaseUrl}/client/publications/drafts/publish`, {
       draftId,
       rowVersion
     });
@@ -405,7 +441,7 @@ export class PublicationsService {
       return EMPTY;
     }
 
-    return this.http.post<MarketplaceFeesEstimateResult>(`${this.apiBaseUrl}/client/marketplaces/fees/estimate`, {
+    return this.http.post<MarketplaceFeesEstimateResult>(`${this.apiBaseUrl}/client/publications/fees/estimate`, {
       ...request,
       siteId: normalizedSiteId,
       categoryId: normalizedCategoryId,

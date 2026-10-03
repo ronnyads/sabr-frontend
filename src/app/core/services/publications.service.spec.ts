@@ -34,7 +34,8 @@ describe('PublicationsService', () => {
         categoryId: 'cozinha',
         listingTypeId: 'gold_special',
         price: 10,
-        currencyId: 'BRL'
+        currencyId: 'BRL',
+        variantSku: 'SKU-TESTE-01'
       })
       .subscribe({
         next: () => {
@@ -45,7 +46,7 @@ describe('PublicationsService', () => {
         }
       });
 
-    httpMock.expectNone(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
+    httpMock.expectNone(`${environment.apiBaseUrl}/client/publications/fees/estimate`);
     expect(emitted).toBe(false);
     expect(completed).toBe(true);
   });
@@ -86,13 +87,16 @@ describe('PublicationsService', () => {
         categoryId: 'mlb1055',
         listingTypeId: 'gold_special',
         price: 10,
-        currencyId: 'BRL'
+        currencyId: 'BRL',
+        variantSku: 'SKU-TESTE-01'
       })
       .subscribe();
 
-    const req = httpMock.expectOne(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/client/publications/fees/estimate`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body.categoryId).toBe('MLB1055');
+    expect(req.request.body.variantSku).toBe('SKU-TESTE-01');
+    expect(req.request.body.productCost).toBeUndefined();
     req.flush({
       integrationId: 'integration-id',
       sellerId: '123',
@@ -121,11 +125,12 @@ describe('PublicationsService', () => {
         categoryId: 'MLA1055',
         listingTypeId: 'gold_special',
         price: 10,
-        currencyId: 'BRL'
+        currencyId: 'BRL',
+        variantSku: 'SKU-TESTE-01'
       })
       .subscribe();
 
-    const validReq = httpMock.expectOne(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
+    const validReq = httpMock.expectOne(`${environment.apiBaseUrl}/client/publications/fees/estimate`);
     expect(validReq.request.body.categoryId).toBe('MLA1055');
     validReq.flush({
       integrationId: 'integration-id',
@@ -153,10 +158,36 @@ describe('PublicationsService', () => {
         categoryId: 'MLB1055',
         listingTypeId: 'gold_special',
         price: 10,
-        currencyId: 'BRL'
+        currencyId: 'BRL',
+        variantSku: 'SKU-TESTE-01'
       })
       .subscribe();
 
-    httpMock.expectNone(`${environment.apiBaseUrl}/client/marketplaces/fees/estimate`);
+    httpMock.expectNone(`${environment.apiBaseUrl}/client/publications/fees/estimate`);
+  });
+
+  it('getCapabilities should use the client publications endpoint', () => {
+    service.getCapabilities().subscribe();
+
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/client/publications/capabilities`);
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+
+  it('requestProductCorrection should post only the correction workflow payload', () => {
+    const payload = {
+      productId: 'SKU-TESTE-01',
+      fields: ['NCM', 'GTIN'],
+      message: 'Corrigir dados mestres.'
+    };
+
+    service.requestProductCorrection(payload).subscribe();
+
+    const req = httpMock.expectOne(
+      `${environment.apiBaseUrl}/client/publications/product-correction-requests`
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+    req.flush({ requestId: 'request-id', status: 'OPEN' });
   });
 });

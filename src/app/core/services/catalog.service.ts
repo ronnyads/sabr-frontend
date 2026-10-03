@@ -35,15 +35,17 @@ export interface CatalogProductFacets {
   notAddedCount: number;
 }
 export interface CatalogProductPage extends PagedResult<CatalogProduct> { facets: CatalogProductFacets; }
-export interface CatalogProductImage { url: string; position: number; isPrimary: boolean; }
-export interface CatalogProductDetailVariant { sku: string; name: string; availableStock: number; catalogPriceCents: number; }
+export interface CatalogProductImage { id: string; url: string; position: number; isPrimary: boolean; }
+export interface CatalogProductDetailVariant { variantId: string; sku: string; name: string; availableStock: number; catalogPriceCents: number; }
+export interface CatalogProductQuality { fiscalComplete: boolean; dimensionsComplete: boolean; gtinComplete: boolean; imagesComplete: boolean; missingFields: string[]; }
 export interface CatalogProductDetail {
-  sku: string; name: string; brand: string; description?: string | null;
-  categoryId?: string | null; categoryName?: string | null; ncm?: string | null; ean?: string | null;
+  productId: string; sku: string; name: string; brand: string; supplier?: string | null; description?: string | null;
+  categoryId?: string | null; categoryName?: string | null; ncm?: string | null; cest?: string | null; fiscalOrigin?: string | null; ean?: string | null;
   catalogPriceCents: number; availableStock: number; isAddedToMyProducts: boolean;
   widthCm?: number | null; heightCm?: number | null; lengthCm?: number | null; weightKg?: number | null;
   requiresAnatel: boolean; anatelHomologationNumber?: string | null;
   images: CatalogProductImage[]; variants: CatalogProductDetailVariant[];
+  fieldAuthority: 'CATALOG'; qualityStatus: CatalogProductQuality;
 }
 export interface CatalogListOptions {
   skip?: number; limit?: number; search?: string; categoryId?: string; brand?: string;

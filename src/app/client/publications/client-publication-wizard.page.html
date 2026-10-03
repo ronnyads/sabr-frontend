@@ -1,10 +1,15 @@
 <section class="phub-page publication-wizard-page">
   <header class="wizard-page-topbar">
     <div class="wizard-page-title">
-      <h1>Publicar no Mercado Livre</h1>
-      <p>Editor de draft com autosave, validate e publish.</p>
+      <h1>Publicar produto</h1>
+      <p>Configure como este produto do catálogo será anunciado.</p>
     </div>
-    <button nbButton status="basic" size="small" (click)="goToPublications()">Voltar para Publicacoes</button>
+    <div class="topbar-actions">
+      <button nbButton status="basic" size="small" (click)="saveDraftNow()" [disabled]="saving || !state.variantSku">
+        {{ saving ? 'Salvando...' : 'Salvar rascunho' }}
+      </button>
+      <button nbButton status="basic" size="small" (click)="goToPublications()">Voltar para Publicações</button>
+    </div>
   </header>
 
   <div class="phub-card panel">
@@ -123,17 +128,39 @@
         </div>
       </div>
 
-      <article class="context-card hero-card">
+      <section class="catalog-picker" *ngIf="!state.variantSku">
+        <div>
+          <span class="eyebrow">PRODUTO DO CATÁLOGO</span>
+          <h2>Escolha um produto para publicar</h2>
+          <p>Você configura o anúncio. SKU, fiscal, estoque, dimensões e preço do catálogo continuam protegidos.</p>
+        </div>
+        <div class="catalog-search-row">
+          <input nbInput fullWidth [(ngModel)]="catalogSearch" (keydown.enter)="searchCatalog()" placeholder="Buscar por nome, SKU, marca ou categoria" />
+          <button nbButton status="primary" (click)="searchCatalog()" [disabled]="catalogSearching">
+            {{ catalogSearching ? 'Buscando...' : 'Buscar' }}
+          </button>
+        </div>
+        <div class="catalog-picker-grid" *ngIf="catalogProducts.length">
+          <button type="button" class="catalog-picker-item" *ngFor="let product of catalogProducts" (click)="selectCatalogProduct(product)">
+            <img *ngIf="product.thumbnailUrl" [src]="product.thumbnailUrl" [alt]="product.name" />
+            <span class="catalog-picker-placeholder" *ngIf="!product.thumbnailUrl">Sem imagem</span>
+            <span><strong>{{ product.name }}</strong><small>{{ product.sku }} · {{ product.brand }}</small></span>
+            <b>{{ product.catalogPriceCents / 100 | currency: 'BRL' }}</b>
+          </button>
+        </div>
+      </section>
+
+      <article class="context-card hero-card" *ngIf="state.variantSku">
         <div class="context-image">
-          <img *ngIf="displayPrimaryImageUrl; else noContextImage" [src]="displayPrimaryImageUrl || ''" [alt]="displayProductName" />
+          <img *ngIf="displayPrimaryImageUrl; else noContextImage" [src]="displayPrimaryImageUrl || ''" [alt]="masterProductName" />
           <ng-template #noContextImage>
             <span>Sem imagem</span>
           </ng-template>
         </div>
         <div class="context-main">
           <div class="context-title-row">
-            <span class="chip base">Base</span>
-            <h3>{{ displayProductName }}</h3>
+            <span class="chip base">PRODUTO DO CATÁLOGO</span>
+            <h3>{{ masterProductName }}</h3>
           </div>
           <div class="context-chips">
             <span class="chip status">{{ draftStatus }}</span>
@@ -141,7 +168,8 @@
           </div>
           <div class="context-meta">
             <span>SKU: {{ state.variantSku || '-' }}</span>
-            <span>Preco base: {{ displaySnapshotCost | currency: 'BRL' }}</span>
+            <span>{{ catalogDetail?.brand || 'Marca não informada' }} · {{ catalogDetail?.categoryName || 'Categoria interna não informada' }}</span>
+            <span>Preço para o seller: {{ displaySnapshotCost | currency: 'BRL' }}</span>
             <span>Seller: {{ selectedSellerDisplayName }}</span>
             <span>Canal: Mercado Livre</span>
             <span>Categoria: {{ categorySummaryLabel }}</span>
@@ -150,7 +178,8 @@
           </div>
         </div>
         <div class="context-actions">
-          <button nbButton status="basic" size="small" (click)="goToMyProducts()">Editar Produto Base</button>
+          <span class="catalog-lock">🔒 Dados definidos pelo catálogo</span>
+          <button nbButton status="basic" size="small" (click)="toggleTechnicalDetails()">Ver ficha do catálogo</button>
           <div class="context-price">
             <small>Preco atual</small>
             <strong>{{ state.price ?? 0 | currency: 'BRL' }}</strong>
@@ -158,6 +187,7 @@
           </div>
         </div>
       </article>
+      <div class="publication-divider" *ngIf="state.variantSku"><span>CONFIGURAR PUBLICAÇÃO</span></div>
       <div class="context-tech-toggle">
         <button nbButton status="basic" size="tiny" (click)="toggleTechnicalDetails()">
           {{ showTechnicalDetails ? 'Ocultar detalhes tecnicos' : 'Mostrar detalhes tecnicos' }}
@@ -181,17 +211,18 @@
         </article>
       </section>
 
-      <div class="wizard-steps">
+      <nav class="wizard-steps" aria-label="Etapas da publicação">
         <button
           type="button"
           *ngFor="let step of steps; let i = index"
           [class.active]="i === currentStepIndex"
+          [attr.aria-current]="i === currentStepIndex ? 'step' : null"
           [disabled]="missingVariantBlocked"
           (click)="goToStep(i)"
         >
           {{ i + 1 }}. {{ step.label }}
         </button>
-      </div>
+      </nav>
 
       <div class="editor-grid wizard-shell">
         <div class="editor-main main-column">
@@ -202,12 +233,19 @@
             [class.step-panel--hidden]="currentStep !== 'seller'"
           >
             <div class="section-heading">
-              <h4>Canal e Integracao</h4>
+              <h4>Canal e conta</h4>
+            </div>
+            <div class="channel-cards">
+              <article *ngFor="let capability of providerCapabilities" [class.selected]="capability.provider === state.channel" [class.disabled]="!capability.connected">
+                <strong>{{ capability.displayName }}</strong>
+                <small>{{ capability.connected ? 'Conta conectada' : 'Não conectado' }}</small>
+                <span *ngIf="capability.provider === 'tiktokshop'">Recursos liberados conforme a API ativa</span>
+              </article>
             </div>
             <div class="form-grid seller-grid">
               <label>
                 Canal
-                <input nbInput fullWidth [ngModel]="state.channel" (ngModelChange)="state.channel = $event; onFieldChanged()" />
+                <input nbInput fullWidth value="Mercado Livre" readonly />
               </label>
               <label>
                 Seller
@@ -231,6 +269,15 @@
                 Site
                 <input nbInput fullWidth [ngModel]="state.siteId" (ngModelChange)="onSiteIdChanged($event)" />
               </label>
+            </div>
+            <div class="operation-card">
+              <strong>O que deseja fazer?</strong>
+              <button type="button" [class.selected]="operationMode === 'PUBLISH_NEW'" (click)="chooseOperation('PUBLISH_NEW')">
+                <b>Publicar novo anúncio</b><span>Cria uma nova publicação usando este produto.</span>
+              </button>
+              <button type="button" [class.selected]="operationMode === 'LINK_EXISTING'" (click)="chooseOperation('LINK_EXISTING')">
+                <b>Vincular anúncio existente</b><span>Compara o SKU remoto e registra divergências com motivo.</span>
+              </button>
             </div>
             <div class="variant-actions">
               <small>Selecionadas: {{ selectedVariantCount }}</small>
@@ -258,8 +305,8 @@
           <section
             id="wizard-section-category"
             class="editor-card section-card step-panel"
-            [class.step-panel--active]="currentStep === 'category'"
-            [class.step-panel--hidden]="currentStep !== 'category'"
+            [class.step-panel--active]="currentStep === 'content'"
+            [class.step-panel--hidden]="currentStep !== 'content'"
             [class.section-error]="publishInputInvalid"
           >
             <div class="section-heading">
@@ -613,6 +660,14 @@
         </div>
 
         <aside class="editor-side side-column">
+          <section class="editor-card preview-card">
+            <div class="section-heading"><h4>Pré-visualização</h4><span class="chip">Mercado Livre</span></div>
+            <div class="preview-product">
+              <img *ngIf="displayPrimaryImageUrl" [src]="displayPrimaryImageUrl" [alt]="displayProductName" />
+              <div><strong>{{ state.title || displayProductName }}</strong><b>{{ state.price ?? 0 | currency: 'BRL' }}</b></div>
+            </div>
+            <small>Frete: {{ shippingDisplay }}</small>
+          </section>
           <section
             id="wizard-section-pricing"
             class="editor-card section-card step-panel sidebar-card"
@@ -653,7 +708,7 @@
                 <small *ngIf="feesInputInvalid" class="field-hint field-hint-error">{{ feesInputInvalidMessage }}</small>
               </label>
               <label>
-                Custo de compra
+                Seu custo do produto
                 <input nbInput [value]="(effectiveProductCost ?? 0) | currency: 'BRL'" readonly />
               </label>
               <label>
@@ -685,6 +740,8 @@
               <p><span>Taxa de venda</span><strong>{{ estimate?.saleFee ?? 0 | currency: 'BRL' }}</strong></p>
               <p><span>Taxa fixa</span><strong>{{ estimate?.fixedFee ?? 0 | currency: 'BRL' }}</strong></p>
               <p><span>Taxas totais</span><strong>{{ estimate?.totalFees ?? 0 | currency: 'BRL' }}</strong></p>
+              <p><span>Frete</span><strong>{{ shippingDisplay }}</strong></p>
+              <p><span>Seu recebimento</span><strong>{{ (state.price ?? 0) - (estimate?.totalFees ?? 0) | currency: 'BRL' }}</strong></p>
               <p><span>Lucro estimado</span><strong>{{ estimate?.estimatedProfit ?? 0 | currency: 'BRL' }}</strong></p>
               <p><span>Margem</span><strong>{{ estimate?.marginPercent ?? 0 }}%</strong></p>
               <small class="estimate-source">{{ listingTypeHint }}</small>
@@ -706,12 +763,12 @@
           <section
             id="wizard-section-fiscal"
             class="editor-card section-card step-panel sidebar-card"
-            [class.step-panel--active]="currentStep === 'fiscal'"
-            [class.step-panel--hidden]="currentStep !== 'fiscal'"
-            [class.sidebar-card--focus]="currentStep === 'fiscal'"
+            [class.step-panel--active]="currentStep === 'pricing'"
+            [class.step-panel--hidden]="currentStep !== 'pricing'"
+            [class.sidebar-card--focus]="currentStep === 'pricing'"
             [class.section-error]="publishInputInvalid"
           >
-            <h4>Fiscal, envio e imagens</h4>
+            <h4>Produto base e mídia</h4>
             <div class="sidebar-summary">
               <p><span>GTIN</span><strong>{{ state.gtin || '-' }}</strong></p>
               <p><span>NCM</span><strong>{{ state.ncm || '-' }}</strong></p>
@@ -719,23 +776,9 @@
             </div>
             <div class="sidebar-details">
             <div class="form-grid">
-              <label>
-                GTIN
-                <input nbInput fullWidth [ngModel]="state.gtin" (ngModelChange)="state.gtin = $event; onFieldChanged()" />
-                <small *ngIf="gtinPrefillSourceLabel" class="field-hint">Prefill: {{ gtinPrefillSourceLabel }}</small>
-              </label>
-              <label>
-                Motivo sem GTIN
-                <input nbInput fullWidth [ngModel]="state.emptyGtinReason" (ngModelChange)="state.emptyGtinReason = $event; onFieldChanged()" />
-              </label>
-              <label>
-                NCM
-                <input nbInput fullWidth [ngModel]="state.ncm" (ngModelChange)="state.ncm = $event; onFieldChanged()" />
-              </label>
-              <label>
-                Origem
-                <input nbInput fullWidth [ngModel]="state.origin" (ngModelChange)="state.origin = $event; onFieldChanged()" />
-              </label>
+              <div class="master-readonly"><span>GTIN</span><strong>{{ state.gtin || 'Não cadastrado' }}</strong><small>Definido pelo catálogo</small></div>
+              <div class="master-readonly"><span>NCM</span><strong>{{ state.ncm || 'Não cadastrado' }}</strong><small>Definido pelo catálogo</small></div>
+              <div class="master-readonly"><span>Origem fiscal</span><strong>{{ state.origin || 'Não cadastrada' }}</strong><small>Definido pelo catálogo</small></div>
               <label>
                 Tipo de garantia
                 <select [ngModel]="state.warrantyType" (ngModelChange)="state.warrantyType = $event; onFieldChanged()">
@@ -770,8 +813,9 @@
               </button>
             </div>
             <small *ngIf="publishInputInvalid" class="field-hint field-hint-error">
-              Verifique GTIN/EMPTY_GTIN_REASON, NCM e origem antes de publicar novamente.
+              Dados fiscais são corrigidos no catálogo, nunca neste anúncio.
             </small>
+            <button *ngIf="snapshotIssues.length" nbButton status="warning" size="small" (click)="requestCatalogCorrection()">Solicitar correção</button>
 
             <div class="inline-row image-input-row">
               <input #imageUrl nbInput placeholder="URL da imagem" />
@@ -805,13 +849,26 @@
             [class.step-panel--hidden]="currentStep !== 'review'"
             [class.sidebar-card--focus]="currentStep === 'review'"
           >
-            <h4>Saude da publicacao</h4>
+            <h4>Checklist de publicação</h4>
             <div class="sidebar-summary">
               <p><span>Conclusao</span><strong>{{ checklistCompletionPercent }}%</strong></p>
               <p><span>Erros</span><strong>{{ severityErrors }}</strong></p>
             </div>
             <div class="sidebar-details">
 
+            <div class="checklist-group">
+              <div class="checklist-group-title"><div><strong>Produto base</strong><small>Dados administrados pelo PrometheusHUB</small></div><span class="catalog-lock">🔒 Catálogo</span></div>
+              <ul class="checklist compact">
+                <li [class.ok]="!!state.variantSku" [class.warn]="!state.variantSku"><span>{{ state.variantSku ? 'OK' : 'Pendente' }}</span><div><strong>SKU</strong><small>{{ state.variantSku || 'Não cadastrado' }}</small></div></li>
+                <li [class.ok]="isGtinOrReasonReady" [class.warn]="!isGtinOrReasonReady"><span>{{ isGtinOrReasonReady ? 'OK' : 'Pendente' }}</span><div><strong>GTIN</strong><small>{{ state.gtin || 'Corrigir no catálogo' }}</small></div></li>
+                <li [class.ok]="isNcmReady" [class.warn]="!isNcmReady"><span>{{ isNcmReady ? 'OK' : 'Pendente' }}</span><div><strong>NCM</strong><small>{{ state.ncm || 'Corrigir no catálogo' }}</small></div></li>
+                <li [class.ok]="!!catalogDetail?.qualityStatus?.dimensionsComplete" [class.warn]="!catalogDetail?.qualityStatus?.dimensionsComplete"><span>{{ catalogDetail?.qualityStatus?.dimensionsComplete ? 'OK' : 'Pendente' }}</span><div><strong>Peso e dimensões</strong><small>{{ catalogDetail?.qualityStatus?.dimensionsComplete ? 'Completos' : 'Corrigir no catálogo' }}</small></div></li>
+              </ul>
+              <button *ngIf="productBaseIssues.length || snapshotIssues.length" nbButton status="warning" size="small" (click)="requestCatalogCorrection()">Solicitar correção</button>
+            </div>
+
+            <div class="checklist-group">
+            <div class="checklist-group-title"><div><strong>Publicação Mercado Livre</strong><small>Dados que você pode ajustar aqui</small></div></div>
             <ul class="checklist">
               <li [class.ok]="isCategoryReady" [class.warn]="!isCategoryReady">
                 <span>{{ isCategoryReady ? 'OK' : 'Pendente' }}</span>
@@ -859,6 +916,8 @@
                 </div>
               </li>
             </ul>
+            <button *ngIf="publicationIssues.length" nbButton status="basic" size="small" (click)="focusIssue(publicationIssues[0])">Corrigir agora</button>
+            </div>
 
             <div class="issues-summary" *ngIf="issues.length > 0">
               <h5>Issues de validacao</h5>
@@ -875,9 +934,18 @@
               <small>{{ checklistCompletionPercent }}% completo</small>
             </div>
 
+            <div class="publish-result" *ngIf="lastPublishResult">
+              <small>Status: {{ lastPublishResult.status }}</small>
+              <small *ngIf="lastPublishResult.publishedItemId">Item: {{ lastPublishResult.publishedItemId }}</small>
+            </div>
+
+            </div>
+          </section>
+
+          <section class="editor-card wizard-navigation" aria-label="Ações da publicação">
             <div class="wizard-actions">
               <button nbButton status="basic" size="small" [disabled]="!hasPreviousStep" (click)="previousStep()">Anterior</button>
-              <button nbButton status="basic" size="small" [disabled]="!hasNextStep" (click)="nextStep()">Proximo</button>
+              <button nbButton status="basic" size="small" [disabled]="!hasNextStep" (click)="nextStep()">Próximo</button>
               <button nbButton status="info" size="small" [disabled]="!canValidate" (click)="validateDraft()">
                 {{ validating ? 'Validando...' : 'Validar' }}
               </button>
@@ -885,14 +953,7 @@
                 {{ publishing ? 'Publicando...' : 'Publicar no Mercado Livre' }}
               </button>
             </div>
-
-            <div class="publish-result" *ngIf="lastPublishResult">
-              <small>Status: {{ lastPublishResult.status }}</small>
-              <small *ngIf="lastPublishResult.publishedItemId">Item: {{ lastPublishResult.publishedItemId }}</small>
-            </div>
-
-            <span class="save-status">{{ saving ? 'Salvando draft...' : 'Draft salvo automaticamente' }}</span>
-            </div>
+            <span class="save-status">{{ saving ? 'Salvando rascunho...' : 'Rascunho salvo automaticamente' }}</span>
           </section>
         </aside>
       </div>
